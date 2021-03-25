@@ -1,0 +1,84 @@
+(* The grammar for the kore programming language in EBNF
+
+It is loosely based on the EBNF grammar for Go (https://golang.org/ref/spec).
+
+*)
+
+(* Grammar for the top-level source file *)
+SourceFile   = ModuleDecl { ImportDecl } { TopLevelDecl } .
+ModuleName   = Identifier .
+ModuleDecl   = "module" ModuleName .
+ModuleList   = Identifier { "," Identifier } .
+ImportDecl   = "import" ModuleName { "." ModuleName } [ "{" ModuleList "}" ] .
+TopLevelDecl = Declaration | Function .
+
+(* Statements *)
+Block          = "{" StatementList "}" .
+StatementList  = { Statement ";" } .
+Statement      = Declaration | SimpleStmt | IfStmt | ForStmt | Block | ReturnStmt .
+EmptyStmt      = .
+ReturnStmt     = "return" [ ExpressionList ] .
+ExpressionStmt = Expression .
+IncDecStmt     = ( "++" | "--" ) Expression .
+Assignment     = ExpressionList assign_op ExpressionList .
+assign_op      = [ add_op | mul_op ] "=" .
+IfStmt         = "if" [ SimpleStmt ] Block [ "else" ( IfStmt | Block ) ] .
+TypeAlias      = "type" Identifier "=" Type .
+VarDecl        = Identifier [ Type ] '=' Expression .
+Declaration    = TypeAlias | TypeDecl | VarDecl .
+
+(* Expressions *)
+ExpressionList = Expression { "," Expression } .
+Expression     = UnaryExpr | Expression binary_op Expression .
+UnaryExpr      = Operand .
+Operand        = Literal | OperandName | "(" Expression ")" .
+Literal        = IntLit | FloatLit | BinLit | HexLit | OctLit | BoolLit | FuncLit .
+binary_op      = "or" | "and" | rel_op | simple_op | mul_op .
+simple_op      = "+" | "-" | "*" | "/" .
+Struct         = "struct" "{" { FieldDecl ";" } "}" .
+
+QualifiedIdentifer = Identifier { "." Identifier } .
+
+(* Literals *)
+IntLit     = DecimalLit | BinaryLit | OctalLit | HexLit .
+DecimalLit = "0" | ( "1" … "9" ) [ [ "_" ] DecimalDigits ] .
+BinaryLit  = "0" ( "b" | "B" ) [ "_" ] BinaryDigits .
+OctalLit   = "0" [ "o" | "O" ] [ "_" ] OctalDigits .
+HexLit     = "0" ( "x" | "X" ) [ "_" ] HexDigits .
+
+DecimalDigits = DecimalDigit { [ "_" ] DecimalDigit } .
+BinaryDigits  = BinaryDigit { [ "_" ] BinaryDigit } .
+HexDigits     = HexDigit { [ "_" ] HexDigit } .
+OctalDigits   = OctalDigit { [ "_" ] OctalDigit } .
+
+DecimalDigit = "0" … "9" .
+BinaryDigit  = "0" | "1" .
+HexDigit     = DecimalDigit | "a" … "f" | "A" … "F" .
+OctalDigit   = "0" … "7" .
+
+BoolLit = "true" | "false" .
+FuncLit = .
+
+OperandName       = Identifier | QualifiedIdentifer | FuncPositionalArg .
+FuncPositionalArg = "@" ( FuncArgNum | "args" ) .
+FuncArgNum        = ( "1" … "9" ) { DecimalDigit } .
+
+letter     = "A" | "B" | "C" | "D" | "E" | "F" | "G"
+           | "H" | "I" | "J" | "K" | "L" | "M" | "N"
+           | "O" | "P" | "Q" | "R" | "S" | "T" | "U"
+           | "V" | "W" | "X" | "Y" | "Z" | "a" | "b"
+           | "c" | "d" | "e" | "f" | "g" | "h" | "i"
+           | "j" | "k" | "l" | "m" | "n" | "o" | "p"
+           | "q" | "r" | "s" | "t" | "u" | "v" | "w"
+           | "x" | "y" | "z"  .
+digit      = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" .
+Identifier = ( "_" | letter ) [ "_" | letter | digit ] .
+
+(* Functions *)
+Function      = [ "export" ] "func" FunctionName FuncSignature [ FunctionBody ] .
+FunctionName  = Identifier .
+FuncSignature = Parameters [ Type ] .
+Parameters    = "(" [ ParameterList ] ")" .
+ParameterList = ParameterDecl { "," ParameterDecl } .
+ParameterDecl = [ IdentifierList ] [ "..." ] Type .
+FunctionBody  = Block .
