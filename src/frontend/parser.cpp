@@ -46,7 +46,7 @@ Token* Parser::next_token() {
 bool Parser::expect_named_identifier(const std::string& name) {
     const Token* const token = current_token();
 
-    if (token->type() == TokenType::identifier && token->value() == name) {
+    if (token->is_identifier() && token->value() == name) {
         next_token();
 
         return true;
@@ -108,7 +108,7 @@ void Parser::parse_module() {
     if (expect_keyword(Keyword::Module)) {
         token = current_token();
 
-        if (token->type() == TokenType::identifier) {
+        if (token->is_identifier()) {
             set_module_name(token->value());
 
             _ast->add_statement(Statement::make_module_decl(token->value(), token->location()));
