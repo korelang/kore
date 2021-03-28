@@ -37,7 +37,19 @@ binary_op      = "or" | "and" | rel_op | simple_op | mul_op .
 simple_op      = "+" | "-" | "*" | "/" .
 Struct         = "struct" "{" { FieldDecl ";" } "}" .
 
+(* Identifiers *)
 QualifiedIdentifer = Identifier { "." Identifier } .
+IdentifierList     = Identifier { "," Identifier } .
+
+(* Arrays *)
+ArrayRangeLiteral = Expression ".." Expression .
+ArrayLiteral      = "[" [ ExpressionList ] "]" .
+ArrayFillLiteral  = "[" IntLit ":" Expression "]" .
+ArrayLit          = ArrayLiteral | ArrayRangeLiteral | ArrayFillLiteral .
+
+(* Sets *)
+SetRangeLiteral = "{" Expression ".." Expression "}" .
+SetLiteral      = "{" [ ExpressionList ] "}" .
 
 (* Literals *)
 IntLit     = DecimalLit | BinaryLit | OctalLit | HexLit .
