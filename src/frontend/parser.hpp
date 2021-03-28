@@ -22,9 +22,6 @@ class Parser final {
 
         bool failed() const noexcept;
 
-        /// Reason for why the parser failed
-        std::string fail_reason() const noexcept;
-
         std::string module_name() const;
 
         /// Parse a program in a string 
@@ -36,7 +33,6 @@ class Parser final {
     private:
         std::string _module_name;
         bool _failed;
-        ParserErrorNode* error_node;
         Scanner _scanner;
         Token _current_token;
         bool _did_peek;

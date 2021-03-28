@@ -7,24 +7,12 @@
 #include "operator.hpp"
 #include "parser.hpp"
 
-Parser::Parser() : _failed(false), error_node(nullptr), _did_peek(false) {}
+Parser::Parser() : _failed(false), _did_peek(false) {}
 
 Parser::~Parser() {}
 
 bool Parser::failed() const noexcept {
-    return _failed && error_node != nullptr;
-}
-
-std::string Parser::fail_reason() const noexcept {
-    if (error_node) {
-        std::ostringstream oss;
-
-        oss << error_node->message() << " at " << error_node->location();
-
-        return oss.str();
-    }
-
-    return "";
+    return _failed;
 }
 
 Token* Parser::current_token() {
@@ -111,11 +99,7 @@ std::string Parser::module_name() const {
 }
 
 Expression* Parser::make_parser_error(const std::string& msg) {
-    error_node = dynamic_cast<ParserErrorNode*>(
-        Expression::make_parser_error(msg, current_token()->location())
-    );
-
-    return error_node;
+    return Expression::make_parser_error(msg, current_token()->location());
 }
 
 void Parser::parse_module() {
