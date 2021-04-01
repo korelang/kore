@@ -32,7 +32,6 @@ ExpressionList = Expression { "," Expression } .
 Expression     = UnaryExpr | Expression binary_op Expression .
 UnaryExpr      = Operand .
 Operand        = Literal | OperandName | "(" Expression ")" .
-Literal        = IntLit | FloatLit | BinLit | HexLit | OctLit | BoolLit | FuncLit .
 binary_op      = "or" | "and" | rel_op | simple_op | mul_op .
 simple_op      = "+" | "-" | "*" | "/" .
 Struct         = "struct" "{" { FieldDecl ";" } "}" .
@@ -52,6 +51,7 @@ SetRangeLiteral = "{" Expression ".." Expression "}" .
 SetLiteral      = "{" [ ExpressionList ] "}" .
 
 (* Literals *)
+Literal    = IntLit | FloatLit | BinLit | HexLit | OctLit | BoolLit | ArrayLit | FuncLit .
 IntLit     = DecimalLit | BinaryLit | OctalLit | HexLit .
 DecimalLit = "0" | ( "1" … "9" ) [ [ "_" ] DecimalDigits ] .
 BinaryLit  = "0" ( "b" | "B" ) [ "_" ] BinaryDigits .
