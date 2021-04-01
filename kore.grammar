@@ -41,10 +41,10 @@ QualifiedIdentifer = Identifier { "." Identifier } .
 IdentifierList     = Identifier { "," Identifier } .
 
 (* Arrays *)
-ArrayRangeLiteral = Expression ".." Expression .
-ArrayLiteral      = "[" [ ExpressionList ] "]" .
-ArrayFillLiteral  = "[" IntLit ":" Expression "]" .
-ArrayLit          = ArrayLiteral | ArrayRangeLiteral | ArrayFillLiteral .
+ArrayRange = Expression ".." Expression .
+Array      = "[" [ ExpressionList ] "]" .
+ArrayFill  = "[" Expression ":" Expression "]" .
+ArrayDecl  = Array | ArrayRange | ArrayFill .
 
 (* Sets *)
 SetRangeLiteral = "{" Expression ".." Expression "}" .
