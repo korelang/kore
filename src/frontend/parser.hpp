@@ -3,12 +3,15 @@
 
 #include "ast/ast.hpp"
 #include "ast/expressions/expression.hpp"
+#include "ast/statements/function.hpp"
 #include "ast/statements/statement.hpp"
 #include "keywords.hpp"
 #include "scanner.hpp"
 #include "token.hpp"
 
 class ParserErrorNode;
+using IdentifierList = std::vector<Identifier*>;
+using ParameterList = std::vector<Identifier*>;
 
 /// The parser. Each parse method is annotated with a comment with the /
 /// particular part of the grammar that it handles. It is a recursive descent
@@ -38,12 +41,13 @@ class Parser final {
         bool _did_peek;
         Token _peek_token;
         Ast* _ast;
+        Function* _current_function;
 
-        Token* current_token();
+        const Token* current_token();
 
-        Token* peek_token();
+        const Token* peek_token();
 
-        Token* next_token();
+        const Token* next_token();
 
         bool expect_named_identifier(const std::string& name);
 
@@ -56,6 +60,7 @@ class Parser final {
         void set_module_name(const std::string& module_name);
 
         Expression* make_parser_error(const std::string& msg);
+        void add_statement(Statement* statement);
 
         /// Statement = Declaration | SimpleStmt | IfStmt | ForStmt | Block | ReturnStmt .
         Statement* parse_statement();
@@ -69,6 +74,8 @@ class Parser final {
 
         bool valid_declaration_start(const Token* const token);
 
+        bool valid_function_start(const Token* const token);
+
         void parse_declaration();
 
         ///
@@ -76,6 +83,26 @@ class Parser final {
 
         /// Function = [ "export" ] "func" FunctionName FuncSignature [ FunctionBody ] .
         void parse_function();
+
+        /// FuncSignature = Parameters [ Type ] .
+        void parse_function_signature(Function* const func);
+
+        /// Parameters = "(" [ ParameterList ] ")" .
+        void parse_function_parameters(Function* const func);
+
+        /// ParameterDecl = [ IdentifierList ] [ "..." ] Type .
+        bool parse_parameter_decl(Function* const func);
+
+        /// ParameterList = ParameterDecl { "," ParameterDecl } .
+        void parse_parameter_list(Function* const func);
+
+        /// IdentifierList = Identifier { "," Identifier } .
+        std::vector<Identifier*> parse_identifier_list();
+
+        /* Type* parse_type(); */
+
+        /// Block = "{" StatementList "}" .
+        void parse_block();
 
         /// int_lit = decimal_lit | binary_lit | octal_lit | hex_lit .
         Expression* parse_literal();

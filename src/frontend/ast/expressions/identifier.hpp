@@ -7,6 +7,7 @@
 
 class Identifier : public Expression {
     public:
+        Identifier(const Token& token);
         Identifier(const std::string& value, const Location& location);
         Identifier(const std::vector<std::string>& value, const Location& location);
         virtual ~Identifier();

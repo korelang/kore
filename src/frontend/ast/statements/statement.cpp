@@ -1,15 +1,20 @@
 #include "ast/expressions/expression.hpp"
-#include "ast/statements/statement.hpp"
+#include "ast/statements/function.hpp"
 #include "ast/statements/import_statement.hpp"
 #include "ast/statements/module_statement.hpp"
-#include "ast/statements/variable_declaration.hpp"
+#include "ast/statements/statement.hpp"
 #include "ast/statements/variable_assignment.hpp"
+#include "ast/statements/variable_declaration.hpp"
 
 Statement::Statement() : AstNode(Location::unknown) {}
 
 Statement::Statement(Location location) : AstNode(location) {}
 
 Statement::~Statement() {}
+
+Function* Statement::make_function(bool exported, const Token& func_name) {
+    return new Function(exported, func_name);
+}
 
 Statement* Statement::make_module_decl(const std::string& module_name, const Location& location) {
     return new ModuleStatement(module_name, location);

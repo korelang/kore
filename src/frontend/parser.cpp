@@ -16,10 +16,11 @@ bool Parser::failed() const noexcept {
 }
 
 Token* Parser::current_token() {
+const Token* Parser::current_token() {
     return &this->_current_token;
 }
 
-Token* Parser::peek_token() {
+const Token* Parser::peek_token() {
     if (!_did_peek) {
         _peek_token = _scanner.next_token();
         _did_peek = true;
@@ -28,7 +29,7 @@ Token* Parser::peek_token() {
     return &this->_peek_token;
 }
 
-Token* Parser::next_token() {
+const Token* Parser::next_token() {
     if (_did_peek) {
         _did_peek = false;
         _current_token = _peek_token;
@@ -94,6 +95,16 @@ void Parser::set_module_name(const std::string& module_name) {
     _module_name = module_name;
 }
 
+void Parser::add_statement(Statement* statement) {
+    // Add the statement to the current function we are parsing if there is
+    // one, otherwise add it to the top-level scope
+    if (_current_function) {
+        _current_function->add_statement(statement);
+    } else {
+        _ast->add_statement(statement);
+    }
+}
+
 std::string Parser::module_name() const {
     return _module_name;
 }
@@ -110,8 +121,7 @@ void Parser::parse_module() {
 
         if (token->is_identifier()) {
             set_module_name(token->value());
-
-            _ast->add_statement(Statement::make_module_decl(token->value(), token->location()));
+            add_statement(Statement::make_module_decl(token->value(), token->location()));
         } else {
             emit_parser_error("Module name must be an identifier");
         }
@@ -147,17 +157,21 @@ void Parser::parse_import_spec() {
         }
     } while (true);
 
-    _ast->add_statement(Statement::make_import_decl(import_spec, import_spec_loc));
+    add_statement(Statement::make_import_decl(import_spec, import_spec_loc));
 }
 
 bool Parser::valid_declaration_start(const Token* const token) {
+    return token->is_identifier();
+}
+
+bool Parser::valid_function_start(const Token* const token) {
     if (token->is_keyword()) {
         auto value = token->value();
 
-        return value == "export" || value == "func" || value == "type";
+        return value == "export" || value == "func";
     }
 
-    return token->is_identifier();
+    return false;
 }
 
 void Parser::parse_declaration() {
@@ -184,13 +198,13 @@ void Parser::parse_declaration() {
     token = next_token();
 
     if (!expect_token_type(TokenType::assign)) {
-        _ast->add_statement(Statement::make_variable_decl(identifier, type));
+        add_statement(Statement::make_variable_decl(identifier, type));
         return;
     }
 
     Expression* expr = parse_expression(operator_base_precedence());
 
-    _ast->add_statement(Statement::make_variable_assignment(identifier, type, expr));
+    add_statement(Statement::make_variable_assignment(identifier, type, expr));
 }
 
 /* void Parser::parse_if_statement() { */
@@ -221,6 +235,8 @@ void Parser::parse_toplevel() {
     while (token->type() != TokenType::eof) {
         if (valid_declaration_start(token)) {
             parse_declaration();
+        } else if (valid_function_start(token)) {
+            parse_function();
         } else {
             emit_parser_error("Expected a declaration");
             break;
@@ -231,26 +247,175 @@ void Parser::parse_toplevel() {
 }
 
 void Parser::parse_function() {
-    bool exported = expect_named_identifier("export");
+    bool exported = expect_keyword(Keyword::Export);
+    bool is_func = expect_keyword(Keyword::Func);
 
-    if (!expect_named_identifier("func")) {
-        emit_parser_error("Expected 'func'");
+    if (exported) {
+        if (!is_func) {
+            emit_parser_error("Expected 'func' after 'export' keyword");
+            next_token();
+            return;
+        }
+    } else if (!is_func) {
         return;
     }
 
-    const Token* token = current_token();
+    auto token = current_token();
 
     if (!token->is_identifier()) {
-        emit_parser_error("Expected identifier after 'func'");
+        emit_parser_error("Expected function name identifier after 'func'");
+        next_token();
         return;
     }
 
-    /* parse_function_parameters(); */
-    /* parse_function_return_type(); */
-    /* bool has_body = parse_function_body(); */
+    const Token func_name(*token);
+
+    next_token();
+
+    Function* func = Statement::make_function(exported, func_name);
+    parse_function_signature(func);
+    /* parse_type(); */
+
+    if (!func) {
+        // TODO: ?
+    }
+
+    // TODO: Can we use a local scope here instead?
+    _current_function = func;
+    parse_block();
+    _current_function = nullptr;
+
+    add_statement(func);
+}
+
+void Parser::parse_function_signature(Function* const func) {
+    if (expect_token_type(TokenType::lparen)) {
+        if (expect_token_type(TokenType::rparen)) {
+            // No parameters, just return
+            return;
+        }
+
+        parse_function_parameters(func);
+
+        /* Type* return_type = parse_type(); */
+    }
+}
+
+void Parser::parse_function_parameters(Function* const func) {
+    const Token* token = current_token();
+
+    if (token->is_identifier()) {
+        parse_parameter_list(func);
+    } else {
+        emit_parser_error(
+            "Expected identifier or ')' for function parameters, but got '%s'",
+            token->value().c_str()
+        );
+    }
+}
+
+bool Parser::parse_parameter_decl(Function* const func) {
+    auto token = current_token();
+
+    if (token->type() == TokenType::identifier) {
+        func->add_parameter(Expression::make_identifier(*token));
+        token = next_token();
+
+        if (token->is_type()) {
+            // TODO: Parse type
+            token = next_token();
+        }
+
+        if (token->type() == TokenType::comma) {
+            next_token();
+        } else if (token->type() == TokenType::rparen) {
+            return false;
+        } else {
+            emit_parser_error("Unexpected token '%s' in function parameter", token->type());
+            return false;
+        }
+    }
+
+    return true;
+}
+
+void Parser::parse_parameter_list(Function* const func) {
+    auto token = current_token();
+    Location loc = token->location();
+
+    while (!_scanner.eof() && parse_parameter_decl(func));
+
+    if (!expect_token_type(TokenType::rparen)) {
+        emit_parser_error("Expected ')' after function parameters");
+    }
+}
+
+    const Token* token = current_token();
+    Location loc = token->location();
+
+    do {
+        if (token->is_identifier()) {
+            func->add_parameter(Expression::make_identifier(*token));
+
+            /* Type* param_type = parse_type(); */
+            next_token();
+            token = current_token();
+
+            if (token->is_type()) {
+                // ...
+                next_token();
+
+                if (token->type() == TokenType::rparen) {
+                    break;
+                } else if (token->type() != TokenType::comma) {
+                    emit_parser_error("Expected ',' after function paramter");
+                    break;
+                }
+            } else if (token->type() == TokenType::comma) {
+                next_token();
+            } else if (token->type() == TokenType::rparen) {
+                break;
+            } else {
+                emit_parser_error("Unexpected token %s", token->type());
+            }
+
+            token = next_token();
+        } else {
+            emit_parser_error("Expected an identifier but got '%s'", token->value().c_str());
+            break;
+        }
+    } while (true);
+}
+
 
     /* _ast->add_statement(Statement::make_function()); */
 }
+void Parser::parse_block() {
+    if (expect_token_type(TokenType::lbrace)) {
+        while (valid_declaration_start(current_token())) {
+            // TODO: Add statements to the function, not the top-level AST
+            parse_declaration();
+        }
+
+        if (!expect_token_type(TokenType::rbrace)) {
+            emit_parser_error("Expected '}' to close block");
+        }
+    }
+}
+
+/* Type* Parser::parse_type() { */
+/*     const Token* token = current_token(); */
+
+/*     if (token->is_type()) { */
+/*         // TODO: Return some type here */
+/*     } else { */
+/*         emit_parser_error( */
+/*             "Expected type but got an %s with value '%s'", */
+/*             token->type(), */
+/*             token->value().c_str() */
+/*         ); */
+/*     } */
+/* } */
 Expression* Parser::parse_literal() {
     const Token* token = current_token();
     Expression* result = nullptr;
