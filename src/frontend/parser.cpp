@@ -57,7 +57,7 @@ bool Parser::expect_named_identifier(const std::string& name) {
 }
 
 bool Parser::expect_keyword(const Keyword& keyword) {
-    const Token* const token = current_token();
+    auto const token = current_token();
 
     if (token->type() == TokenType::keyword && (token->value() == "module" || token->value() == "import")) {
         next_token();
@@ -114,7 +114,7 @@ Expression* Parser::make_parser_error(const std::string& msg) {
 }
 
 void Parser::parse_module() {
-    const Token* token = current_token();
+    auto token = current_token();
 
     if (expect_keyword(Keyword::Module)) {
         token = current_token();
@@ -161,12 +161,7 @@ bool Parser::valid_function_start(const Token* const token) {
 }
 
 void Parser::parse_declaration() {
-    const Token* token = current_token();
-
-    /* if (token->is_keyword() && token->value() == "type") { */
-    /*     parse_type_alias(); */
-    /*     return; */
-    /* } */
+    auto token = current_token();
 
     if (!token->is_identifier()) {
         return;
@@ -216,7 +211,7 @@ void Parser::parse_toplevel() {
         parse_import_decl();
     }
 
-    const Token* token = current_token();
+    auto token = current_token();
 
     while (token->type() != TokenType::eof) {
         if (valid_declaration_start(token)) {
@@ -403,7 +398,7 @@ void Parser::parse_block() {
 /*     } */
 /* } */
 Expression* Parser::parse_literal() {
-    const Token* token = current_token();
+    auto token = current_token();
     Expression* result = nullptr;
 
     switch (token->type()) {
@@ -448,7 +443,7 @@ Expression* Parser::parse_literal() {
 
 Expression* Parser::parse_maybe_qualified_identifier() {
     std::vector<std::string> identifier;
-    const Token* token = current_token();
+    auto token = current_token();
     Location loc = token->location();
 
     do {
@@ -531,7 +526,7 @@ Expression* Parser::parse_expression(int precedence) {
     }
 
     while (true) {
-        const Token* token = current_token();
+        auto token = current_token();
 
         if (token->category() != TokenCategory::bin_op) {
             return left;
