@@ -121,7 +121,7 @@ void Parser::parse_module() {
 
         if (token->is_identifier()) {
             set_module_name(token->value());
-            add_statement(Statement::make_module_decl(token->value(), token->location()));
+            add_statement(Statement::make_module_decl(*token));
         } else {
             emit_parser_error("Module name must be an identifier");
         }
@@ -137,27 +137,13 @@ void Parser::parse_import_decl() {
 }
 
 void Parser::parse_import_spec() {
-    std::string import_spec;
-    const Token* token = current_token();
-    Location import_spec_loc = token->location();
+    if (current_token()->type() != TokenType::identifier) {
+        emit_parser_error("Expected an identifier after 'import' keyword");
+        return;
+    }
 
-    do {
-        if (token->is_identifier()) {
-            import_spec += token->value();
-            token = next_token();
-
-            if (token->type() != TokenType::dot) {
-                break;
-            }
-
-            token = next_token();
-        } else {
-            emit_parser_error("Expected an identifier after 'import' keyword");
-            break;
-        }
-    } while (true);
-
-    add_statement(Statement::make_import_decl(import_spec, import_spec_loc));
+    Identifier* module_name = parse_maybe_qualified_identifier();
+    add_statement(Statement::make_import_decl(module_name));
 }
 
 bool Parser::valid_declaration_start(const Token* const token) {

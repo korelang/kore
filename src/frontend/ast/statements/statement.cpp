@@ -1,4 +1,5 @@
 #include "ast/expressions/expression.hpp"
+#include "ast/expressions/identifier.hpp"
 #include "ast/statements/function.hpp"
 #include "ast/statements/import_statement.hpp"
 #include "ast/statements/module_statement.hpp"
@@ -22,6 +23,8 @@ Statement* Statement::make_module_decl(const std::string& module_name, const Loc
 
 Statement* Statement::make_import_decl(const std::string& import_spec, const Location& location) {
     return new ImportStatement(import_spec, location);
+Statement* Statement::make_import_decl(Identifier* import_spec) {
+    return new ImportStatement(import_spec);
 }
 
 Statement* Statement::make_variable_decl(const Token& identifier, const Token& type) {

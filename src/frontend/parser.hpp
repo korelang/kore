@@ -109,6 +109,8 @@ class Parser final {
 
         Expression* parse_maybe_qualified_identifier();
 
+        Identifier* parse_maybe_qualified_identifier();
+
         Expression* parse_parenthesised_expression();
 
         /// UnaryExpr = UnaryOp UnaryExpr .

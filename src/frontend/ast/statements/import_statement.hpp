@@ -5,11 +5,11 @@
 #include "token.hpp"
 
 class AstWriter;
+class Identifier;
 
 class ImportStatement : public Statement {
     public:
-        ImportStatement(const Token& token);
-        ImportStatement(const std::string& import_spec, const Location& location);
+        ImportStatement(Identifier* import_spec);
         virtual ~ImportStatement();
 
         /// The imported spec e.g. 'system.env'
@@ -18,7 +18,7 @@ class ImportStatement : public Statement {
         void write(AstWriter* const writer) override;
 
     private:
-        std::string _spec;
+        std::unique_ptr<Identifier> _spec;
 };
 
 #endif // KORE_IMPORT_STATEMENT_HPP

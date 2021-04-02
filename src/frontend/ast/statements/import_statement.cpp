@@ -1,23 +1,20 @@
 #include "ast/ast_writer.hpp"
 #include "ast/statements/import_statement.hpp"
+#include "ast/expressions/identifier.hpp"
 
-ImportStatement::ImportStatement(const Token& token)
-    : ImportStatement(token.value(), token.location()) {
-}
-
-ImportStatement::ImportStatement(const std::string& import_spec, const Location& location)
-    : Statement(location),
-      _spec(import_spec) {
+ImportStatement::ImportStatement(Identifier* import_spec)
+    : Statement(Location::unknown),
+      _spec(std::move(import_spec)) {
 }
 
 ImportStatement::~ImportStatement() {}
 
 std::string ImportStatement::spec() const {
-    return _spec;
+    return _spec->qualified_name();
 }
 
 void ImportStatement::write(AstWriter* const writer) {
     writer->write("import ");
-    writer->write(_spec);
+    _spec->write(writer);
     writer->newline();
 }
