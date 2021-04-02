@@ -1,6 +1,5 @@
 #include <iostream>
 #include <sstream>
-#include <vector>
 
 #include "ast/parser_error_node.hpp"
 #include "logging.hpp"
@@ -190,7 +189,6 @@ void Parser::parse_declaration() {
 
 /* void Parser::parse_if_statement() { */
 /*     if (expect_keyword(Keyword::If)) { */
-
 /*     } */
 /* } */
 
@@ -222,8 +220,6 @@ void Parser::parse_toplevel() {
             emit_parser_error("Expected a declaration");
             break;
         }
-
-        /* token = next_token(); */
     }
 }
 
@@ -250,7 +246,6 @@ void Parser::parse_function() {
     }
 
     const Token func_name(*token);
-
     next_token();
 
     Function* func = Statement::make_function(exported, func_name);
@@ -258,7 +253,7 @@ void Parser::parse_function() {
     /* parse_type(); */
 
     if (!func) {
-        // TODO: ?
+        // TODO
     }
 
     // TODO: Can we use a local scope here instead?
@@ -397,6 +392,7 @@ void Parser::parse_block() {
 /*         ); */
 /*     } */
 /* } */
+
 Expression* Parser::parse_literal() {
     auto token = current_token();
     Expression* result = nullptr;
@@ -560,10 +556,7 @@ void Parser::parse_file(const std::string& path, Ast* ast) {
         _ast = ast;
         next_token();
         parse_toplevel();
-
         _ast = nullptr;
-
-        /* return Ast(parse_toplevel()); */
     }
 
     /* return Ast(nullptr); */
