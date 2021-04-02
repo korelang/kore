@@ -1,5 +1,5 @@
 #include "keywords.hpp"
-#include <set>
+#include <map>
 
 /* A 1 in the table indicates that this ASCII character is the first character
  * in some keyword, 0 means that it is not.
@@ -10,37 +10,38 @@ const int _KEYWORD_FIRST_CHAR_TABLE[] = {
     0, 1, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0,
 };
 
-std::set<std::string> _KEYWORDS{
-    "bool",
-    "byte",
-    "export",
-    "enum",
-    "f32",
-    "f64",
-    "false",
-    "for",
-    "func",
-    "i8",
-    "i16",
-    "i32",
-    "i64",
-    "if",
-    "import",
-    "in",
-    "is",
-    "match",
-    "module",
-    "None",
-    "Some",
-    "str",
-    "struct",
-    "true",
-    "try",
-    "type",
-    "u8",
-    "u16",
-    "u32",
-    "u64",
+std::map<std::string, Keyword> _STRING_TO_KEYWORDS{
+    {"bool",   Keyword::Bool},
+    {"byte",   Keyword::Byte},
+    {"char",   Keyword::Char},
+    {"export", Keyword::Export},
+    {"enum",   Keyword::Enum},
+    {"f32",    Keyword::F32},
+    {"f64",    Keyword::F64},
+    {"false",  Keyword::False},
+    {"for",    Keyword::For},
+    {"func",   Keyword::Func},
+    {"i8",     Keyword::I8},
+    {"i16",    Keyword::I16},
+    {"i32",    Keyword::I32},
+    {"i64",    Keyword::I64},
+    {"if",     Keyword::If},
+    {"import", Keyword::Import},
+    {"in",     Keyword::In},
+    {"is",     Keyword::Is},
+    {"match",  Keyword::Match},
+    {"module", Keyword::Module},
+    {"None",   Keyword::None},
+    {"Some",   Keyword::Some},
+    {"str",    Keyword::Str},
+    {"struct", Keyword::Struct},
+    {"true",   Keyword::True},
+    {"try",    Keyword::Try},
+    {"type",   Keyword::Type},
+    {"u8",     Keyword::U8},
+    {"u16",    Keyword::U16},
+    {"u32",    Keyword::U32},
+    {"u64",    Keyword::U64},
 };
 
 bool is_keyword(const std::string& identifier) {
@@ -49,9 +50,13 @@ bool is_keyword(const std::string& identifier) {
 
     if (idx >= 0) {
         if (_KEYWORD_FIRST_CHAR_TABLE[idx]) {
-            return _KEYWORDS.count(identifier);
+            return _STRING_TO_KEYWORDS.count(identifier);
         }
     }
 
     return false;
+}
+
+Keyword keyword_from_string(const std::string& value) {
+    return _STRING_TO_KEYWORDS[value];
 }

@@ -6,6 +6,7 @@
 
 #include "integer_format.hpp"
 #include "internal_value_types.hpp"
+#include "keywords.hpp"
 #include "location.hpp"
 #include "operator.hpp"
 #include "token_type.hpp"
@@ -30,12 +31,14 @@ class Token final {
         bool is_identifier() const noexcept;
         bool is_keyword() const noexcept;
         bool is_type() const noexcept;
+        bool is_boolean_keyword() const noexcept;
 
         void as_keyword();
 
         i32 int_value() const;
         f32 float_value() const;
         std::string string_value() const;
+        Keyword keyword() const;
         std::string op() const;
         bool is_op() const noexcept;
 
@@ -75,10 +78,12 @@ class Token final {
             i32 integer;
             f32 float32;
             /* f64 float64; */
+            Keyword keyword;
 
-            // Union does not contain PODs only so these are deleted and must
-            // be explicitly defined
+            // Union does not contain PODs only so the default constructor
+            // is deleted and must be explicitly defined
             TokenValue() : str() {}
+
             ~TokenValue() {}
         };
 

@@ -15,6 +15,8 @@ Token::Token(const Token& token)
         _internal_value.integer = token.int_value();
     } else if (_type == TokenType::floatp) {
         _internal_value.float32 = token.float_value();
+    } else if (_type == TokenType::keyword) {
+        _internal_value.keyword = token.keyword();
     } else {
         _internal_value.str = token.string_value();
     }
@@ -44,6 +46,8 @@ Token& Token::operator=(const Token& token) {
         _internal_value.integer = token.int_value();
     } else if (_type == TokenType::floatp) {
         _internal_value.float32 = token.float_value();
+    } else if (_type == TokenType::keyword) {
+        _internal_value.keyword = token.keyword();
     } else {
         _internal_value.str = token.string_value();
     }
@@ -76,12 +80,20 @@ bool Token::is_keyword() const noexcept {
 }
 
 bool Token::is_type() const noexcept {
+bool Token::is_boolean_keyword() const noexcept {
+    if (type() == TokenType::keyword) {
+        auto kw = keyword();
+
+        return kw == Keyword::True || kw == Keyword::False;
+    }
+
     return false;
 }
 
 void Token::as_keyword() {
     if (type() == TokenType::identifier) {
         _type = TokenType::keyword;
+        _internal_value.keyword = keyword_from_string(value());
     }
 }
 
@@ -95,6 +107,10 @@ f32 Token::float_value() const {
 
 std::string Token::string_value() const {
     return _internal_value.str;
+}
+
+Keyword Token::keyword() const {
+    return _internal_value.keyword;
 }
 
 std::string Token::op() const {
@@ -158,6 +174,8 @@ Token Token::make_token(
 
     if (type == TokenType::floatp) {
         token._internal_value.float32 = std::stof(value);
+    } else if (type == TokenType::keyword) {
+        token._internal_value.keyword = keyword_from_string(value);
     }
 
     return token;

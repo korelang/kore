@@ -38,4 +38,6 @@ enum class Keyword {
 
 bool is_keyword(const std::string& identifier);
 
+Keyword keyword_from_string(const std::string& value);
+
 #endif // KORE_KEYWORDS_HPP

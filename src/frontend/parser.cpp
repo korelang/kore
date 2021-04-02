@@ -58,9 +58,8 @@ bool Parser::expect_named_identifier(const std::string& name) {
 bool Parser::expect_keyword(const Keyword& keyword) {
     auto const token = current_token();
 
-    if (token->type() == TokenType::keyword && (token->value() == "module" || token->value() == "import")) {
+    if (token->is_keyword() && token->keyword() == keyword) {
         next_token();
-
         return true;
     }
 
@@ -415,7 +414,7 @@ Expression* Parser::parse_literal() {
             break;
 
         case TokenType::keyword:
-            if (token->value() == "true" || token->value() == "false") {
+            if (token->is_boolean_keyword()) {
                 result = Expression::make_bool_literal(token->value(), token->location());
             } else {
                 result = Expression::make_parser_error(
