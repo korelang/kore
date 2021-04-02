@@ -21,8 +21,10 @@ Statement* Statement::make_module_decl(const std::string& module_name, const Loc
     return new ModuleStatement(module_name, location);
 }
 
-Statement* Statement::make_import_decl(const std::string& import_spec, const Location& location) {
-    return new ImportStatement(import_spec, location);
+Statement* Statement::make_module_decl(const Token& token) {
+    return new ModuleStatement(token);
+}
+
 Statement* Statement::make_import_decl(Identifier* import_spec) {
     return new ImportStatement(import_spec);
 }
