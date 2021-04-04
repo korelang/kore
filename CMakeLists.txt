@@ -8,6 +8,8 @@ set(BASE_SOURCES
     src/frontend/ast/ast_node.cpp
     src/frontend/ast/ast_writer.cpp
     src/frontend/ast/ast_stream_writer.cpp
+
+    # Expressions
     src/frontend/ast/parser_error_node.cpp
     src/frontend/ast/expressions/array_fill_expression.cpp
     src/frontend/ast/expressions/array_expression.cpp
@@ -22,6 +24,7 @@ set(BASE_SOURCES
     src/frontend/ast/expressions/string_expression.cpp
     src/frontend/ast/expressions/unary_expression.cpp
 
+    # Statements
     src/frontend/ast/statements/statement.cpp
     src/frontend/ast/statements/function.cpp
     src/frontend/ast/statements/import_statement.cpp
