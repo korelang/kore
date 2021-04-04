@@ -14,6 +14,7 @@ class IntegerExpression;
 class Identifier;
 
 enum class ExpressionType {
+    array,
     binary,
     error,
     identifier,
@@ -42,6 +43,9 @@ class Expression : public AstNode {
         /* Statement* as_statement() const; */
 
         static Expression* make_parser_error(const std::string& msg, const Location&);
+        static Expression* make_array_fill(Expression*, Expression*, const Location&);
+        static Expression* make_empty_array();
+        static Expression* make_array_range(Expression*, Expression*, const Location&);
         static Expression* make_bool_literal(const std::string&, const Location&);
         static Expression* make_int_literal(i32, const Location&);
         static Expression* make_float_literal(f32, const Location&);

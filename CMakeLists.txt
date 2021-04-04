@@ -9,6 +9,9 @@ set(BASE_SOURCES
     src/frontend/ast/ast_writer.cpp
     src/frontend/ast/ast_stream_writer.cpp
     src/frontend/ast/parser_error_node.cpp
+    src/frontend/ast/expressions/array_fill_expression.cpp
+    src/frontend/ast/expressions/array_expression.cpp
+    src/frontend/ast/expressions/array_range_expression.cpp
     src/frontend/ast/expressions/binary_expression.cpp
     src/frontend/ast/expressions/bool_expression.cpp
     src/frontend/ast/expressions/char_expression.cpp

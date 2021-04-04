@@ -19,6 +19,9 @@ const static std::map<std::string, int> _OPERATOR_PRECEDENCE_MAP{
     {"<", 1},
     {"<=", 1},
 
+    // Range
+    {"..", 1},
+
     // Arithmetic
     {"+", 2},
     {"-", 2},

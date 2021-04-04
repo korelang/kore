@@ -2,6 +2,7 @@
 #define KORE_PARSER_HPP
 
 #include "ast/ast.hpp"
+#include "ast/expressions/array_expression.hpp"
 #include "ast/expressions/expression.hpp"
 #include "ast/statements/function.hpp"
 #include "ast/statements/statement.hpp"
@@ -108,6 +109,23 @@ class Parser final {
         Expression* parse_literal();
 
         Expression* parse_maybe_qualified_identifier();
+        /// ArrayDecl = Array | ArrayRange | ArrayFill .
+        Expression* parse_array(const Token* const lbracket_token);
+
+        /// ArrayFill = "[" Expression ":" Expression "]" .
+        Expression* parse_array_fill_expression(
+            const Token* const lbracket_token,
+            Expression* size_expr
+        );
+
+        /// Array = "[" [ ExpressionList ] "]" .
+        Expression* parse_normal_array_expression(
+            const Token* const lbracket_token,
+            Expression* first_expr
+        );
+
+        /// ArrayRange = Expression ".." Expression .
+        Expression* parse_array_range_expression(const Token* const lbracket_token);
 
         Identifier* parse_maybe_qualified_identifier();
 

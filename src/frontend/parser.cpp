@@ -424,6 +424,10 @@ Expression* Parser::parse_literal() {
             }
             break;
 
+        case TokenType::lbracket:
+            result = parse_array(token);
+            break;
+
         default:
             result = Expression::make_parser_error("Expected literal token type", token->location());
             break;
@@ -437,6 +441,72 @@ Expression* Parser::parse_literal() {
 }
 
 Expression* Parser::parse_maybe_qualified_identifier() {
+Expression* Parser::parse_array(const Token* const lbracket_token) {
+    next_token();
+    auto first_expr = parse_expression(operator_base_precedence());
+    Expression* result = nullptr;
+
+    if (expect_token_type(TokenType::colon)) {
+        result = parse_array_fill_expression(lbracket_token, first_expr);
+    } else if (expect_token_type(TokenType::comma)) {
+        result = parse_normal_array_expression(lbracket_token, first_expr);
+    } else {
+        emit_parser_error("Expected ':' or ',' in array literal");
+    }
+
+    return result;
+}
+
+Expression* Parser::parse_array_fill_expression(
+    const Token* const lbracket_token,
+    Expression* size_expr
+) {
+    Expression* fill_expr = parse_expression(operator_base_precedence());
+
+    if (!expect_token_type(TokenType::rbracket)) {
+        return make_parser_error("Expected ']' after array fill expression");
+    }
+
+    return Expression::make_array_fill(size_expr, fill_expr, lbracket_token->location());
+}
+
+Expression* Parser::parse_normal_array_expression(
+    const Token* const lbracket_token,
+    Expression* first_elem_expr
+) {
+    ArrayExpression* array_expr = dynamic_cast<ArrayExpression*>(Expression::make_empty_array());
+    array_expr->add_element(first_elem_expr);
+
+    while (!_scanner.eof()) {
+        array_expr->add_element(parse_expression(operator_base_precedence()));
+
+        if (expect_token_type(TokenType::rbracket)) {
+            break;
+        } else if (!expect_token_type(TokenType::comma)) {
+            array_expr->add_element(make_parser_error("Expected ',' after array element expression"));
+
+            return array_expr;
+        }
+    }
+
+    array_expr->set_end_location(current_token()->location());
+
+    return array_expr;
+}
+
+Expression* Parser::parse_array_range_expression(const Token* const lbracket_token) {
+    int base_precedence = operator_base_precedence();
+    auto start_expr = parse_expression(base_precedence);
+
+    if (!expect_token_type(TokenType::range)) {
+        return make_parser_error("Expected range '..' in array range expression");
+    }
+
+    auto end_expr = parse_expression(base_precedence);
+
+    return Expression::make_array_range(start_expr, end_expr, lbracket_token->location());
+}
+
     std::vector<std::string> identifier;
     auto token = current_token();
     Location loc = token->location();
@@ -540,7 +610,11 @@ Expression* Parser::parse_expression(int precedence) {
 
         auto right = parse_expression(right_precedence);
 
-        left = Expression::make_binary(op, left, right, binop_location);
+        if (op == "..") {
+            left = Expression::make_array_range(left, right, binop_location);
+        } else {
+            left = Expression::make_binary(op, left, right, binop_location);
+        }
     }
 
     return left;

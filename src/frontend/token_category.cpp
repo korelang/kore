@@ -26,6 +26,7 @@ TokenCategory token_category_from_type(TokenType type) {
         case TokenType::mult:
         case TokenType::not_equal:
         case TokenType::plus:
+        case TokenType::range:
             return TokenCategory::bin_op;
 
         default:
