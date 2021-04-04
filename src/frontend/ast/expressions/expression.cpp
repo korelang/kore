@@ -85,11 +85,11 @@ Identifier* Expression::make_identifier(const Token& token) {
     /* return Expression::make_identifier(token.value(), token.location()); */
 }
 
-Expression* Expression::make_identifier(const std::string& str, const Location& location) {
+Identifier* Expression::make_identifier(const std::string& str, const Location& location) {
     return new Identifier(str, location);
 }
 
-Expression* Expression::make_identifier(const std::vector<std::string>& parts, const Location& location) {
+Identifier* Expression::make_identifier(const std::vector<std::string>& parts, const Location& location) {
     return new Identifier(parts, location);
 }
 

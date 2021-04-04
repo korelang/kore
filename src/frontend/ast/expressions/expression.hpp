@@ -52,8 +52,8 @@ class Expression : public AstNode {
         static Expression* make_char_literal(i32, const Location&);
         static Expression* make_string_literal(const std::string&, const Location&);
         static Identifier* make_identifier(const Token&);
-        static Expression* make_identifier(const std::string&, const Location&);
-        static Expression* make_identifier(const std::vector<std::string>&, const Location&);
+        static Identifier* make_identifier(const std::string&, const Location&);
+        static Identifier* make_identifier(const std::vector<std::string>&, const Location&);
         static Expression* make_unary(const std::string& op, Expression*, const Location&);
         static Expression* make_binary(const std::string& op, Expression*, Expression*, const Location&);
 
