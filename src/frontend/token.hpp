@@ -36,7 +36,7 @@ class Token final {
         void as_keyword();
 
         i32 int_value() const;
-        f32 float_value() const;
+        f32 float32_value() const;
         std::string string_value() const;
         Keyword keyword() const;
         std::string op() const;

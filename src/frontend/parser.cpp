@@ -402,7 +402,7 @@ Expression* Parser::parse_literal() {
             break;
 
         case TokenType::floatp:
-            result = Expression::make_float_literal(token->float_value(), token->location());
+            result = Expression::make_float_literal(token->float32_value(), token->location());
             break;
 
         case TokenType::character:

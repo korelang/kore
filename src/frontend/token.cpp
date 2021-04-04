@@ -14,7 +14,7 @@ Token::Token(const Token& token)
     if (_type == TokenType::integer) {
         _internal_value.integer = token.int_value();
     } else if (_type == TokenType::floatp) {
-        _internal_value.float32 = token.float_value();
+        _internal_value.float32 = token.float32_value();
     } else if (_type == TokenType::keyword) {
         _internal_value.keyword = token.keyword();
     } else {
@@ -45,7 +45,7 @@ Token& Token::operator=(const Token& token) {
     if (_type == TokenType::integer) {
         _internal_value.integer = token.int_value();
     } else if (_type == TokenType::floatp) {
-        _internal_value.float32 = token.float_value();
+        _internal_value.float32 = token.float32_value();
     } else if (_type == TokenType::keyword) {
         _internal_value.keyword = token.keyword();
     } else {
@@ -101,7 +101,7 @@ i32 Token::int_value() const {
     return _internal_value.integer;
 }
 
-f32 Token::float_value() const {
+f32 Token::float32_value() const {
     return _internal_value.float32;
 }
 
