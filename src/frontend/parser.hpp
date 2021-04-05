@@ -26,6 +26,7 @@ class Parser final {
         virtual ~Parser();
 
         bool failed() const noexcept;
+        int error_count() const noexcept;
 
         std::string module_name() const;
 
@@ -38,6 +39,7 @@ class Parser final {
     private:
         std::string _module_name;
         bool _failed;
+        int _error_count;
         Scanner _scanner;
         Token _current_token;
         bool _did_peek;

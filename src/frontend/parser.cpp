@@ -6,7 +6,7 @@
 #include "operator.hpp"
 #include "parser.hpp"
 
-Parser::Parser() : _failed(false), _did_peek(false) {}
+Parser::Parser() : _failed(false), _error_count(0), _did_peek(false) {}
 
 Parser::~Parser() {}
 
@@ -14,7 +14,10 @@ bool Parser::failed() const noexcept {
     return _failed;
 }
 
-Token* Parser::current_token() {
+int Parser::error_count() const noexcept {
+    return _error_count;
+}
+
 const Token* Parser::current_token() {
     return &this->_current_token;
 }
@@ -80,6 +83,7 @@ bool Parser::expect_token_type(const TokenType& token_type) {
 
 void Parser::emit_parser_error(const char* const format, ...) {
     _failed = true;
+    ++_error_count;
 
     /* const std::string error = format_error("", _scanner.current_line(), current_token()->location()); */
 
