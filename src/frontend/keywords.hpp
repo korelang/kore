@@ -6,6 +6,7 @@
 enum class Keyword {
     Bool,
     Byte,
+    Char,
     Export,
     Enum,
     F32,
