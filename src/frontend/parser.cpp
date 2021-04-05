@@ -70,11 +70,19 @@ bool Parser::expect_keyword(const Keyword& keyword) {
 }
 
 bool Parser::expect_token_type(const TokenType& token_type) {
+    if (current_token()->type() == token_type) {
+        next_token();
+        return true;
+    }
+
+    return false;
+}
+
+bool Parser::expect_type(const std::string& name) {
     const Token* const token = current_token();
 
-    if (token->type() == token_type) {
+    if (token->type() == TokenType::keyword && token->value() == name) {
         next_token();
-
         return true;
     }
 

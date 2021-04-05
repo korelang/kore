@@ -59,6 +59,8 @@ class Parser final {
 
         bool expect_token_type(const TokenType& token_type);
 
+        bool expect_type(const std::string& name);
+
         void emit_parser_error(const char* const format, ...);
 
         void set_module_name(const std::string& module_name);
