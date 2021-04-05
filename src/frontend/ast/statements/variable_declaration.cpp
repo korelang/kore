@@ -24,8 +24,10 @@ std::string VariableDeclaration::type() const {
 }
 
 void VariableDeclaration::write(AstWriter* const writer) {
+    writer->write("variable_declaration<");
     writer->write(identifier());
     writer->write(" ");
     writer->write(type());
+    writer->write(">");
     writer->newline();
 }
