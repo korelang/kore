@@ -13,6 +13,8 @@ void info_group(const std::string& group, const char* const format, ...);
 
 void warn(const char* const format, ...);
 
+void warn_group(const std::string& group, const char* const format, ...);
+
 void error(const char* const format, ...);
 
 void error_group(const std::string& group, const char* const format, ...);

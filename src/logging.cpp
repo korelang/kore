@@ -61,6 +61,13 @@ void warn(const char* const format, ...) {
     va_end(args);
 }
 
+void warn_group(const std::string& group, const char* const format, ...) {
+    va_list args;
+    va_start(args, format);
+    output("warn", group, "\x1b[33;1;93m", true, format, args);
+    va_end(args);
+}
+
 void error(const char* const format, ...) {
     va_list args;
     va_start(args, format);
