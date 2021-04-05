@@ -4,6 +4,7 @@
 #include "ast/ast.hpp"
 #include "ast/expressions/array_expression.hpp"
 #include "ast/expressions/expression.hpp"
+#include "ast/expressions/identifier.hpp"
 #include "ast/statements/function.hpp"
 #include "ast/statements/statement.hpp"
 #include "keywords.hpp"
@@ -108,7 +109,6 @@ class Parser final {
         /// int_lit = decimal_lit | binary_lit | octal_lit | hex_lit .
         Expression* parse_literal();
 
-        Expression* parse_maybe_qualified_identifier();
         /// ArrayDecl = Array | ArrayRange | ArrayFill .
         Expression* parse_array(const Token* const lbracket_token);
 

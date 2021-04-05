@@ -440,7 +440,6 @@ Expression* Parser::parse_literal() {
     return result;
 }
 
-Expression* Parser::parse_maybe_qualified_identifier() {
 Expression* Parser::parse_array(const Token* const lbracket_token) {
     next_token();
     auto first_expr = parse_expression(operator_base_precedence());
@@ -507,6 +506,7 @@ Expression* Parser::parse_array_range_expression(const Token* const lbracket_tok
     return Expression::make_array_range(start_expr, end_expr, lbracket_token->location());
 }
 
+Identifier* Parser::parse_maybe_qualified_identifier() {
     std::vector<std::string> identifier;
     auto token = current_token();
     Location loc = token->location();
