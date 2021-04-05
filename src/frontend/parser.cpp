@@ -120,6 +120,8 @@ std::string Parser::module_name() const {
 }
 
 Expression* Parser::make_parser_error(const std::string& msg) {
+    emit_parser_error(msg.c_str());
+
     return Expression::make_parser_error(msg, current_token()->location());
 }
 
