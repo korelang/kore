@@ -14,6 +14,7 @@ class Identifier : public Expression {
 
         std::string name() const;
         std::string qualified_name() const;
+        bool is_qualified() const noexcept;
         std::size_t size() const noexcept;
 
         void write(AstWriter* const writer) override;
