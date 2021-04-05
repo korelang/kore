@@ -339,33 +339,19 @@ void Parser::parse_parameter_list(Function* const func) {
     }
 }
 
+IdentifierList Parser::parse_identifier_list() {
+    IdentifierList identifiers;
     const Token* token = current_token();
     Location loc = token->location();
 
     do {
         if (token->is_identifier()) {
-            func->add_parameter(Expression::make_identifier(*token));
+            identifiers.emplace_back(Expression::make_identifier(*token));
+            token = next_token();
+            token = next_token();
 
-            /* Type* param_type = parse_type(); */
-            next_token();
-            token = current_token();
-
-            if (token->is_type()) {
-                // ...
-                next_token();
-
-                if (token->type() == TokenType::rparen) {
-                    break;
-                } else if (token->type() != TokenType::comma) {
-                    emit_parser_error("Expected ',' after function paramter");
-                    break;
-                }
-            } else if (token->type() == TokenType::comma) {
-                next_token();
-            } else if (token->type() == TokenType::rparen) {
+            if (token->type() != TokenType::comma) {
                 break;
-            } else {
-                emit_parser_error("Unexpected token %s", token->type());
             }
 
             token = next_token();
@@ -374,11 +360,10 @@ void Parser::parse_parameter_list(Function* const func) {
             break;
         }
     } while (true);
+
+    return identifiers;
 }
 
-
-    /* _ast->add_statement(Statement::make_function()); */
-}
 void Parser::parse_block() {
     if (expect_token_type(TokenType::lbrace)) {
         while (valid_declaration_start(current_token())) {
