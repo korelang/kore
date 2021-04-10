@@ -29,11 +29,20 @@ Declaration    = TypeAlias | TypeDecl | VarDecl .
 
 (* Expressions *)
 ExpressionList = Expression { "," Expression } .
-Expression     = UnaryExpr | Expression binary_op Expression .
-UnaryExpr      = Operand .
+Expression     = UnaryExpr | Expression BinaryOp Expression .
+UnaryExpr      = SubExpr | UnaryOp UnaryExpr .
+SubExpr        = Operand | SubExpr Selector | SubExpr Call .
 Operand        = Literal | OperandName | "(" Expression ")" .
-binary_op      = "or" | "and" | rel_op | simple_op | mul_op .
-simple_op      = "+" | "-" | "*" | "/" .
+Selector       = ( "." | ".?" ) Identifier .
+Call           = "(" [ ExpressionList ] ")" .
+BinaryOp       = BoolOp | RelOp | ArithOp | BitOp | OptionalOp .
+BoolOp         = "or" | "and" | "!" .
+RelOp          = "==" | "!=" | "<" | "<=" | ">" | ">=" .
+ArithOp        = "+" | "-" | "*" | "/" | "%" | "rem" .
+BitOp          =  "|" | "&" | "^" | "<<" | "<<=" | ">>" | ">>=" .
+UnaryOp        = "+" | "-" .
+OptionalOp     = "??" .
+
 Struct         = "struct" "{" { FieldDecl ";" } "}" .
 
 (* Identifiers *)
@@ -68,8 +77,8 @@ BinaryDigit  = "0" | "1" .
 HexDigit     = DecimalDigit | "a" … "f" | "A" … "F" .
 OctalDigit   = "0" … "7" .
 
-BoolLit = "true" | "false" .
-FuncLit = .
+BoolLit    = "true" | "false" .
+FuncLitArg = "@" ( "args" | { "1" … "9" } ) .
 
 OperandName       = Identifier | QualifiedIdentifer | FuncPositionalArg .
 FuncPositionalArg = "@" ( FuncArgNum | "args" ) .
