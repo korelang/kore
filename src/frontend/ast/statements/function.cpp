@@ -76,4 +76,5 @@ void Function::write(AstWriter* const writer) {
     
     writer->dedent();
     writer->write("}");
+    writer->newline();
 }
