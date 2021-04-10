@@ -7,7 +7,32 @@
  * Index 0 contains the value for 'a' and so on.
  */
 const int _KEYWORD_FIRST_CHAR_TABLE[] = {
-    0, 1, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0,
+    0, // a
+    1, // b
+    1, // c
+    0, // d
+    1, // e
+    1, // f
+    0, // g
+    0, // h
+    1, // i
+    0, // j
+    0, // k
+    0, // l
+    1, // m
+    1, // n
+    0, // o
+    0, // p
+    0, // q
+    1, // r
+    1, // s
+    1, // t
+    1, // u
+    0, // v
+    0, // w
+    0, // x
+    0, // y
+    0, // z
 };
 
 std::map<std::string, Keyword> _STRING_TO_KEYWORDS{
@@ -32,6 +57,7 @@ std::map<std::string, Keyword> _STRING_TO_KEYWORDS{
     {"match",  Keyword::Match},
     {"module", Keyword::Module},
     {"None",   Keyword::None},
+    {"return", Keyword::Return},
     {"Some",   Keyword::Some},
     {"str",    Keyword::Str},
     {"struct", Keyword::Struct},

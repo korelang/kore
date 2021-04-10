@@ -1,6 +1,7 @@
 #include "ast/expressions/expression.hpp"
 #include "ast/expressions/identifier.hpp"
 #include "ast/statements/function.hpp"
+#include "ast/statements/return_statement.hpp"
 #include "ast/statements/import_statement.hpp"
 #include "ast/statements/module_statement.hpp"
 #include "ast/statements/statement.hpp"
@@ -15,6 +16,10 @@ Statement::~Statement() {}
 
 Function* Statement::make_function(bool exported, const Token& func_name) {
     return new Function(exported, func_name);
+}
+
+Return* Statement::make_return(Expression* expr) {
+    return new Return(expr);
 }
 
 Statement* Statement::make_module_decl(const std::string& module_name, const Location& location) {

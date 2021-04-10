@@ -27,6 +27,7 @@ set(BASE_SOURCES
     # Statements
     src/frontend/ast/statements/statement.cpp
     src/frontend/ast/statements/function.cpp
+    src/frontend/ast/statements/return_statement.cpp
     src/frontend/ast/statements/import_statement.cpp
     src/frontend/ast/statements/module_statement.cpp
     src/frontend/ast/statements/variable_declaration.cpp

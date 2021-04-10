@@ -2,6 +2,7 @@
 #include <sstream>
 
 #include "ast/parser_error_node.hpp"
+#include "ast/statements/return_statement.hpp"
 #include "logging.hpp"
 #include "operator.hpp"
 #include "parser.hpp"
@@ -115,6 +116,33 @@ void Parser::add_statement(Statement* statement) {
     }
 }
 
+void Parser::parse_statement() {
+    auto token = current_token();
+
+    if (token->is_keyword()) {
+        switch (token->keyword()) {
+            case Keyword::Return:
+                parse_return();
+                break;
+
+            default:
+                break;
+        }
+    } else {
+        if (valid_declaration_start(token)) {
+            parse_declaration();
+        } else if (token->type() == TokenType::lbrace) {
+            parse_block();
+        }
+    }
+}
+
+void Parser::parse_statement_list() {
+    while (valid_statement_start(current_token())) {
+        parse_statement();
+    }
+}
+
 std::string Parser::module_name() const {
     return _module_name;
 }
@@ -156,6 +184,26 @@ void Parser::parse_import_spec() {
 
     Identifier* module_name = parse_maybe_qualified_identifier();
     add_statement(Statement::make_import_decl(module_name));
+}
+
+bool Parser::valid_statement_start(const Token* const token) {
+    if (token->is_identifier()) {
+        return true;
+    } else if (token->type() == TokenType::lbrace) {
+        return true;
+    } else if (token->is_keyword()) {
+        switch (token->keyword()) {
+            case Keyword::Return:
+                return true;
+
+            default:
+                return false;
+        }
+    } else if (token->category() == TokenCategory::literal) {
+        return true;
+    }
+
+    return false;
 }
 
 bool Parser::valid_declaration_start(const Token* const token) {
@@ -230,7 +278,12 @@ void Parser::parse_toplevel() {
         } else if (valid_function_start(token)) {
             parse_function();
         } else {
-            emit_parser_error("Expected a declaration");
+            if (token->is_keyword() && token->keyword() == Keyword::Return) {
+                emit_parser_error("Can only return from within a function");
+            } else {
+                emit_parser_error("Expected a declaration");
+            }
+
             break;
         }
     }
@@ -339,6 +392,15 @@ void Parser::parse_parameter_list(Function* const func) {
     }
 }
 
+void Parser::parse_return() {
+    if (expect_keyword(Keyword::Return)) {
+        // TODO: Should be an expression list in the future
+        auto expr = parse_expression(operator_base_precedence());
+
+        add_statement(Statement::make_return(expr));
+    }
+}
+
 IdentifierList Parser::parse_identifier_list() {
     IdentifierList identifiers;
     const Token* token = current_token();
@@ -366,10 +428,7 @@ IdentifierList Parser::parse_identifier_list() {
 
 void Parser::parse_block() {
     if (expect_token_type(TokenType::lbrace)) {
-        while (valid_declaration_start(current_token())) {
-            // TODO: Add statements to the function, not the top-level AST
-            parse_declaration();
-        }
+        parse_statement_list();
 
         if (!expect_token_type(TokenType::rbrace)) {
             emit_parser_error("Expected '}' to close block");

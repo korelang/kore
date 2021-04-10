@@ -7,6 +7,7 @@
 class Expression;
 class Identifier;
 class Function;
+class Return;
 
 /// Base class for all statements
 class Statement : public AstNode {
@@ -16,6 +17,7 @@ class Statement : public AstNode {
         virtual ~Statement();
 
         static Function* make_function(bool exported, const Token&);
+        static Return* make_return(Expression* expr);
         static Statement* make_module_decl(const std::string& module_name, const Location& location);
         static Statement* make_module_decl(const Token& token);
         static Statement* make_import_decl(Identifier*);

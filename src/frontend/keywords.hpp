@@ -25,6 +25,7 @@ enum class Keyword {
     Match,
     Module,
     None,
+    Return,
     Some,
     Str,
     Struct,

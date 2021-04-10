@@ -69,7 +69,10 @@ class Parser final {
         void add_statement(Statement* statement);
 
         /// Statement = Declaration | SimpleStmt | IfStmt | ForStmt | Block | ReturnStmt .
-        Statement* parse_statement();
+        void parse_statement();
+
+        /// StatementList = { Statement ";" } .
+        void parse_statement_list();
 
         /// ModuleDecl = "module" ModuleName .
         void parse_module();
@@ -77,6 +80,8 @@ class Parser final {
         /// ImportDecl = "import" ModuleName { "." ModuleName } [ "{" ModuleList "}" ] .
         void parse_import_decl();
         void parse_import_spec();
+
+        bool valid_statement_start(const Token* const token);
 
         bool valid_declaration_start(const Token* const token);
 
@@ -101,6 +106,9 @@ class Parser final {
 
         /// ParameterList = ParameterDecl { "," ParameterDecl } .
         void parse_parameter_list(Function* const func);
+
+        /// ReturnStmt = "return" [ ExpressionList ] .
+        void parse_return();
 
         /// IdentifierList = Identifier { "," Identifier } .
         std::vector<Identifier*> parse_identifier_list();
