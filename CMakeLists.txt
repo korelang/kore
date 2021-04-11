@@ -44,6 +44,8 @@ set(BASE_SOURCES
     src/frontend/token_category.cpp
     src/frontend/token_type.cpp
 
+    src/color_attributes.cpp
+    src/colors.cpp
     src/logging.cpp
 )
 

@@ -3,6 +3,9 @@
 
 #include "ast/parser_error_node.hpp"
 #include "ast/statements/return_statement.hpp"
+#include "color_attributes.hpp"
+#include "colors.hpp"
+#include "errors.hpp"
 #include "logging.hpp"
 #include "operator.hpp"
 #include "parser.hpp"
@@ -94,12 +97,26 @@ void Parser::emit_parser_error(const char* const format, ...) {
     _failed = true;
     ++_error_count;
 
-    /* const std::string error = format_error("", _scanner.current_line(), current_token()->location()); */
+    Location loc = current_token()->location();
+
+    std::cerr << ColorAttribute::Bold << Color::Red
+              << "[error:parser("
+              << loc.lnum()
+              << ","
+              << loc.format_columns()
+              << ")]"
+              << ColorAttribute::Reset
+              << " ";
 
     va_list args;
     va_start(args, format);
-    parser_error(current_token()->location(), format, args);
+    std::vfprintf(stderr, format, args);
     va_end(args);
+
+    std::cerr
+        << std::endl
+        << format_error_at_line(_scanner.current_line(), current_token()->location())
+        << std::endl;
 }
 
 void Parser::set_module_name(const std::string& module_name) {

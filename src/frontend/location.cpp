@@ -1,3 +1,5 @@
+#include <sstream>
+
 #include "location.hpp"
 
 Location::Location() : Location(-1, -1, -1) {
@@ -20,6 +22,18 @@ std::size_t Location::start() const noexcept {
 
 std::size_t Location::end() const noexcept {
     return this->_end_col;
+}
+
+std::string Location::format_columns() const {
+    std::ostringstream oss;
+
+    if (start() == end()) {
+        oss << (start() + 1);
+    }
+
+    oss << end();
+
+    return oss.str();
 }
 
 const Location Location::unknown = Location();

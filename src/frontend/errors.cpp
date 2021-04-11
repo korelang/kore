@@ -4,6 +4,36 @@
 
 #include "errors.hpp"
 
+std::string format_error_at_line(
+    const std::string& line,
+    std::size_t lnum,
+    std::size_t start_col,
+    std::size_t end_col
+) {
+    std::ostringstream oss;
+
+    const std::string indent = "|" + std::string(4, ' ');
+
+    if (start_col == end_col) {
+        oss << indent << line << std::endl
+            << std::setw(end_col + 1) << "^";
+    } else {
+        oss << indent << line << std::endl
+            << indent
+            << std::setw(start_col + 1)
+            << "^"
+            << std::setfill('-')
+            << std::setw(end_col - start_col)
+            << "^";
+    }
+
+    return oss.str();
+}
+
+std::string format_error_at_line(const std::string& line, const Location& location) {
+    return format_error_at_line(line, location.lnum(), location.start(), location.end());
+}
+
 std::string format_error(
     const std::string& msg,
     const std::string& line,
@@ -15,20 +45,14 @@ std::string format_error(
 
     if (start_col == end_col) {
         oss << "Error: " << msg << " (line " << lnum << ", column " << end_col << ")"
-            << std::endl
-            << line
-            << std::endl
-            << std::setw(end_col + 1) << "^";
+            << std::endl;
     } else {
         oss << "Error: " << msg << " (line " << lnum
             << ", columns " << (start_col + 1) << "-" << (end_col + 1) << ")"
-            << std::endl
-            << line
-            << std::endl
-            << std::setw(start_col + 1) << "^"
-            << std::setfill('-')
-            << std::setw(end_col - start_col) << "^";
+            << std::endl;
     }
+
+    format_error_at_line(line, lnum, start_col, end_col);
 
     return oss.str();
 }

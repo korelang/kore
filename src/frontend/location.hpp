@@ -20,6 +20,7 @@ class Location {
         std::size_t lnum() const noexcept;
         std::size_t start() const noexcept;
         std::size_t end() const noexcept;
+        std::string format_columns() const;
 
         static const Location unknown;
 };
