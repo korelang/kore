@@ -47,6 +47,7 @@ set(BASE_SOURCES
     src/color_attributes.cpp
     src/colors.cpp
     src/logging.cpp
+    src/utf8.cpp
 )
 
 set(SOURCES

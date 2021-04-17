@@ -53,6 +53,13 @@ class Token final {
             std::size_t end,
             const std::string& value
         );
+        static Token make_char_token(
+            codepoint cp,
+            std::size_t lnum,
+            std::size_t start,
+            std::size_t end,
+            const std::string& value
+        );
         static Token make_token(
             TokenType type,
             const Location& location,

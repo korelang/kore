@@ -17,6 +17,8 @@ Token::Token(const Token& token)
         _internal_value.float32 = token.float32_value();
     } else if (_type == TokenType::keyword) {
         _internal_value.keyword = token.keyword();
+    } else if (_type == TokenType::character) {
+        _internal_value.integer = token.int_value();
     } else {
         _internal_value.str = token.string_value();
     }
@@ -48,6 +50,8 @@ Token& Token::operator=(const Token& token) {
         _internal_value.float32 = token.float32_value();
     } else if (_type == TokenType::keyword) {
         _internal_value.keyword = token.keyword();
+    } else if (_type == TokenType::character) {
+        _internal_value.integer = token.int_value();
     } else {
         _internal_value.str = token.string_value();
     }
@@ -159,6 +163,19 @@ Token Token::make_int_token(
             token._internal_value.integer = std::stoi(value, nullptr, 8);
             break;
     }
+
+    return token;
+}
+
+Token Token::make_char_token(
+    codepoint cp,
+    std::size_t lnum,
+    std::size_t start,
+    std::size_t end,
+    const std::string& value
+) {
+    auto token = Token::make_token(TokenType::character, Location(lnum, start, end), value);
+    token._internal_value.integer = cp;
 
     return token;
 }

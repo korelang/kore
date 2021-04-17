@@ -6,6 +6,7 @@
 #include "keywords.hpp"
 #include "logging.hpp"
 #include "scanner.hpp"
+#include "utf8.hpp"
 
 Scanner::Scanner()
     : lnum(0),
@@ -51,6 +52,21 @@ Token Scanner::make_inline_token(TokenType type, std::size_t end_col, std::size_
 Token Scanner::make_inline_int_token(IntegerFormat format, std::size_t end_col, std::size_t advance) {
     auto token = Token::make_int_token(
         format,
+        lnum,
+        last_col,
+        col,
+        line.substr(last_col, end_col - last_col + 1)
+    );
+
+    col += advance;
+    last_col = col;
+
+    return token;
+}
+
+Token Scanner::make_char_token(codepoint cp, std::size_t end_col, std::size_t advance) {
+    auto token = Token::make_char_token(
+        cp,
         lnum,
         last_col,
         col,
@@ -392,43 +408,33 @@ Token Scanner::scan_string() {
 
 Token Scanner::scan_character() {
     // Skip first single quote
-    ++col;
+    last_col = ++col;
 
-    scan_utf8_encoded_codepoint();
+    codepoint cp = scan_utf8_encoded_codepoint();
 
     if (expect('\'')) {
-        return make_inline_token(TokenType::character, col++);
+        return make_char_token(cp, (col++)-1);
     } else {
         throw_error("Character contains more than one character, should be a string?");
     }
 }
 
-void Scanner::scan_utf8_encoded_codepoint() {
+codepoint Scanner::scan_utf8_encoded_codepoint() {
     if (col >= line.length()) {
         throw_error("Scanned codepoint at end-of-line");
     }
 
-    short checks = 0;
-    unsigned char byte = static_cast<unsigned char>(line[col++]);
+    int num_bytes = 0;
+    DecodeError error = DecodeError::None;
+    codepoint cp = utf8_decode_string_pos(line, col, num_bytes, error);
 
-    if (byte <= 0x7f) {
-        // ASCII character
-        return;
-    } else if ((byte & 0xe0) == 0xc0) {
-        checks = 1;
-    } else if ((byte & 0xf0) == 0xe0) {
-        checks = 2;
-    } else if ((byte & 0xf8) == 0xf0) {
-        checks = 3;
+    if (error != DecodeError::None) {
+        throw_error("Invalid unicode character");
     }
 
-    for (int i = 0; i < checks && !eol(); ++i) {
-        char next = line[col++];
+    col += num_bytes;
 
-        if ((next & 0xc0) != 0x80) {
-            throw_error("Invalid unicode character");
-        }
-    }
+    return cp;
 }
 
 Token Scanner::scan_equal_or_arrow() {

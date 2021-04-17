@@ -62,7 +62,7 @@ class Scanner final {
         /* Token scan_format_string(); */
         Token scan_character();
         Token scan_equal_or_arrow();
-        void scan_utf8_encoded_codepoint();
+        codepoint scan_utf8_encoded_codepoint();
         Token scan_comment();
         Token scan_multiline_comment();
         Token scan_mult_or_exp();
@@ -73,6 +73,7 @@ class Scanner final {
         Token make_one_char_token(TokenType type);
         Token make_inline_token(TokenType type, std::size_t end_col, std::size_t advance = 0);
         Token make_inline_int_token(IntegerFormat format, std::size_t end_col, std::size_t advance = 0);
+        Token make_char_token(codepoint cp, std::size_t end_col, std::size_t advance = 0);
         Token make_multiline_token(
             TokenType type,
             std::size_t start_lnum,

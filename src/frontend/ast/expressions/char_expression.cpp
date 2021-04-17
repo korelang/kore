@@ -1,3 +1,6 @@
+#include <iomanip>
+#include <sstream>
+
 #include "ast/ast_writer.hpp"
 #include "ast/expressions/char_expression.hpp"
 
@@ -13,5 +16,8 @@ i32 CharExpression::value() const noexcept {
 }
 
 void CharExpression::write(AstWriter* const writer) {
-    writer->write(std::to_string(value()));
+    std::ostringstream oss;
+    oss << "U+" << std::hex << value();
+
+    writer->write(oss.str());
 }
