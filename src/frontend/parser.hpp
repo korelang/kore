@@ -89,7 +89,7 @@ class Parser final {
 
         void parse_declaration();
 
-        ///
+        /// TopLevelDecl = Declaration | Function .
         void parse_toplevel();
 
         /// Function = [ "export" ] "func" FunctionName FuncSignature [ FunctionBody ] .

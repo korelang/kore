@@ -4,8 +4,6 @@
 #include "ast/statements/statement.hpp"
 #include "token.hpp"
 
-class AstWriter;
-
 class ModuleStatement : public Statement {
     public:
         ModuleStatement(const Token& token);
