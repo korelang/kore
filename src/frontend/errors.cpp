@@ -44,10 +44,10 @@ std::string format_error(
     std::ostringstream oss;
 
     if (start_col == end_col) {
-        oss << "Error: " << msg << " (line " << lnum << ", column " << end_col << ")"
+        oss << msg << " (line " << lnum << ", column " << end_col << ")"
             << std::endl;
     } else {
-        oss << "Error: " << msg << " (line " << lnum
+        oss << msg << " (line " << lnum
             << ", columns " << (start_col + 1) << "-" << (end_col + 1) << ")"
             << std::endl;
     }
