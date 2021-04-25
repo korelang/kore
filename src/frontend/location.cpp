@@ -26,12 +26,11 @@ std::size_t Location::end() const noexcept {
 
 std::string Location::format_columns() const {
     std::ostringstream oss;
+    oss << (start() + 1);
 
-    if (start() == end()) {
-        oss << (start() + 1);
+    if (start() < end()) {
+        oss << end();
     }
-
-    oss << end();
 
     return oss.str();
 }
