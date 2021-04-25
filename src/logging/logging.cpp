@@ -1,10 +1,11 @@
 #include <cstdio>
 #include <iostream>
 
-#include "color_attributes.hpp"
-#include "colors.hpp"
-#include "logging.hpp"
+#include "logging/color_attributes.hpp"
+#include "logging/colors.hpp"
+#include "logging/logging.hpp"
 
+// TODO: Distinguish between stderr and stdout
 void output(
     const std::string& level,
     const std::string& group,
@@ -27,6 +28,20 @@ void output(
     if (newline) {
         std::cerr << std::endl;
     }
+}
+
+void success(const char* const format, ...) {
+    va_list args;
+    va_start(args, format);
+    output("success", "", Color::Green, ColorAttribute::Bold, true, format, args);
+    va_end(args);
+}
+
+void success_group(const std::string& group, const char* const format, ...) {
+    va_list args;
+    va_start(args, format);
+    output("success", group, Color::Green, ColorAttribute::Bold, true, format, args);
+    va_end(args);
 }
 
 void debug(const char* const format, ...) {

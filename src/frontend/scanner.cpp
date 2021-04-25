@@ -3,9 +3,9 @@
 
 #include "errors.hpp"
 #include "keywords.hpp"
-#include "logging.hpp"
+#include "logging/logging.hpp"
 #include "scanner.hpp"
-#include "utf8.hpp"
+#include "utf8/utf8.hpp"
 
 Scanner::Scanner()
     : lnum(0),

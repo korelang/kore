@@ -49,10 +49,10 @@ set(BASE_SOURCES
     src/frontend/token_category.cpp
     src/frontend/token_type.cpp
 
-    src/color_attributes.cpp
-    src/colors.cpp
-    src/logging.cpp
-    src/utf8.cpp
+    src/logging/color_attributes.cpp
+    src/logging/colors.cpp
+    src/logging/logging.cpp
+    src/utf8/utf8.cpp
 )
 
 set(SOURCES

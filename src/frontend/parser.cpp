@@ -3,10 +3,10 @@
 
 #include "ast/parser_error_node.hpp"
 #include "ast/statements/return_statement.hpp"
-#include "color_attributes.hpp"
-#include "colors.hpp"
+#include "logging/color_attributes.hpp"
+#include "logging/colors.hpp"
+#include "logging/logging.hpp"
 #include "errors.hpp"
-#include "logging.hpp"
 #include "operator.hpp"
 #include "parser.hpp"
 

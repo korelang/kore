@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include "ast/ast_stream_writer.hpp"
-#include "logging.hpp"
+#include "logging/logging.hpp"
 #include "parser.hpp"
 #include "token.hpp"
 
