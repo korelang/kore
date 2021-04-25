@@ -84,6 +84,24 @@ bool Token::is_keyword() const noexcept {
 }
 
 bool Token::is_type() const noexcept {
+    return is_keyword() && (
+        _value == "bool" ||
+        _value == "byte" ||
+        _value == "char" ||
+        _value == "f32"  ||
+        _value == "f64"  ||
+        _value == "i8"   ||
+        _value == "i16"  ||
+        _value == "i32"  ||
+        _value == "i64"  ||
+        _value == "str"  ||
+        _value == "u8"   ||
+        _value == "u16"  ||
+        _value == "u32"  ||
+        _value == "u64"
+    );
+}
+
 bool Token::is_boolean_keyword() const noexcept {
     if (type() == TokenType::keyword) {
         auto kw = keyword();
