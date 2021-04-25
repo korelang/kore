@@ -3,6 +3,11 @@ cmake_minimum_required(VERSION 3.8)
 project(kore)
 set(CMAKE_CXX_STANDARD 14)
 
+set(INCLUDE_DIRS
+    "./src"
+    "./src/frontend"
+)
+
 set(BASE_SOURCES
     src/frontend/ast/ast.cpp
     src/frontend/ast/ast_node.cpp
@@ -62,7 +67,7 @@ add_executable(${COMPILER_NAME} ${SOURCES})
 
 add_definitions("-DNDEBUG -g3 -O1")
 
-include_directories(${COMPILER_NAME} "./src" "./src/frontend")
+include_directories(${COMPILER_NAME} ${INCLUDE_DIRS})
 
 set_target_properties(${COMPILER_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin") 
 
@@ -77,6 +82,6 @@ set(TEST_SOURCES
 
 add_executable(${TEST_RUNNER_NAME} ${TEST_SOURCES})
 
-include_directories(${TEST_RUNNER_NAME} "./tests" "./src" "./src/frontend")
+include_directories(${TEST_RUNNER_NAME} "./tests" ${INCLUDE_DIRS})
 
 set_target_properties(${TEST_RUNNER_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin") 
