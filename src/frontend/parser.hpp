@@ -1,6 +1,8 @@
 #ifndef KORE_PARSER_HPP
 #define KORE_PARSER_HPP
 
+#include <vector>
+
 #include "ast/ast.hpp"
 #include "ast/expressions/array_expression.hpp"
 #include "ast/expressions/expression.hpp"
@@ -11,7 +13,6 @@
 #include "scanner.hpp"
 #include "token.hpp"
 
-class ParserErrorNode;
 using IdentifierList = std::vector<Identifier*>;
 using ParameterList = std::vector<Identifier*>;
 
@@ -63,9 +64,10 @@ class Parser final {
 
         void emit_parser_error(const char* const format, ...);
 
+        Expression* make_parser_error(const std::string& msg);
+
         void set_module_name(const std::string& module_name);
 
-        Expression* make_parser_error(const std::string& msg);
         void add_statement(Statement* statement);
 
         /// Statement = Declaration | SimpleStmt | IfStmt | ForStmt | Block | ReturnStmt .
