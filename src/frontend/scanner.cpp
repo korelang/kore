@@ -68,7 +68,7 @@ Token Scanner::make_char_token(codepoint cp, std::size_t end_col, std::size_t ad
         cp,
         lnum,
         last_col,
-        col,
+        last_col,
         line.substr(last_col, end_col - last_col + 1)
     );
 
