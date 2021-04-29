@@ -7,6 +7,7 @@
 #include "ast/statements/statement.hpp"
 #include "ast/statements/variable_assignment.hpp"
 #include "ast/statements/variable_declaration.hpp"
+#include "types/type.hpp"
 
 Statement::Statement() : AstNode(Location::unknown) {}
 
@@ -38,6 +39,6 @@ Statement* Statement::make_variable_decl(const Token& identifier, const Token& t
     return new VariableDeclaration(identifier, type);
 }
 
-Statement* Statement::make_variable_assignment(const Token& identifier, const Token& type, Expression* expr) {
+Statement* Statement::make_variable_assignment(const Token& identifier, Type* type, Expression* expr) {
     return new VariableAssignment(identifier, type, expr);
 }

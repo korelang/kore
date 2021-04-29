@@ -5,20 +5,20 @@
 #include "token.hpp"
 
 class Expression;
+class Type;
 
 class VariableAssignment : public Statement {
     public:
-        VariableAssignment(const Token& identifier, const Token& type, Expression* expr);
+        VariableAssignment(const Token& identifier, Type* type, Expression* expr);
         virtual ~VariableAssignment();
 
         std::string identifier() const;
-        std::string type() const;
 
         void write(AstWriter* const writer) override;
 
     private:
         std::string _identifier;
-        std::string _type;
+        std::unique_ptr<Type> _type;
         std::unique_ptr<Expression> _expr;
 };
 

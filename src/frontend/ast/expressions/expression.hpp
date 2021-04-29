@@ -5,10 +5,10 @@
 #include <vector>
 
 #include "ast/ast_node.hpp"
+#include "types/type.hpp"
 #include "internal_value_types.hpp"
 #include "operator.hpp"
 #include "token.hpp"
-#include "type.hpp"
 
 class IntegerExpression;
 class Identifier;

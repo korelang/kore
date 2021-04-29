@@ -6,6 +6,10 @@
 #include "logging/color_attributes.hpp"
 #include "logging/colors.hpp"
 #include "logging/logging.hpp"
+#include "types/array_type.hpp"
+#include "types/type.hpp"
+#include "types/optional.hpp"
+#include "types/unknown_type.hpp"
 #include "errors.hpp"
 #include "operator.hpp"
 #include "parser.hpp"
@@ -246,14 +250,8 @@ void Parser::parse_declaration() {
 
     auto identifier = *token;
     token = next_token();
-
-    /* if (token->is_type()) { */
-    /*     emit_parser_error("Expected type after identifier '%s'", token->value().c_str()); */
-    /*     return; */
-    /* } */
-
+    Type* decl_type = parse_type();
     auto type = *token;
-    token = next_token();
 
     if (!expect_token_type(TokenType::assign)) {
         add_statement(Statement::make_variable_decl(identifier, type));
@@ -262,7 +260,7 @@ void Parser::parse_declaration() {
 
     Expression* expr = parse_expression(operator_base_precedence());
 
-    add_statement(Statement::make_variable_assignment(identifier, type, expr));
+    add_statement(Statement::make_variable_assignment(identifier, decl_type, expr));
 }
 
 /* void Parser::parse_if_statement() { */
@@ -332,12 +330,12 @@ void Parser::parse_function() {
     next_token();
 
     Function* func = Statement::make_function(exported, func_name);
-    parse_function_signature(func);
-    /* parse_type(); */
 
     if (!func) {
         // TODO
     }
+
+    parse_function_signature(func);
 
     // TODO: Can we use a local scope here instead?
     _current_function = func;
@@ -356,7 +354,11 @@ void Parser::parse_function_signature(Function* const func) {
 
         parse_function_parameters(func);
 
-        /* Type* return_type = parse_type(); */
+        Type* return_type = parse_type();
+
+        // If no return type was specified, mark it as unknown and infer it in
+        // the typechecker
+        func->set_return_type(return_type ? return_type : new UnknownType());
     }
 }
 
@@ -453,19 +455,37 @@ void Parser::parse_block() {
     }
 }
 
-/* Type* Parser::parse_type() { */
-/*     const Token* token = current_token(); */
+Type* Parser::parse_type() {
+    auto token = current_token();
 
-/*     if (token->is_type()) { */
-/*         // TODO: Return some type here */
-/*     } else { */
-/*         emit_parser_error( */
-/*             "Expected type but got an %s with value '%s'", */
-/*             token->type(), */
-/*             token->value().c_str() */
-/*         ); */
-/*     } */
-/* } */
+    if (token->is_type()) {
+        Type* type = Type::from_token(*token);
+        next_token();
+        ArrayType* array_type = nullptr;
+
+        do {
+            if (expect_token_type(TokenType::lbracket)) {
+                // Array type (possibly nested)
+                if (!expect_token_type(TokenType::rbracket)) {
+                    emit_parser_error("Expected ']' after '[' in array type declaration");
+                    return nullptr;
+                }
+
+                if (!array_type) {
+                    array_type = new ArrayType(type);
+                } else {
+                    array_type->increase_rank();
+                }
+            } else if (expect_token_type(TokenType::question_mark)) {
+                return new Optional(type);
+            } else {
+                return array_type ? array_type : type;
+            }
+        } while (true);
+    }
+
+    return new UnknownType();
+}
 
 Expression* Parser::parse_literal() {
     auto token = current_token();
@@ -474,18 +494,22 @@ Expression* Parser::parse_literal() {
     switch (token->type()) {
         case TokenType::integer:
             result = Expression::make_int_literal(token->int_value(), token->location());
+            next_token();
             break;
 
         case TokenType::floatp:
             result = Expression::make_float_literal(token->float32_value(), token->location());
+            next_token();
             break;
 
         case TokenType::character:
             result = Expression::make_char_literal(token->int_value(), token->location());
+            next_token();
             break;
 
         case TokenType::string:
             result = Expression::make_string_literal(token->value(), token->location());
+            next_token();
             break;
 
         case TokenType::keyword:
@@ -497,6 +521,7 @@ Expression* Parser::parse_literal() {
                     token->location()
                 );
             }
+            next_token();
             break;
 
         case TokenType::lbracket:
@@ -506,10 +531,6 @@ Expression* Parser::parse_literal() {
         default:
             result = Expression::make_parser_error("Expected literal token type", token->location());
             break;
-    }
-
-    if (!result->is_error()) {
-        next_token();
     }
 
     return result;

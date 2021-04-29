@@ -49,6 +49,16 @@ set(BASE_SOURCES
     src/frontend/token_category.cpp
     src/frontend/token_type.cpp
 
+    # Types
+    src/types/type.cpp
+    src/types/array_type.cpp
+    src/types/bool_type.cpp
+    src/types/char_type.cpp
+    src/types/integer_type.cpp
+    src/types/optional.cpp
+    src/types/str_type.cpp
+    src/types/unknown_type.cpp
+
     src/logging/color_attributes.cpp
     src/logging/colors.cpp
     src/logging/logging.cpp

@@ -115,7 +115,7 @@ class Parser final {
         /// IdentifierList = Identifier { "," Identifier } .
         std::vector<Identifier*> parse_identifier_list();
 
-        /* Type* parse_type(); */
+        Type* parse_type();
 
         /// Block = "{" StatementList "}" .
         void parse_block();

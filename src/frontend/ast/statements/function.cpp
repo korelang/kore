@@ -1,23 +1,25 @@
 #include "ast/ast_writer.hpp"
 #include "ast/statements/function.hpp"
+#include "types/type.hpp"
+#include "types/unknown_type.hpp"
 
 Function::Function()
     : _name("<missing>", Location::unknown),
       _exported(false),
-      _return_type(nullptr) {
+      _return_type(new UnknownType()) {
 }
 
 Function::Function(bool exported, const Token& token)
     : _name(token),
       _exported(exported),
-      _return_type(nullptr) {
+      _return_type(new UnknownType()) {
 
 }
 
 Function::Function(bool exported)
     : _name("<missing>", Location::unknown),
       _exported(exported),
-      _return_type(nullptr) {
+      _return_type(new UnknownType()) {
 }
 
 Function::~Function() {}
@@ -46,6 +48,10 @@ void Function::add_parameter(Expression* parameter) {
     _parameters.emplace_back(dynamic_cast<Identifier*>(parameter));
 }
 
+void Function::set_return_type(Type* type) {
+    _return_type = type;
+}
+
 void Function::add_statement(Statement* statement) {
     _body.emplace_back(std::move(statement));
 }
@@ -64,7 +70,9 @@ void Function::write(AstWriter* const writer) {
         writer->write(", ");
     }
 
-    writer->write(") {");
+    writer->write(")");
+    return_type()->write(writer);
+    writer->write("{");
 
     // Write function body
     writer->newline();

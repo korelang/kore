@@ -8,6 +8,7 @@ class Expression;
 class Identifier;
 class Function;
 class Return;
+class Type;
 
 /// Base class for all statements
 class Statement : public AstNode {
@@ -22,7 +23,7 @@ class Statement : public AstNode {
         static Statement* make_module_decl(const Token& token);
         static Statement* make_import_decl(Identifier*);
         static Statement* make_variable_decl(const Token& identifier, const Token& type);
-        static Statement* make_variable_assignment(const Token& identifier, const Token& type, Expression* expr);
+        static Statement* make_variable_assignment(const Token& identifier, Type* type, Expression* expr);
 };
 
 #endif // KORE_STATEMENT_HPP

@@ -26,6 +26,7 @@ class Function : public Statement {
         /* StatementList body(); */
 
         void add_parameter(Expression* parameter);
+        void set_return_type(Type* type);
         void add_statement(Statement* statment);
 
         void write(AstWriter* const writer) override;

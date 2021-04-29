@@ -1,0 +1,18 @@
+#ifndef KORE_UNKNOWN_TYPE_HPP
+#define KORE_UNKNOWN_TYPE_HPP
+
+#include "type.hpp"
+
+/// An unknown type to be inferred by the typechecker
+class UnknownType : public Type {
+    public:
+        UnknownType();
+        virtual ~UnknownType();
+
+        void write(AstWriter* const writer) override;
+
+    private:
+        
+};
+
+#endif // KORE_UNKNOWN_TYPE_HPP
