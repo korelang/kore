@@ -63,6 +63,7 @@ set(BASE_SOURCES
     src/logging/colors.cpp
     src/logging/logging.cpp
     src/utf8/utf8.cpp
+    src/options.cpp
 )
 
 set(SOURCES

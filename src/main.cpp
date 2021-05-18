@@ -2,6 +2,7 @@
 
 #include "ast/ast_stream_writer.hpp"
 #include "logging/logging.hpp"
+#include "options.hpp"
 #include "parser.hpp"
 #include "token.hpp"
 
@@ -16,18 +17,34 @@ struct Version {
 const Version CURRENT_VERSION{ 0, 1, 0 };
 
 int main(int argc, char** argv) {
-    if (argc != 2) {
-        error("%s requires one argument", COMPILER_NAME.c_str());
+    auto args = parse_commandline(argc, argv);
+
+    if (args.error_message.size() > 0) {
+        error("%s", args.error_message.c_str());
         return 1;
     }
 
-    info(
-        "%s v%d.%d.%d",
-        COMPILER_NAME.c_str(),
-        CURRENT_VERSION.major,
-        CURRENT_VERSION.minor,
-        CURRENT_VERSION.patch
-    );
+    if (args.version) {
+        info(
+            "%s v%d.%d.%d",
+            COMPILER_NAME.c_str(),
+            CURRENT_VERSION.major,
+            CURRENT_VERSION.minor,
+            CURRENT_VERSION.patch
+        );
+
+        return 0;
+    } else if (args.version_only) {
+        std::cout <<
+            CURRENT_VERSION.major << "." <<
+            CURRENT_VERSION.minor << "." <<
+            CURRENT_VERSION.patch << std::endl;
+
+        return 0;
+    } else if (args.help) {
+        print_help_message();
+        return 0;
+    }
 
     info("Compiling '%s'", argv[1]);
 
@@ -42,10 +59,15 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    AstStreamWriter stream_writer{std::cerr};
-
     if (!parser.failed()) {
-        stream_writer.write(ast);
+        if (args.dump_parse) {
+            AstStreamWriter stream_writer{std::cerr};
+            stream_writer.write(ast);
+        }
+
+        success("%d errors", parser.error_count());
+    } else {
+        error("%d errors", parser.error_count());
     }
 
     // 2. Check functions have a return statement
@@ -63,10 +85,6 @@ int main(int argc, char** argv) {
     // 6. Constant folding
 
     // 7. Add explicit type conversions
-
-    /* if (dump_ast) { */
-    /*     dump_ast(ast); */
-    /* } */
 
     return 0;
 }
