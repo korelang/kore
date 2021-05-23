@@ -618,7 +618,7 @@ Identifier* Parser::parse_maybe_qualified_identifier() {
 
             token = next_token();
         } else {
-            emit_parser_error("Expected an identifier after 'import' keyword");
+            emit_parser_error("Expected an possibly qualified identifier");
             break;
         }
     } while (true);
