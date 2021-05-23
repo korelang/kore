@@ -515,13 +515,13 @@ Expression* Parser::parse_literal() {
         case TokenType::keyword:
             if (token->is_boolean_keyword()) {
                 result = Expression::make_bool_literal(token->value(), token->location());
+                next_token();
             } else {
                 result = Expression::make_parser_error(
                     "Expected literal token type, got keyword",
                     token->location()
                 );
             }
-            next_token();
             break;
 
         case TokenType::lbracket:
