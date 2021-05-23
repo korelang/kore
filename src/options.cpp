@@ -17,8 +17,6 @@ Options:
 
     -t, --timings               Show timings from scanning + parsing
                                 and typechecking.
-    --dump-parse                Dump the parse tree.
-    --dump-codegen              Dump generated code.
     -d, --disassemble           Disassemble a compiled bytecode file.
     -b, --backend=<bytecode>    Select a code generation backend [bytecode].
     -v, --verbose               Increase the amount of program debugging
@@ -30,6 +28,13 @@ Options:
     --c, --compile-only         Only compile to bytecode, do not run. Only
                                 applicable when --backend is 'bytecode'.
     -m, --mem-stats             Show useful memory statistics while running.
+
+    Debugging options:
+
+        --dump-scan     Only perform a scan of the input file for tokens and
+                        dump the tokens to stderr.
+        --dump-parse    Dump the parse tree to stderr.
+        --dump-codegen  Dump generated code to stderr.
 )";
 
 void validate_args(int argc, ParsedCommandLineArgs& args) {
@@ -60,6 +65,8 @@ ParsedCommandLineArgs parse_commandline(int argc, char** args) {
                 parsed_args.timings = true;
             } else if (arg == "--dump-parse") {
                 parsed_args.dump_parse = true;
+            } else if (arg == "--dump-scan") {
+                parsed_args.dump_scan = true;
             } else if (arg == "--version") {
                 parsed_args.version = true;
             } else if (arg == "--version-only") {

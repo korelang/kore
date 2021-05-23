@@ -4,6 +4,7 @@
 #include "logging/logging.hpp"
 #include "options.hpp"
 #include "parser.hpp"
+#include "scanner.hpp"
 #include "token.hpp"
 
 const std::string COMPILER_NAME = "korec";
@@ -43,6 +44,20 @@ int main(int argc, char** argv) {
         return 0;
     } else if (args.help) {
         print_help_message();
+        return 0;
+    } else if (args.dump_scan) {
+        // Dump all scanned tokens to stderr
+        Scanner scanner{};
+
+        if (!scanner.open_file(args.filename)) {
+            std::cerr << "Failed to open file" << std::endl;
+            return 1;
+        }
+
+        while (!scanner.eof()) {
+            std::cerr << scanner.next_token() << std::endl;
+        }
+
         return 0;
     }
 
