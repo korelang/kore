@@ -53,7 +53,7 @@ Token Scanner::make_inline_int_token(IntegerFormat format, std::size_t end_col, 
         format,
         lnum,
         last_col,
-        col,
+        end_col,
         line.substr(last_col, end_col - last_col + 1)
     );
 
