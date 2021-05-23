@@ -633,6 +633,15 @@ Expression* Parser::parse_unary_expression() {
         return expr;
     }
 
+    auto token = current_token();
+
+    if (token->is_keyword() && token->keyword() == Keyword::None) {
+        auto expr = Expression::make_identifier(*token);
+        next_token();
+
+        return expr;
+    }
+
     expr = parse_maybe_qualified_identifier();
 
     if (!expr->is_error()) {
