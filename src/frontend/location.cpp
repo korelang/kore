@@ -46,7 +46,7 @@ std::ostream& operator<<(std::ostream& os, const Location& location) {
            << "-"
            << (location.end() + 1);
     } else {
-        os << ", column " << location.start();
+        os << ", column " << (location.start() + 1);
     }
 
     return os;
