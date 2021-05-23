@@ -109,6 +109,7 @@ void Scanner::throw_error(const std::string& msg) {
 }
 
 bool Scanner::read_line() {
+    std::string current_line = line;
     std::getline(stream, line);
 
     bool did_read = !stream.eof();
@@ -117,6 +118,13 @@ bool Scanner::read_line() {
         ++lnum;
         last_col = 0;
         col = 0;
+    } else {
+        // Preserve the last input line for proper error reporting in the
+        // parser. If we don't, then error reporting on the last line of any
+        // input will output use an empty string for the current scanner line
+        //
+        // TODO: Is there a better way to do this?
+        line = current_line;
     }
 
     return did_read;
