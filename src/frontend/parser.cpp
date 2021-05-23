@@ -254,7 +254,7 @@ void Parser::parse_declaration() {
     auto type = *token;
 
     if (!expect_token_type(TokenType::assign)) {
-        add_statement(Statement::make_variable_decl(identifier, type));
+        emit_parser_error("Variable declarations must be initialised");
         return;
     }
 
