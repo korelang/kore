@@ -10,10 +10,10 @@
 Scanner::Scanner()
     : lnum(0),
       last_col(0),
-      col(0),
-      toplevel(true),
-      in_function(false),
-      in_string(false) {
+      col(0) {
+      /* toplevel(true), */
+      /* in_function(false), */
+      /* in_string(false) { */
 }
 
 Scanner::~Scanner() {
@@ -82,7 +82,7 @@ Token Scanner::make_multiline_token(
     TokenType type,
     std::size_t start_lnum,
     std::size_t start_col,
-    std::size_t end_lnum,
+    /* std::size_t end_lnum, */
     std::size_t end_col
 ) {
     return Token::make_token(
@@ -101,6 +101,9 @@ bool Scanner::open_file(const std::string& path) {
 
     return stream.is_open();
 }
+
+/* void Scanner::scan_string(const std::string& string) { */
+/* } */
 
 void Scanner::throw_error(const std::string& msg) {
     error_group("scanner", "%s", format_error(msg, line, lnum, last_col, col).c_str());
@@ -149,7 +152,7 @@ Token Scanner::consume_until(TokenType type, const std::string& value) {
                 type,
                 start_lnum,
                 start_col,
-                lnum,
+                /* lnum, */
                 idx
             );
         } else {
@@ -389,6 +392,9 @@ Token Scanner::scan_string() {
     }
 
     throw_error("End of string not encountered");
+
+    // Make the compiler happy, even though throw_error will always throw
+    return Token();
 }
 
 /* Token Scanner::scan_format_string() { */
@@ -424,6 +430,9 @@ Token Scanner::scan_character() {
     } else {
         throw_error("Character contains more than one character, should be a string?");
     }
+
+    // Make the compiler happy, even though throw_error will always throw
+    return Token();
 }
 
 codepoint Scanner::scan_utf8_encoded_codepoint() {
@@ -551,4 +560,8 @@ Token Scanner::next_token() {
         default:
             throw_error("Unknown character in stream");
     }
+
+    // Make the compiler happy, even though this method will throw and neveer
+    // get here
+    return Token();
 }

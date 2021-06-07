@@ -6,7 +6,6 @@
 
 std::string format_error_at_line(
     const std::string& line,
-    std::size_t lnum,
     std::size_t start_col,
     std::size_t end_col
 ) {
@@ -31,7 +30,7 @@ std::string format_error_at_line(
 }
 
 std::string format_error_at_line(const std::string& line, const Location& location) {
-    return format_error_at_line(line, location.lnum(), location.start(), location.end());
+    return format_error_at_line(line, location.start(), location.end());
 }
 
 std::string format_error(
@@ -52,7 +51,7 @@ std::string format_error(
             << std::endl;
     }
 
-    format_error_at_line(line, lnum, start_col, end_col);
+    format_error_at_line(line, start_col, end_col);
 
     return oss.str();
 }

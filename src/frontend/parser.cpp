@@ -571,6 +571,7 @@ Expression* Parser::parse_normal_array_expression(
 ) {
     ArrayExpression* array_expr = dynamic_cast<ArrayExpression*>(Expression::make_empty_array());
     array_expr->add_element(first_elem_expr);
+    array_expr->set_start_location(lbracket_token->location());
 
     while (!_scanner.eof()) {
         array_expr->add_element(parse_expression(operator_base_precedence()));

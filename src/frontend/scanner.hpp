@@ -12,6 +12,7 @@ class Scanner final {
         virtual ~Scanner();
 
         bool open_file(const std::string& path);
+        /* void scan_string(const std::string& string); */
         bool eof() const;
         std::string current_line() const;
         Token next_token();
@@ -24,10 +25,10 @@ class Scanner final {
         std::string line;
 
         // True if we are at the top-level where scanning starts
-        bool toplevel;
+        /* bool toplevel; */
 
-        bool in_function;
-        bool in_string;
+        /* bool in_function; */
+        /* bool in_string; */
 
         // Predicate type for consuming a run of characters
         using Predicate = bool (Scanner::*)(char) const;
@@ -78,7 +79,7 @@ class Scanner final {
             TokenType type,
             std::size_t start_lnum,
             std::size_t start_col,
-            std::size_t end_lnum,
+            /* std::size_t end_lnum, */
             std::size_t end_col
         );
 };

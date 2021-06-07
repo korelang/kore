@@ -73,12 +73,16 @@ set(SOURCES
 
 set(COMPILER_NAME "korec")
 
+set(SHARED_COMPILE_FLAGS -Wall -Wextra -pedantic -Werror)
+
 # Main compiler executable
 add_executable(${COMPILER_NAME} ${SOURCES})
 
 add_definitions("-DNDEBUG -g3 -O1")
 
 include_directories(${COMPILER_NAME} ${INCLUDE_DIRS})
+
+target_compile_options(${COMPILER_NAME} PUBLIC ${SHARED_COMPILE_FLAGS})
 
 set_target_properties(${COMPILER_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin") 
 
@@ -94,5 +98,7 @@ set(TEST_SOURCES
 add_executable(${TEST_RUNNER_NAME} ${TEST_SOURCES})
 
 include_directories(${TEST_RUNNER_NAME} "./tests" ${INCLUDE_DIRS})
+
+target_compile_options(${TEST_RUNNER_NAME} PUBLIC ${SHARED_COMPILE_FLAGS})
 
 set_target_properties(${TEST_RUNNER_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin") 

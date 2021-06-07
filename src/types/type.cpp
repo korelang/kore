@@ -9,8 +9,6 @@ Type::Type() : Type(TypeCategory::Unknown) {}
 
 Type::Type(TypeCategory type_category) : _type(type_category) {}
 
-Type::Type(const Token& token) {}
-
 Type::~Type() {}
 
 Type* Type::from_token(const Token& token) {

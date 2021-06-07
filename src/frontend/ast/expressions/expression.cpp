@@ -23,6 +23,10 @@ bool Expression::is_error() const noexcept {
     return false;
 }
 
+ExpressionType Expression::expr_type() const {
+    return _type;
+}
+
 Type* Expression::type() const {
     return nullptr;
 }

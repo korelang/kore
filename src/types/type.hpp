@@ -27,7 +27,6 @@ enum class TypeCategory {
 class Type {
     public:
         Type();
-        Type(const Token& token);
         virtual ~Type();
 
         void set_optional(bool value);

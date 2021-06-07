@@ -3,12 +3,16 @@
 #include <iostream>
 
 i32 utf8_decode_string(const std::string& str, DecodeError& error) {
+    error = DecodeError::None;
+
     if (str.length() < 1 || str.length() > 4) {
         return -1;
     }
 
+    using ssz = std::string::size_type;
+
     i32 codepoint = 0;
-    int extra = 0;
+    ssz extra = 0;
     unsigned int chr1 = static_cast<unsigned int>(str[0]);
 
     if (chr1 <= 0x7f) {
@@ -36,7 +40,7 @@ i32 utf8_decode_string(const std::string& str, DecodeError& error) {
         return UNICODE_REPLACEMENT_CHARACTER;
     }
 
-    for (int i = 0, shift = (extra - 1) * 6; i < extra; ++i, shift -= 6) {
+    for (ssz i = 0, shift = (extra - 1) * 6; i < extra; ++i, shift -= 6) {
         auto chr = static_cast<unsigned int>(str[i + 1]);
 
         if ((chr & 0xc0) != 0x80) {
