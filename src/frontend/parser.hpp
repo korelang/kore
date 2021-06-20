@@ -68,13 +68,19 @@ class Parser final {
 
         void set_module_name(const std::string& module_name);
 
-        void add_statement(Statement* statement);
+        void add_statement(Statement* const parent, Statement* statement);
+
+        // When we encounter an error, this method is called to advance the
+        // parser (and scanner) to the beginning of the next expression.
+        // Otherwise, we will continue to parse the erroreous expression which
+        // might lead to some unintelligible error messages
+        void advance_to_next_statement_boundary();
 
         /// Statement = Declaration | SimpleStmt | IfStmt | ForStmt | Block | ReturnStmt .
-        void parse_statement();
+        void parse_statement(Statement* const parent);
 
         /// StatementList = { Statement ";" } .
-        void parse_statement_list();
+        void parse_statement_list(Statement* const parent);
 
         /// ModuleDecl = "module" ModuleName .
         void parse_module();
@@ -89,13 +95,16 @@ class Parser final {
 
         bool valid_function_start(const Token* const token);
 
-        void parse_declaration();
+        void parse_declaration(Statement* const parent);
+
+        /// IfStmt = "if" [ SimpleStmt ] Block [ "else" ( IfStmt | Block ) ] .
+        void parse_if_statement(Statement* const parent);
 
         /// TopLevelDecl = Declaration | Function .
-        void parse_toplevel();
+        void parse_toplevel(Statement* const parent);
 
         /// Function = [ "export" ] "func" FunctionName FuncSignature [ FunctionBody ] .
-        void parse_function();
+        void parse_function(Statement* const parent);
 
         /// FuncSignature = Parameters [ Type ] .
         void parse_function_signature(Function* const func);
@@ -110,7 +119,7 @@ class Parser final {
         void parse_parameter_list(Function* const func);
 
         /// ReturnStmt = "return" [ ExpressionList ] .
-        void parse_return();
+        void parse_return(Statement* const parent);
 
         /// IdentifierList = Identifier { "," Identifier } .
         std::vector<Identifier*> parse_identifier_list();
@@ -118,7 +127,7 @@ class Parser final {
         Type* parse_type();
 
         /// Block = "{" StatementList "}" .
-        void parse_block();
+        void parse_block(Statement* const parent);
 
         /// int_lit = decimal_lit | binary_lit | octal_lit | hex_lit .
         Expression* parse_literal();

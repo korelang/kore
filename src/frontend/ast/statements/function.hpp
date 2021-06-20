@@ -5,12 +5,12 @@
 
 #include "ast/expressions/identifier.hpp"
 #include "ast/statements/statement.hpp"
+#include "ast/statements/statement_list.hpp"
 
 class Identifier;
 class Type;
 
 using ParameterList = std::vector<Identifier*>;
-using StatementList = std::vector<std::unique_ptr<Statement>>;
 
 class Function : public Statement {
     public:
@@ -27,7 +27,7 @@ class Function : public Statement {
 
         void add_parameter(Expression* parameter);
         void set_return_type(Type* type);
-        void add_statement(Statement* statment);
+        void add_statement(Statement* statment) override;
 
         void write(AstWriter* const writer) override;
 

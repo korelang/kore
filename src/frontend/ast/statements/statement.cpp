@@ -1,3 +1,5 @@
+#include <exception>
+
 #include "ast/expressions/expression.hpp"
 #include "ast/expressions/identifier.hpp"
 #include "ast/statements/function.hpp"
@@ -9,11 +11,19 @@
 #include "ast/statements/variable_declaration.hpp"
 #include "types/type.hpp"
 
+#define UNUSED_PARAM(expr) do { (void)(expr); } while (0)
+
 Statement::Statement() : AstNode(Location::unknown) {}
 
 Statement::Statement(Location location) : AstNode(location) {}
 
 Statement::~Statement() {}
+
+void Statement::add_statement(Statement* statement) {
+    UNUSED_PARAM(statement);
+
+    throw std::runtime_error("This statement type does not contain other statements");
+}
 
 Function* Statement::make_function(bool exported, const Token& func_name) {
     return new Function(exported, func_name);

@@ -31,6 +31,8 @@ set(BASE_SOURCES
 
     # Statements
     src/frontend/ast/statements/statement.cpp
+    src/frontend/ast/statements/branch.cpp
+    src/frontend/ast/statements/if_statement.cpp
     src/frontend/ast/statements/function.cpp
     src/frontend/ast/statements/return_statement.cpp
     src/frontend/ast/statements/import_statement.cpp

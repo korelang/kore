@@ -17,6 +17,8 @@ class Statement : public AstNode {
         Statement(Location location);
         virtual ~Statement();
 
+        virtual void add_statement(Statement* statement);
+
         static Function* make_function(bool exported, const Token&);
         static Return* make_return(Expression* expr);
         static Statement* make_module_decl(const std::string& module_name, const Location& location);

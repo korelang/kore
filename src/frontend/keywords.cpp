@@ -39,6 +39,7 @@ std::map<std::string, Keyword> _STRING_TO_KEYWORDS{
     {"bool",   Keyword::Bool},
     {"byte",   Keyword::Byte},
     {"char",   Keyword::Char},
+    {"else",   Keyword::Else},
     {"export", Keyword::Export},
     {"enum",   Keyword::Enum},
     {"f32",    Keyword::F32},

@@ -5,7 +5,6 @@
 #include <string>
 #include <vector>
 
-#include "ast/ast_node.hpp"
 #include "ast/statements/statement.hpp"
 
 class AstWriter;
@@ -31,7 +30,7 @@ class Ast {
 
     private:
         std::string _module_name;
-        std::unique_ptr<AstNode> _root;
+        std::unique_ptr<Statement> _root;
         std::vector<std::unique_ptr<Statement>> _statements;
 };
 

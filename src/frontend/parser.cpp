@@ -2,6 +2,7 @@
 #include <sstream>
 
 #include "ast/parser_error_node.hpp"
+#include "ast/statements/if_statement.hpp"
 #include "ast/statements/return_statement.hpp"
 #include "logging/color_attributes.hpp"
 #include "logging/colors.hpp"
@@ -14,7 +15,12 @@
 #include "operator.hpp"
 #include "parser.hpp"
 
-Parser::Parser() : _failed(false), _error_count(0), _did_peek(false) {}
+Parser::Parser()
+    : _failed(false),
+      _error_count(0),
+      _did_peek(false),
+      _ast(nullptr) {
+}
 
 Parser::~Parser() {}
 
@@ -121,29 +127,36 @@ void Parser::emit_parser_error(const char* const format, ...) {
         << std::endl
         << format_error_at_line(_scanner.current_line(), current_token()->location())
         << std::endl;
+
+    advance_to_next_statement_boundary();
 }
 
 void Parser::set_module_name(const std::string& module_name) {
     _module_name = module_name;
 }
 
-void Parser::add_statement(Statement* statement) {
-    // Add the statement to the current function we are parsing if there is
-    // one, otherwise add it to the top-level scope
-    if (_current_function) {
-        _current_function->add_statement(statement);
+void Parser::add_statement(Statement* const parent, Statement* statement) {
+    // Use the statement that will contain enclosed statements (such as an if
+    // statement containing a brach of statements), otherwise use the top-level
+    // ast node
+    if (parent) {
+        parent->add_statement(statement);
     } else {
         _ast->add_statement(statement);
     }
 }
 
-void Parser::parse_statement() {
+void Parser::parse_statement(Statement* const parent) {
     auto token = current_token();
 
     if (token->is_keyword()) {
         switch (token->keyword()) {
             case Keyword::Return:
-                parse_return();
+                parse_return(parent);
+                break;
+
+            case Keyword::If:
+                parse_if_statement(parent);
                 break;
 
             default:
@@ -151,16 +164,33 @@ void Parser::parse_statement() {
         }
     } else {
         if (valid_declaration_start(token)) {
-            parse_declaration();
+            parse_declaration(parent);
         } else if (token->type() == TokenType::lbrace) {
-            parse_block();
+            parse_block(parent);
         }
     }
 }
 
-void Parser::parse_statement_list() {
+void Parser::parse_statement_list(Statement* const parent) {
     while (valid_statement_start(current_token())) {
-        parse_statement();
+        parse_statement(parent);
+    }
+}
+
+void Parser::advance_to_next_statement_boundary() {
+    while (!_scanner.eof()) {
+        auto token = current_token();
+        /* auto token_type = token->type(); */
+
+        /* if (token_type == TokenType::newline || token_type == TokenType::semicolon) { */
+        /*     return; */
+        /* } */
+
+        if (valid_statement_start(token)) {
+            break;
+        }
+
+        next_token();
     }
 }
 
@@ -182,7 +212,7 @@ void Parser::parse_module() {
 
         if (token->is_identifier()) {
             set_module_name(token->value());
-            add_statement(Statement::make_module_decl(*token));
+            add_statement(nullptr, Statement::make_module_decl(*token));
         } else {
             emit_parser_error("Module name must be an identifier");
         }
@@ -204,7 +234,7 @@ void Parser::parse_import_spec() {
     }
 
     Identifier* module_name = parse_maybe_qualified_identifier();
-    add_statement(Statement::make_import_decl(module_name));
+    add_statement(nullptr, Statement::make_import_decl(module_name));
 }
 
 bool Parser::valid_statement_start(const Token* const token) {
@@ -215,6 +245,7 @@ bool Parser::valid_statement_start(const Token* const token) {
     } else if (token->is_keyword()) {
         switch (token->keyword()) {
             case Keyword::Return:
+            case Keyword::If:
                 return true;
 
             default:
@@ -241,7 +272,7 @@ bool Parser::valid_function_start(const Token* const token) {
     return false;
 }
 
-void Parser::parse_declaration() {
+void Parser::parse_declaration(Statement* const parent) {
     auto token = current_token();
 
     if (!token->is_identifier()) {
@@ -260,13 +291,50 @@ void Parser::parse_declaration() {
 
     Expression* expr = parse_expression(operator_base_precedence());
 
-    add_statement(Statement::make_variable_assignment(identifier, decl_type, expr));
+    add_statement(parent, Statement::make_variable_assignment(identifier, decl_type, expr));
 }
 
-/* void Parser::parse_if_statement() { */
-/*     if (expect_keyword(Keyword::If)) { */
-/*     } */
-/* } */
+void Parser::parse_if_statement(Statement* const parent) {
+    if (expect_keyword(Keyword::If)) {
+        // TODO: This will not be cleaned up if something throws
+        auto if_statement = new IfStatement();
+        auto condition = parse_expression(operator_base_precedence());
+
+        if (condition->is_error()) {
+            advance_to_next_statement_boundary();
+            add_statement(parent, if_statement);
+            return;
+        }
+
+        parse_block(if_statement);
+        if_statement->add_branch(condition);
+
+        if (!expect_keyword(Keyword::Else)) {
+            add_statement(parent, if_statement);
+            return;
+        }
+
+        // Parse multiple 'else-if' statements
+        while (expect_keyword(Keyword::If)) {
+            auto elseif_condition = parse_expression(operator_base_precedence());
+
+            if (elseif_condition->is_error()) {
+                advance_to_next_statement_boundary();
+                break;
+            }
+
+            parse_block(if_statement);
+            if_statement->add_branch(elseif_condition);
+        }
+
+        if (expect_keyword(Keyword::Else)) {
+            parse_block(if_statement);
+            if_statement->add_else_branch();
+        }
+
+        add_statement(parent, if_statement);
+    }
+}
 
 /* void Parser::parse_type_alias() { */
 /*     const Token* token = current_token(); */
@@ -277,7 +345,7 @@ void Parser::parse_declaration() {
 /*     } */
 /* } */
 
-void Parser::parse_toplevel() {
+void Parser::parse_toplevel(Statement* const parent) {
     parse_module();
 
     while (expect_keyword(Keyword::Import)) {
@@ -289,9 +357,9 @@ void Parser::parse_toplevel() {
 
     while (token->type() != TokenType::eof) {
         if (valid_declaration_start(token)) {
-            parse_declaration();
+            parse_declaration(parent);
         } else if (valid_function_start(token)) {
-            parse_function();
+            parse_function(parent);
         } else {
             if (token->is_keyword() && token->keyword() == Keyword::Return) {
                 emit_parser_error("Can only return from within a function");
@@ -304,7 +372,7 @@ void Parser::parse_toplevel() {
     }
 }
 
-void Parser::parse_function() {
+void Parser::parse_function(Statement* const parent) {
     bool exported = expect_keyword(Keyword::Export);
     bool is_func = expect_keyword(Keyword::Func);
 
@@ -336,13 +404,9 @@ void Parser::parse_function() {
     }
 
     parse_function_signature(func);
+    parse_block(func);
 
-    // TODO: Can we use a local scope here instead?
-    _current_function = func;
-    parse_block();
-    _current_function = nullptr;
-
-    add_statement(func);
+    add_statement(parent, func);
 }
 
 void Parser::parse_function_signature(Function* const func) {
@@ -411,12 +475,12 @@ void Parser::parse_parameter_list(Function* const func) {
     }
 }
 
-void Parser::parse_return() {
+void Parser::parse_return(Statement* const parent) {
     if (expect_keyword(Keyword::Return)) {
         // TODO: Should be an expression list in the future
         auto expr = parse_expression(operator_base_precedence());
 
-        add_statement(Statement::make_return(expr));
+        add_statement(parent, Statement::make_return(expr));
     }
 }
 
@@ -445,9 +509,9 @@ IdentifierList Parser::parse_identifier_list() {
     return identifiers;
 }
 
-void Parser::parse_block() {
+void Parser::parse_block(Statement* const parent) {
     if (expect_token_type(TokenType::lbrace)) {
-        parse_statement_list();
+        parse_statement_list(parent);
 
         if (!expect_token_type(TokenType::rbrace)) {
             emit_parser_error("Expected '}' to close block");
@@ -733,10 +797,13 @@ Expression* Parser::parse_expression(int precedence) {
 void Parser::parse_file(const std::string& path, Ast* ast) {
     if (_scanner.open_file(path)) {
         _ast = ast;
+
+        // Get the first token
         next_token();
-        parse_toplevel();
+
+        parse_toplevel(nullptr);
+
+        // Reset internal parser state
         _ast = nullptr;
     }
-
-    /* return Ast(nullptr); */
 }
