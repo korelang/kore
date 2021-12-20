@@ -10,8 +10,7 @@
 #include "ast/statements/variable_assignment.hpp"
 #include "ast/statements/variable_declaration.hpp"
 #include "types/type.hpp"
-
-#define UNUSED_PARAM(expr) do { (void)(expr); } while (0)
+#include "utils/unused_parameter.hpp"
 
 Statement::Statement() : AstNode(Location::unknown) {}
 
