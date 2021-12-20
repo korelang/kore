@@ -5,6 +5,12 @@
 Location::Location() : Location(-1, -1, -1) {
 }
 
+Location::Location(const Location& location)
+    : _lnum(location.lnum()),
+      _start_col(location.start()),
+      _end_col(location.end()) {
+}
+
 Location::Location(std::size_t lnum, std::size_t start_col, std::size_t end_col)
     : _lnum(lnum), _start_col(start_col), _end_col(end_col) {
 }

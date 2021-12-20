@@ -11,9 +11,9 @@ class Location {
         std::size_t _start_col;
         std::size_t _end_col;
 
-        Location();
-
     public:
+        Location();
+        Location(const Location& location);
         Location(std::size_t lnum, std::size_t start_col, std::size_t end_col);
         virtual ~Location();
 
