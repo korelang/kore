@@ -8,7 +8,7 @@ VariableAssignment::VariableAssignment(
     Type* type,
     Expression* expr
 )
-    : Statement(),
+    : Statement(identifier.location(), StatementType::VariableAssignment),
       _identifier(identifier.value()),
       _type(std::move(type)),
       _expr(std::move(expr))

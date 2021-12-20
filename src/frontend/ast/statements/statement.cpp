@@ -15,7 +15,8 @@
 
 Statement::Statement() : AstNode(Location::unknown) {}
 
-Statement::Statement(Location location) : AstNode(location) {}
+Statement::Statement(Location location, StatementType statement_type)
+    : AstNode(location), _statement_type(statement_type) {}
 
 Statement::~Statement() {}
 
@@ -23,6 +24,10 @@ void Statement::add_statement(Statement* statement) {
     UNUSED_PARAM(statement);
 
     throw std::runtime_error("This statement type does not contain other statements");
+}
+
+StatementType Statement::statement_type() const {
+    return _statement_type;
 }
 
 Function* Statement::make_function(bool exported, const Token& func_name) {

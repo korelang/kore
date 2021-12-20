@@ -3,7 +3,7 @@
 #include "ast/expressions/identifier.hpp"
 
 ImportStatement::ImportStatement(Identifier* import_spec)
-    : Statement(Location::unknown),
+    : Statement(Location::unknown, StatementType::ImportDecl),
       _spec(std::move(import_spec)) {
 }
 
