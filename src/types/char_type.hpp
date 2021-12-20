@@ -8,6 +8,8 @@ class CharType : public Type {
         CharType();
         virtual ~CharType();
         
+        std::string name() const override;
+
         void write(AstWriter* const writer) override;
 };
 

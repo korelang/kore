@@ -9,6 +9,8 @@ class UnknownType : public Type {
         UnknownType();
         virtual ~UnknownType();
 
+        std::string name() const override;
+
         void write(AstWriter* const writer) override;
 
     private:

@@ -5,6 +5,10 @@ StrType::StrType() : Type(TypeCategory::Str) {}
 
 StrType::~StrType() {}
 
+std::string StrType::name() const {
+    return "str";
+}
+
 void StrType::write(AstWriter* const writer) {
     writer->write("str");
 }

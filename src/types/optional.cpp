@@ -8,6 +8,10 @@ Optional::Optional(Type* contained_type)
 
 Optional::~Optional() {}
 
+std::string Optional::name() const {
+    return _contained_type->name() + "?";
+}
+
 void Optional::write(AstWriter* const writer) {
     _contained_type->write(writer);
     writer->write("?");

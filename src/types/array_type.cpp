@@ -21,6 +21,16 @@ int ArrayType::rank() const noexcept {
     return _rank;
 }
 
+std::string ArrayType::name() const {
+    std::string name = _element_type->name();
+
+    for (int i = 0; i < rank(); ++i) {
+        name += "[]";
+    }
+
+    return name;
+}
+
 void ArrayType::write(AstWriter* const writer) {
     _element_type->write(writer);
 

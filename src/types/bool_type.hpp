@@ -8,6 +8,8 @@ class BoolType : public Type {
         BoolType();
         virtual ~BoolType();
 
+        std::string name() const override;
+
         void write(AstWriter* const writer) override;
 };
 

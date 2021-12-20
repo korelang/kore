@@ -8,6 +8,7 @@ class StrType : public Type {
         StrType();
         virtual ~StrType();
 
+        std::string name() const override;
         void write(AstWriter* const writer) override;
 };
 

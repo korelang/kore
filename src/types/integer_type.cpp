@@ -10,14 +10,17 @@ IntegerType::IntegerType(int num_bits)
 
 IntegerType::~IntegerType() {}
 
-void IntegerType::write(AstWriter* const writer) {
-    std::ostringstream oss;
-    
+std::string IntegerType::name() const {
     if (_num_bits == 8) {
-        oss << "byte";
-    } else {
-        oss << "i" << _num_bits;
+        return "byte";
     }
 
-    writer->write(oss.str());
+    std::ostringstream oss;
+    oss << "i" << _num_bits;
+
+    return oss.str();
+}
+
+void IntegerType::write(AstWriter* const writer) {
+    writer->write(name());
 }

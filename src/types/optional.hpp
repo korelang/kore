@@ -9,6 +9,8 @@ class Optional : public Type {
         Optional(Type* contained_type);
         virtual ~Optional();
 
+        std::string name() const override;
+
         void write(AstWriter* const writer) override;
 
     private:
