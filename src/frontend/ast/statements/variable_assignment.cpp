@@ -26,6 +26,10 @@ std::string VariableAssignment::identifier() const {
     return _identifier;
 }
 
+const Type* VariableAssignment::type() const {
+    return _type.get();
+}
+
 void VariableAssignment::write(AstWriter* const writer) {
     writer->write("variable_assignment<");
     writer->write(identifier());

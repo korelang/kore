@@ -3,6 +3,7 @@
 
 #include "ast/expressions/expression.hpp"
 #include "internal_value_types.hpp"
+#include "types/integer_type.hpp"
 
 /// An integer literal
 class IntegerExpression : public Expression {
@@ -11,11 +12,13 @@ class IntegerExpression : public Expression {
         virtual ~IntegerExpression();
 
         i32 value() const noexcept;
+        const Type* type() const override;
 
         void write(AstWriter* const writer) override;
 
     private:
         i32 _value;
+        IntegerType _type;
 };
 
 #endif // KORE_INTEGER_EXPRESSION_HPP

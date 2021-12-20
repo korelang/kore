@@ -35,7 +35,7 @@ class Expression : public AstNode {
 
         virtual bool is_error() const noexcept;
         ExpressionType expr_type() const;
-        Type* type() const;
+        virtual const Type* type() const;
 
         void set_parenthesised(bool flag);
 

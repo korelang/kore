@@ -12,6 +12,10 @@ std::string StringExpression::value() const noexcept {
     return _value;
 }
 
+const Type* StringExpression::type() const {
+    return static_cast<const Type*>(&_type);
+}
+
 void StringExpression::write(AstWriter* const writer) {
     writer->write(value());
 }

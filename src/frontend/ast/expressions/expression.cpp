@@ -27,7 +27,7 @@ ExpressionType Expression::expr_type() const {
     return _type;
 }
 
-Type* Expression::type() const {
+const Type* Expression::type() const {
     return nullptr;
 }
 
