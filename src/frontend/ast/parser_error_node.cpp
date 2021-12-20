@@ -3,7 +3,7 @@
 #include "token_type.hpp"
 
 ParserErrorNode::ParserErrorNode(const std::string& msg, Location location)
-    : Expression(ExpressionType::error, location),
+    : Expression(ExpressionType::Error, location),
       _message(msg) {
 }
 

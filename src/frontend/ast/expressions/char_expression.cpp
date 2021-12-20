@@ -5,7 +5,7 @@
 #include "ast/expressions/char_expression.hpp"
 
 CharExpression::CharExpression(i32 value, Location location)
-    : Expression(ExpressionType::literal, location),
+    : Expression(ExpressionType::Literal, location),
       _value(value) {
 }
 

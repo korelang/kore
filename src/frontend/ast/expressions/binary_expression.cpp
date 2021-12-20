@@ -6,7 +6,7 @@ BinaryExpression::BinaryExpression(
     Expression* left,
     Expression* right,
     Location location
-) : Expression(ExpressionType::binary, location),
+) : Expression(ExpressionType::Binary, location),
     _op(op),
     _left(left),
     _right(right)

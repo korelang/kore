@@ -2,7 +2,7 @@
 #include "ast/expressions/string_expression.hpp"
 
 StringExpression::StringExpression(const std::string& value, Location location)
-    : Expression(ExpressionType::literal, location),
+    : Expression(ExpressionType::Literal, location),
       _value(value) {
 }
 

@@ -5,7 +5,7 @@ UnaryExpression::UnaryExpression(
     const std::string& op,
     Expression* expr,
     Location location
-) : Expression(ExpressionType::unary, location),
+) : Expression(ExpressionType::Unary, location),
     _op(op),
     _expr(expr)
 {}

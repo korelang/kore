@@ -2,7 +2,7 @@
 #include "ast/expressions/bool_expression.hpp"
 
 BoolExpression::BoolExpression(const std::string& value, const Location& location)
-    : Expression(ExpressionType::literal, location),
+    : Expression(ExpressionType::Literal, location),
       _value(value) {
 }
 

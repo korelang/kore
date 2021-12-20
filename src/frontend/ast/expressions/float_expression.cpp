@@ -2,7 +2,7 @@
 #include "ast/expressions/float_expression.hpp"
 
 FloatExpression::FloatExpression(f32 value, Location location)
-    : Expression(ExpressionType::literal, location),
+    : Expression(ExpressionType::Literal, location),
       _value(value) {
 }
 

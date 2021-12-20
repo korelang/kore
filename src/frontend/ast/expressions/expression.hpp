@@ -14,12 +14,12 @@ class IntegerExpression;
 class Identifier;
 
 enum class ExpressionType {
-    array,
-    binary,
-    error,
-    identifier,
-    literal,
-    unary,
+    Array,
+    Binary,
+    Identifier,
+    Error,
+    Literal,
+    Unary,
 };
 
 /// Base class for all expressions

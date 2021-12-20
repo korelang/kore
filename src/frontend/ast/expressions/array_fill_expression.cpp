@@ -5,7 +5,7 @@ ArrayFillExpression::ArrayFillExpression(
         Expression* size_expr,
         Expression* element_expr,
         const Location& location
-    ) : Expression(ExpressionType::array, location),
+    ) : Expression(ExpressionType::Array, location),
         _size_expr(std::move(size_expr)),
         _element_expr(std::move(element_expr)) {}
 

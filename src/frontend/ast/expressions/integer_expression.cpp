@@ -2,8 +2,8 @@
 #include "ast/expressions/integer_expression.hpp"
 
 IntegerExpression::IntegerExpression(i32 value, Location location)
-    : Expression(ExpressionType::literal, location),
-      _value(value) {
+    : Expression(ExpressionType::Literal, location),
+      _value(value),
 }
 
 IntegerExpression::~IntegerExpression() {}

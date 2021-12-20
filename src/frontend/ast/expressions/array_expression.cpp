@@ -2,13 +2,13 @@
 #include "ast/expressions/array_expression.hpp"
 
 ArrayExpression::ArrayExpression()
-    : Expression(ExpressionType::array, Location::unknown),
+    : Expression(ExpressionType::Array, Location::unknown),
       _start(Location::unknown),
       _end(Location::unknown) {
 }
 
 ArrayExpression::ArrayExpression(const Location& location)
-    : Expression(ExpressionType::array, location),
+    : Expression(ExpressionType::Array, location),
       _start(location),
       _end(Location::unknown) {
 }
