@@ -28,6 +28,7 @@ class Token final {
         std::string value() const;
         TokenCategory category() const;
 
+        bool is_eof() const noexcept;
         bool is_identifier() const noexcept;
         bool is_keyword() const noexcept;
         bool is_type() const noexcept;

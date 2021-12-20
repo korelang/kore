@@ -75,6 +75,10 @@ TokenCategory Token::category() const {
     return _category;
 }
 
+bool Token::is_eof() const noexcept {
+    return _type == TokenType::eof;
+}
+
 bool Token::is_identifier() const noexcept {
     return _type == TokenType::identifier;
 }
