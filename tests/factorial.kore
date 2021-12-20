@@ -1,0 +1,9 @@
+func factorial(n i32) i32 {
+    if n <= 1 { n }
+
+    n * factorial(n-1)
+}
+
+func factorial(n i32) i32 {
+    n <= 1 ? n : n * factorial(n-1)
+}
