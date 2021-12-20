@@ -19,12 +19,12 @@ std::string BinaryExpression::op() const {
     return _op;
 }
 
-Expression::reference BinaryExpression::left() {
-    return _left;
+const Expression* BinaryExpression::left() const {
+    return _left.get();
 }
 
-Expression::reference BinaryExpression::right() {
-    return _right;
+const Expression* BinaryExpression::right() const {
+    return _right.get();
 }
 
 void BinaryExpression::write(AstWriter* const writer) {

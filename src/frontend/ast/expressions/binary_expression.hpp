@@ -11,8 +11,8 @@ class BinaryExpression : public Expression {
         virtual ~BinaryExpression();
 
         std::string op() const;
-        reference left();
-        reference right();
+        const Expression* left() const;
+        const Expression* right() const;
 
         void write(AstWriter* const writer) override;
 
