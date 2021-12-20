@@ -11,6 +11,17 @@ Type::Type(TypeCategory type_category) : _type(type_category) {}
 
 Type::~Type() {}
 
+bool Type::is_numeric() const noexcept {
+    switch (_type) {
+        case TypeCategory::Float:
+        case TypeCategory::Integer:
+            return true;
+
+        default:
+            return false;
+    }
+}
+
 Type* Type::from_token(const Token& token) {
     if (!token.is_type()) {
         throw std::runtime_error("Cannot create type from non-type token '%s'");

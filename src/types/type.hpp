@@ -32,6 +32,7 @@ class Type {
         virtual std::string name() const = 0;
         void set_optional(bool value);
         bool is_optional() const noexcept;
+        bool is_numeric() const noexcept;
 
         virtual void write(AstWriter* const writer) = 0;
 
