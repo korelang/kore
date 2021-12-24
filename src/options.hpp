@@ -8,6 +8,7 @@ struct ParsedCommandLineArgs {
     std::string error_message;
 
     bool timings;
+    bool execute;
     bool dump_scan;
     bool dump_parse;
     bool dump_codegen;
@@ -20,8 +21,10 @@ struct ParsedCommandLineArgs {
     bool env_vars;
     bool colors;
     bool compile_only;
+    bool typecheck_only;
     bool mem_stats;
 
+    std::string expr;
     std::string filename;
 };
 

@@ -18,6 +18,7 @@ Options:
     -t, --timings               Show timings from scanning + parsing
                                 and typechecking.
     -d, --disassemble           Disassemble a compiled bytecode file.
+    -x, --execute=<expr>        Parse and run an expression or statement.
     -b, --backend=<bytecode>    Select a code generation backend [bytecode].
     -v, --verbose               Increase the amount of program debugging
                                 output. Can be supplied multiple times to a
@@ -27,6 +28,7 @@ Options:
     --colors, --colours         Control colored output.
     --c, --compile-only         Only compile to bytecode, do not run. Only
                                 applicable when --backend is 'bytecode'.
+    --typecheck-only            Only perform type checking, then exit.
     -m, --mem-stats             Show useful memory statistics while running.
 
     Debugging options:
@@ -63,6 +65,14 @@ ParsedCommandLineArgs parse_commandline(int argc, char** args) {
                 return parsed_args;
             } else if (arg == "-t" || arg == "--timings") {
                 parsed_args.timings = true;
+            } else if (arg == "-x" || arg == "--execute") {
+                parsed_args.execute = true;
+
+                if (i + 1 < argc) {
+                    parsed_args.expr = args[i + 1];
+                } else {
+                    error("Expected argument after -x, --execute");
+                }
             } else if (arg == "--dump-parse") {
                 parsed_args.dump_parse = true;
             } else if (arg == "--dump-scan") {
@@ -73,6 +83,8 @@ ParsedCommandLineArgs parse_commandline(int argc, char** args) {
                 parsed_args.version_only = true;
             } else if (arg == "--colors" || arg == "--colours") {
                 parsed_args.colors = true;
+            } else if (arg == "--typecheck-only") {
+                parsed_args.typecheck_only = true;
             } else if (arg == "-v" || arg == "--verbose") {
                 ++parsed_args.verbosity;
             } else {
