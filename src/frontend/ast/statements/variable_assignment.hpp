@@ -13,6 +13,7 @@ class VariableAssignment : public Statement {
         virtual ~VariableAssignment();
 
         std::string identifier() const;
+        const Expression* expression() const;
         const Type* type() const;
 
         void write(AstWriter* const writer) override;

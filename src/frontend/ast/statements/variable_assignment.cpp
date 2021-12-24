@@ -26,6 +26,10 @@ std::string VariableAssignment::identifier() const {
     return _identifier;
 }
 
+const Expression* VariableAssignment::expression() const {
+    return _expr.get();
+}
+
 const Type* VariableAssignment::type() const {
     return _type.get();
 }
