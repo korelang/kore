@@ -43,6 +43,15 @@ void success(const char* const format, ...) {
     output(0, "success", "", Color::Green, ColorAttribute::Bold, true, format, args);
     va_end(args);
 }
+
+void success(int verbosity, int options_verbosity, const char* const format, ...) {
+    if (options_verbosity < verbosity) {
+        return;
+    }
+
+    va_list args;
+    va_start(args, format);
+    output(0, "success", "", Color::Green, ColorAttribute::Bold, true, format, args);
     va_end(args);
 }
 

@@ -5,6 +5,8 @@
 
 void success(const char* const format, ...);
 
+void success(int verbosity, int options_verbosity, const char* const format, ...);
+
 void success_group(const std::string& group, const char* const format, ...);
 
 void debug(const char* const format, ...);
