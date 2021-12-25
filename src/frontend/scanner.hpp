@@ -12,7 +12,8 @@ class Scanner final {
         virtual ~Scanner();
 
         bool open_file(const std::string& path);
-        /* void scan_string(const std::string& string); */
+        void scan_string(const std::string& string);
+        std::string source_name() const;
         bool eof() const;
         std::string current_line() const;
         Token next_token();
@@ -21,7 +22,8 @@ class Scanner final {
         std::size_t lnum;
         std::size_t last_col;
         std::size_t col;
-        std::ifstream stream;
+        std::string _source_name;
+        std::unique_ptr<std::istream> stream;
         std::string line;
 
         // True if we are at the top-level where scanning starts
@@ -35,7 +37,7 @@ class Scanner final {
 
         void throw_error(const std::string& msg);
 
-        bool read_line();
+        void read_line();
         std::string consume_line();
         Token consume_until(TokenType type, const std::string& value);
         std::size_t consume_while(Predicate predicate);

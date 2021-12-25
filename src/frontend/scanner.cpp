@@ -1,4 +1,5 @@
 #include <exception>
+#include <sstream>
 #include <string>
 
 #include "errors.hpp"
@@ -96,14 +97,23 @@ Token Scanner::make_multiline_token(
 }
 
 bool Scanner::open_file(const std::string& path) {
-    stream.open(path);
+    _source_name = path;
+    std::ifstream ifs{ path };
+    stream = std::make_unique<std::ifstream>(path);
     read_line();
 
-    return stream.is_open();
+    return ifs.is_open();
 }
 
-/* void Scanner::scan_string(const std::string& string) { */
-/* } */
+void Scanner::scan_string(const std::string& string) {
+    _source_name = "<string>";
+    stream = std::make_unique<std::istringstream>(string);
+    read_line();
+}
+
+std::string Scanner::source_name() const {
+    return _source_name;
+}
 
 void Scanner::throw_error(const std::string& msg) {
     error_group("scanner", "%s", format_error(msg, line, lnum, last_col, col).c_str());
@@ -111,26 +121,29 @@ void Scanner::throw_error(const std::string& msg) {
     throw_error_for_line(msg, line, lnum, col, col);
 }
 
-bool Scanner::read_line() {
-    std::string current_line = line;
-    std::getline(stream, line);
-
-    bool did_read = !stream.eof();
-
-    if (did_read) {
-        ++lnum;
-        last_col = 0;
-        col = 0;
-    } else {
-        // Preserve the last input line for proper error reporting in the
-        // parser. If we don't, then error reporting on the last line of any
-        // input will output use an empty string for the current scanner line
-        //
-        // TODO: Is there a better way to do this?
-        line = current_line;
+void Scanner::read_line() {
+    if (eof()) {
+        return;
     }
 
-    return did_read;
+    std::string current_line = line;
+    std::getline(*stream, line);
+    ++lnum;
+    last_col = 0;
+    col = 0;
+
+    /* if (did_read) { */
+    /*     ++lnum; */
+    /*     last_col = 0; */
+    /*     col = 0; */
+    /* } else { */
+    /*     // Preserve the last input line for proper error reporting in the */
+    /*     // parser. If we don't, then error reporting on the last line of any */
+    /*     // input will output using an empty string for the current scanner line */
+    /*     // */
+    /*     // TODO: Is there a better way to do this? */
+    /*     /1* line = current_line; *1/ */
+    /* } */
 }
 
 std::string Scanner::consume_line() {
@@ -228,7 +241,7 @@ inline bool Scanner::eol() const {
 }
 
 bool Scanner::eof() const {
-    return stream.eof();
+    return stream && stream->eof();
 }
 
 std::string Scanner::current_line() const {
@@ -236,17 +249,11 @@ std::string Scanner::current_line() const {
 }
 
 void Scanner::skip_whitespace() {
-    while (true) {
-        while (!eol()) {
-            if (is_whitespace(line[col])) {
-                ++col;
-            } else {
-                last_col = col;
-                return;
-            }
-        }
-
-        if (!read_line()) {
+    while (!eol()) {
+        if (is_whitespace(line[col])) {
+            ++col;
+        } else {
+            last_col = col;
             return;
         }
     }
@@ -520,8 +527,20 @@ Token Scanner::next_token() {
 
     skip_whitespace();
 
-    if (eof()) {
-        return Token::make_eof(lnum, col, col);
+    // If we are at the end of the line but not the file, keep reading lines
+    while (eol() && !eof()) {
+        read_line();
+    }
+
+    if (eol() && eof()) {
+        auto eof_token = Token::make_eof(lnum, col, col);
+
+        // Free the input stream as soon as we hit the eof token. This does not
+        // really matter for string inputs but for file inputs we should
+        // relinquish its resources as soon as we do not need them anymore
+        /* stream.reset(nullptr); */
+
+        return eof_token;
     }
 
     char byte = line[col];
@@ -558,7 +577,7 @@ Token Scanner::next_token() {
         case '=': return scan_equal_or_arrow();
 
         default:
-            throw_error("Unknown character in stream");
+            throw_error("Unknown character in stream '" + std::string(byte, 1) + "'");
     }
 
     // Make the compiler happy, even though this method will throw and neveer
