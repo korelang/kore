@@ -94,7 +94,9 @@ set(TEST_RUNNER_NAME "test_runner")
 set(TEST_SOURCES
     ${BASE_SOURCES}
     tests/main.cpp
+    tests/test_utils.cpp
     tests/scanner/test_literals.cpp
+    tests/scanner/test_arith.cpp
 )
 
 add_executable(${TEST_RUNNER_NAME} ${TEST_SOURCES})

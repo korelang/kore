@@ -1,22 +1,8 @@
 #include "catch.hpp"
 
+#include "test_utils.hpp"
 #include "scanner.hpp"
 #include "location.hpp"
-
-void expect_token(
-    Token token,
-    TokenType type,
-    const std::string& value,
-    std::size_t lnum,
-    std::size_t start,
-    std::size_t end
-) {
-    REQUIRE(token.type() == type);
-    REQUIRE(token.value() == value);
-    REQUIRE(token.location().lnum() == lnum);
-    REQUIRE(token.location().start() == start);
-    REQUIRE(token.location().end() == end);
-}
 
 TEST_CASE("Can scan literals", "[literals]") {
     Scanner scanner;
@@ -45,5 +31,7 @@ TEST_CASE("Can scan literals", "[literals]") {
     expect_token(scanner.next_token(), TokenType::comma, ",", 10, 7, 7);
     expect_token(scanner.next_token(), TokenType::integer, "3", 10, 8, 8);
     expect_token(scanner.next_token(), TokenType::rbracket, "]", 10, 10, 10);
-    expect_token(scanner.next_token(), TokenType::eof, "", 10, 11, 11);
+    expect_token(scanner.next_token(), TokenType::eof, "", 10, -1, -1);
+
+    REQUIRE(scanner.eof());
 }
