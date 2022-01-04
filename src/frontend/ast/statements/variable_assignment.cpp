@@ -1,7 +1,9 @@
+#include "ast/ast_visitor.hpp"
 #include "ast/ast_writer.hpp"
 #include "ast/statements/variable_assignment.hpp"
 #include "ast/expressions/expression.hpp"
 #include "types/type.hpp"
+#include "utils/unused_parameter.hpp"
 
 VariableAssignment::VariableAssignment(
     const Token& identifier,
@@ -9,7 +11,7 @@ VariableAssignment::VariableAssignment(
     Expression* expr
 )
     : Statement(identifier.location(), StatementType::VariableAssignment),
-      _identifier(identifier.value()),
+      _identifier(identifier),
       _type(std::move(type)),
       _expr(std::move(expr))
 {
@@ -22,12 +24,17 @@ VariableAssignment::VariableAssignment(
 
 VariableAssignment::~VariableAssignment() {}
 
-std::string VariableAssignment::identifier() const {
+Identifier VariableAssignment::identifier() const {
     return _identifier;
 }
 
-const Expression* VariableAssignment::expression() const {
+Expression* VariableAssignment::expression() const {
     return _expr.get();
+}
+
+void VariableAssignment::set_type(const Type* type) {
+    UNUSED_PARAM(type);
+    /* _type.reset(type); */
 }
 
 const Type* VariableAssignment::type() const {
@@ -36,11 +43,18 @@ const Type* VariableAssignment::type() const {
 
 void VariableAssignment::write(AstWriter* const writer) {
     writer->write("variable_assignment<");
-    writer->write(identifier());
+    writer->write(identifier().name());
     writer->write(" ");
-    _type->write(writer);
+    /* _type->write(writer); */
     writer->write(" = ");
     _expr->write(writer);
     writer->write(">");
     writer->newline();
+}
+
+void VariableAssignment::accept(AstVisitor* visitor) {
+    _expr->accept(visitor);
+    _identifier.accept(visitor);
+
+    visitor->visit(this);
 }

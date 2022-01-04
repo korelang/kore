@@ -1,6 +1,7 @@
 #ifndef KORE_VARIABLE_ASSIGNMENT_HPP
 #define KORE_VARIABLE_ASSIGNMENT_HPP
 
+#include "ast/expressions/identifier.hpp"
 #include "ast/statements/statement.hpp"
 #include "token.hpp"
 
@@ -12,15 +13,19 @@ class VariableAssignment : public Statement {
         VariableAssignment(const Token& identifier, Type* type, Expression* expr);
         virtual ~VariableAssignment();
 
-        std::string identifier() const;
-        const Expression* expression() const;
+        Identifier identifier() const;
+        Expression* expression() const;
         const Type* type() const;
+        void set_type(const Type* type);
 
         void write(AstWriter* const writer) override;
+        void accept(AstVisitor* visitor) override;
 
     private:
-        std::string _identifier;
-        std::unique_ptr<Type> _type;
+        // TODO: Should this be a variable instead? It is more specific in
+        // this context
+        Identifier _identifier;
+        std::unique_ptr<const Type> _type;
         std::unique_ptr<Expression> _expr;
 };
 

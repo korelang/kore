@@ -12,6 +12,10 @@ std::string BoolExpression::value() const {
     return _value;
 }
 
+const Type* BoolExpression::type() const {
+    return &_type;
+}
+
 void BoolExpression::write(AstWriter* const writer) {
     writer->write(_value);
 }

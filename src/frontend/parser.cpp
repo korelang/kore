@@ -783,7 +783,7 @@ Expression* Parser::parse_expression(int precedence) {
         if (op == "..") {
             left = Expression::make_array_range(left, right, binop_location);
         } else {
-            left = Expression::make_binary(op, left, right, binop_location);
+            left = Expression::make_binary(op, left, right, Location(left->location(), right->location()));
         }
     }
 

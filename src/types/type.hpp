@@ -6,6 +6,9 @@
 class AstWriter;
 class Integer32Type;
 class UnknownType;
+class IntegerType;
+class StrType;
+class BoolType;
 
 // Use this approach or make subclasses?
 enum class TypeCategory {
@@ -33,16 +36,23 @@ class Type {
         void set_optional(bool value);
         bool is_optional() const noexcept;
         bool is_numeric() const noexcept;
+        TypeCategory category() const noexcept;
+        virtual const Type* unify(const Type* other_type) const;
+        virtual const Type* unify(const IntegerType* int_type) const;
+        virtual const Type* unify(const StrType* str_type) const;
+        virtual const Type* unify(const BoolType* bool_type) const;
 
         virtual void write(AstWriter* const writer) = 0;
 
+        static const UnknownType* unknown();
         static Type* from_token(const Token& token);
 
     protected:
         Type(TypeCategory type_type);
 
     private:
-        TypeCategory _type;
+        TypeCategory _category;
+        static const UnknownType* _unknown_type;
 };
 
 #endif // KORE_TYPE_HPP

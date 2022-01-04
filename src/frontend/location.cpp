@@ -11,6 +11,13 @@ Location::Location(const Location& location)
       _end_col(location.end()) {
 }
 
+// TODO: Support multi-line locations (due to e.g. arbitrary line breaks)
+Location::Location(const Location& start, const Location& end)
+    : _lnum(start.lnum()),
+      _start_col(start.start()),
+      _end_col(end.end()) {
+}
+
 Location::Location(std::size_t lnum, std::size_t start_col, std::size_t end_col)
     : _lnum(lnum), _start_col(start_col), _end_col(end_col) {
 }

@@ -6,6 +6,8 @@
 #include "parser.hpp"
 #include "scanner.hpp"
 #include "token.hpp"
+#include "types/type_checker.hpp"
+#include "types/type_inferrer.hpp"
 
 const std::string COMPILER_NAME = "korec";
 
@@ -79,25 +81,47 @@ int main(int argc, char** argv) {
             AstStreamWriter stream_writer{std::cerr};
             stream_writer.write(ast);
         }
-
-        success("%d errors", parser.error_count());
     } else {
         error("%d errors", parser.error_count());
     }
 
+    success(1, args.verbosity, "parse successful");
+
     // 2. Check functions have a return statement
 
     // 3. Infer types
+    TypeInferrer type_inferrer;
+
+    type_inferrer.infer(ast);
+
+    success(1, args.verbosity, "type inference successful");
 
     // 4. Check types
+    TypeChecker type_checker;
 
-    /* if (typecheck_only) { */
-    /*     return 0; */
-    /* } */
+    int error_count = type_checker.check(ast);
 
-    // 5. Eliminate dead code
+    if (error_count > 0) {
+        error_group("typecheck", "%d type errors", error_count);
 
-    // 6. Constant folding
+        for (auto& type_error : type_checker.errors()) {
+            std::ostringstream oss;
+
+            oss << type_error.location;
+
+            error_indent(
+                "[%s]: %s",
+                oss.str().c_str(),
+                type_error.message.c_str()
+            );
+        }
+    } else {
+        success(1, args.verbosity, "typecheck successful");
+    }
+
+    if (args.typecheck_only || error_count > 0) {
+        return error_count > 0 ? 1 : 0;
+    }
 
     // 7. Add explicit type conversions
 

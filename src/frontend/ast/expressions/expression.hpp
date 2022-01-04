@@ -36,6 +36,7 @@ class Expression : public AstNode {
         virtual bool is_error() const noexcept;
         ExpressionType expr_type() const;
         virtual const Type* type() const;
+        void set_type(const Type* type);
 
         void set_parenthesised(bool flag);
 
@@ -63,8 +64,11 @@ class Expression : public AstNode {
             return std::make_unique<T>(std::forward(args)...);
         }
 
+    protected:
+        const Type* _type;
+
     private:
-        ExpressionType _type;
+        ExpressionType _expr_type;
         bool _parenthesised;
 };
 

@@ -14,7 +14,7 @@
 
 Expression::Expression(ExpressionType type, const Location& location)
     : AstNode(location),
-      _type(type) {
+      _expr_type(type) {
 }
 
 Expression::~Expression() {}
@@ -24,11 +24,15 @@ bool Expression::is_error() const noexcept {
 }
 
 ExpressionType Expression::expr_type() const {
-    return _type;
+    return _expr_type;
 }
 
 const Type* Expression::type() const {
-    return nullptr;
+    throw new std::runtime_error("Called implemented Expression::type method");
+}
+
+void Expression::set_type(const Type* type) {
+    _type = type;
 }
 
 /* Statement* Expression::as_statement() const { */

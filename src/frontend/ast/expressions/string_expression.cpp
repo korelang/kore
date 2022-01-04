@@ -13,7 +13,7 @@ std::string StringExpression::value() const noexcept {
 }
 
 const Type* StringExpression::type() const {
-    return static_cast<const Type*>(&_type);
+    return &_type;
 }
 
 void StringExpression::write(AstWriter* const writer) {

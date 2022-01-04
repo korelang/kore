@@ -1,3 +1,4 @@
+#include "ast/ast_visitor.hpp"
 #include "ast/ast_writer.hpp"
 #include "ast/expressions/binary_expression.hpp"
 
@@ -15,15 +16,19 @@ BinaryExpression::BinaryExpression(
 BinaryExpression::~BinaryExpression() {
 }
 
+const Type* BinaryExpression::type() const {
+    return _type;
+}
+
 std::string BinaryExpression::op() const {
     return _op;
 }
 
-const Expression* BinaryExpression::left() const {
+Expression* BinaryExpression::left() const {
     return _left.get();
 }
 
-const Expression* BinaryExpression::right() const {
+Expression* BinaryExpression::right() const {
     return _right.get();
 }
 
@@ -33,4 +38,15 @@ void BinaryExpression::write(AstWriter* const writer) {
     writer->write(op());//writer << op();
     _right->write(writer);
     writer->write(")");//writer << ")";
+}
+
+void BinaryExpression::accept(AstVisitor* visitor) {
+    if (visitor->precondition(this)) {
+        return;
+    }
+
+    _left->accept(visitor);
+    _right->accept(visitor);
+
+    visitor->visit(this);
 }

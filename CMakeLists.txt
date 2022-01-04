@@ -13,6 +13,7 @@ set(BASE_SOURCES
     src/frontend/ast/ast_node.cpp
     src/frontend/ast/ast_writer.cpp
     src/frontend/ast/ast_stream_writer.cpp
+    src/frontend/ast/ast_visitor.cpp
 
     # Expressions
     src/frontend/ast/parser_error_node.cpp
@@ -56,10 +57,13 @@ set(BASE_SOURCES
     src/types/array_type.cpp
     src/types/bool_type.cpp
     src/types/char_type.cpp
+    src/types/float_type.cpp
     src/types/integer_type.cpp
     src/types/optional.cpp
     src/types/str_type.cpp
     src/types/unknown_type.cpp
+    src/types/type_inferrer.cpp
+    src/types/type_checker.cpp
 
     src/logging/color_attributes.cpp
     src/logging/colors.cpp

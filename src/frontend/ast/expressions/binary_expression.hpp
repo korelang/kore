@@ -4,17 +4,20 @@
 #include "ast/expressions/expression.hpp"
 
 class AstWriter;
+class AstVisitor;
 
 class BinaryExpression : public Expression {
     public:
         BinaryExpression(const std::string& op, Expression* left, Expression* right, Location location);
         virtual ~BinaryExpression();
 
+        const Type* type() const override;
         std::string op() const;
-        const Expression* left() const;
-        const Expression* right() const;
+        Expression* left() const;
+        Expression* right() const;
 
         void write(AstWriter* const writer) override;
+        void accept(AstVisitor* visitor) override;
 
     private:
         std::string _op;

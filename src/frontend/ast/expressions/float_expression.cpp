@@ -6,7 +6,12 @@ FloatExpression::FloatExpression(f32 value, Location location)
       _value(value) {
 }
 
-FloatExpression::~FloatExpression() {}
+FloatExpression::~FloatExpression() {
+}
+
+const Type* FloatExpression::type() const {
+    return &_type;
+}
 
 f32 FloatExpression::value() const noexcept {
     return _value;

@@ -1,0 +1,7 @@
+#include "ast/statements/branch.hpp"
+#include "ast/statements/function.hpp"
+#include "ast/statements/if_statement.hpp"
+#include "ast/statements/import_statement.hpp"
+#include "ast/statements/module_statement.hpp"
+#include "ast/statements/variable_assignment.hpp"
+#include "ast/statements/variable_declaration.hpp"
