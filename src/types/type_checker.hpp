@@ -50,13 +50,6 @@ class TypeChecker final : public AstVisitor {
 
         /* void visit(IfStatement* statement) override; */
         void visit(VariableAssignment* statement) override;
-
-        bool check_statement(Statement* const statement);
-        bool check_variable_declaration(VariableDeclaration* const decl);
-        bool check_variable_assignment(VariableAssignment* const assign);
-
-        bool check_expression(const Expression* const expression);
-        bool check_binary_expression(const BinaryExpression* const binexpr);
 };
 
 #endif // TYPE_CHECKER_HPP
