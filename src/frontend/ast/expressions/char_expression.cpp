@@ -15,6 +15,10 @@ i32 CharExpression::value() const noexcept {
     return _value;
 }
 
+const Type* CharExpression::type() const {
+    return &_type;
+}
+
 void CharExpression::write(AstWriter* const writer) {
     std::ostringstream oss;
     oss << "U+" << std::hex << value();

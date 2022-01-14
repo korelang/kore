@@ -39,6 +39,12 @@ const Type* Type::unify(const IntegerType* int_type) const {
     return Type::unknown();
 }
 
+const Type* Type::unify(const CharType* char_type) const {
+    UNUSED_PARAM(char_type);
+
+    return Type::unknown();
+}
+
 const Type* Type::unify(const StrType* str_type) const {
     UNUSED_PARAM(str_type);
 
@@ -47,6 +53,12 @@ const Type* Type::unify(const StrType* str_type) const {
 
 const Type* Type::unify(const BoolType* bool_type) const {
     UNUSED_PARAM(bool_type);
+
+    return Type::unknown();
+}
+
+const Type* Type::unify(const Optional* optional) const {
+    UNUSED_PARAM(optional);
 
     return Type::unknown();
 }

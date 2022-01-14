@@ -4,11 +4,13 @@
 #include "token.hpp"
 
 class AstWriter;
-class Integer32Type;
-class UnknownType;
-class IntegerType;
-class StrType;
 class BoolType;
+class CharType;
+class Integer32Type;
+class IntegerType;
+class Optional;
+class StrType;
+class UnknownType;
 
 // Use this approach or make subclasses?
 enum class TypeCategory {
@@ -39,8 +41,10 @@ class Type {
         TypeCategory category() const noexcept;
         virtual const Type* unify(const Type* other_type) const;
         virtual const Type* unify(const IntegerType* int_type) const;
+        virtual const Type* unify(const CharType* str_type) const;
         virtual const Type* unify(const StrType* str_type) const;
         virtual const Type* unify(const BoolType* bool_type) const;
+        virtual const Type* unify(const Optional* optional) const;
 
         virtual void write(AstWriter* const writer) = 0;
 

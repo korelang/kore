@@ -3,6 +3,7 @@
 
 #include "ast/expressions/expression.hpp"
 #include "internal_value_types.hpp"
+#include "types/char_type.hpp"
 
 /// An char literal
 class CharExpression : public Expression {
@@ -11,11 +12,12 @@ class CharExpression : public Expression {
         virtual ~CharExpression();
 
         i32 value() const noexcept;
-
+        const Type* type() const override;
         void write(AstWriter* const writer) override;
 
     private:
         i32 _value;
+        CharType _type;
 };
 
 #endif // KORE_CHAR_EXPRESSION_HPP

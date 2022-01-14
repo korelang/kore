@@ -9,7 +9,8 @@ class CharType : public Type {
         virtual ~CharType();
         
         std::string name() const override;
-
+        const Type* unify(const Type* other_type) const override;
+        const Type* unify(const CharType* str_type) const override;
         void write(AstWriter* const writer) override;
 };
 
