@@ -1,7 +1,9 @@
 #include <iostream>
+#include <sstream>
 
 #include "ast/ast_stream_writer.hpp"
 #include "logging/logging.hpp"
+#include "debug_time.hpp"
 #include "options.hpp"
 #include "parser.hpp"
 #include "scanner.hpp"
@@ -19,15 +21,8 @@ struct Version {
 
 const Version CURRENT_VERSION{ 0, 1, 0 };
 
-int main(int argc, char** argv) {
-    auto args = parse_commandline(argc, argv);
-
-    if (args.error_message.size() > 0) {
-        error("%s", args.error_message.c_str());
-        return 1;
-    }
-
-    if (args.version) {
+void print_version(bool version_only) {
+    if (version_only) {
         info(
             "%s v%d.%d.%d",
             COMPILER_NAME.c_str(),
@@ -35,43 +30,52 @@ int main(int argc, char** argv) {
             CURRENT_VERSION.minor,
             CURRENT_VERSION.patch
         );
+    } else {
+        std::cout
+            << CURRENT_VERSION.major << "."
+            << CURRENT_VERSION.minor << "."
+            << CURRENT_VERSION.patch
+            << std::endl;
+    }
+}
 
-        return 0;
-    } else if (args.version_only) {
-        std::cout <<
-            CURRENT_VERSION.major << "." <<
-            CURRENT_VERSION.minor << "." <<
-            CURRENT_VERSION.patch << std::endl;
+int dump_tokens(
+    bool execute,
+    const std::string& expr,
+    const std::string& filename
+) {
+    // Dump all scanned tokens to stderr
+    Scanner scanner{};
+    Token token;
 
-        return 0;
-    } else if (args.help) {
-        print_help_message();
-        return 0;
-    } else if (args.dump_scan) {
-        // Dump all scanned tokens to stderr
-        Scanner scanner{};
-
-        if (!scanner.open_file(args.filename)) {
+    if (execute) {
+        scanner.scan_string(expr);
+    } else {
+        if (!scanner.open_file(filename)) {
             std::cerr << "Failed to open file" << std::endl;
             return 1;
         }
-
-        while (!scanner.eof()) {
-            std::cerr << scanner.next_token() << std::endl;
-        }
-
-        return 0;
     }
 
-    info("Compiling '%s'", argv[1]);
-
-    // 1. Parse input file
-    Parser parser{};
-
-    Ast ast;
-
     try {
-        parser.parse_file(argv[1], &ast);
+        do {
+            token = scanner.next_token();
+            std::cerr << token << std::endl;
+        } while (!token.is_eof());
+    } catch (const std::runtime_error& ex) {
+        return 1;
+    }
+
+    return 0;
+}
+
+int parse_input(Parser& parser, Ast& ast, const ParsedCommandLineArgs& args) {
+    try {
+        if (args.execute) {
+            debug_time("Parse", [&args, &ast, &parser](){ parser.parse_non_module(args.expr, &ast); });
+        } else {
+            debug_time("Parse", [&args, &ast, &parser](){ parser.parse_file(args.filename, &ast); });
+        }
     } catch (std::runtime_error& ex) {
         return 1;
     }
@@ -85,18 +89,16 @@ int main(int argc, char** argv) {
         error("%d errors", parser.error_count());
     }
 
-    success(1, args.verbosity, "parse successful");
+    return 0;
+}
 
-    // 2. Check functions have a return statement
-
-    // 3. Infer types
+void infer_types(Ast& ast) {
     TypeInferrer type_inferrer;
 
     type_inferrer.infer(ast);
+}
 
-    success(1, args.verbosity, "type inference successful");
-
-    // 4. Check types
+int check_types(const std::string& source_name, const Ast& ast, int verbosity) {
     TypeChecker type_checker;
 
     int error_count = type_checker.check(ast);
@@ -110,20 +112,80 @@ int main(int argc, char** argv) {
             oss << type_error.location;
 
             error_indent(
-                "[%s]: %s",
+                "[%s: %s]: %s",
+                source_name.c_str(),
                 oss.str().c_str(),
                 type_error.message.c_str()
             );
         }
     } else {
-        success(1, args.verbosity, "typecheck successful");
+        success(1, verbosity, "typecheck successful");
     }
+
+    return error_count;
+}
+
+int main(int argc, char** argv) {
+    auto args = parse_commandline(argc, argv);
+
+    if (args.error_message.size() > 0) {
+        error("%s", args.error_message.c_str());
+        return 1;
+    }
+
+    if (args.version) {
+        print_version(false);
+        return 0;
+    } else if (args.version_only) {
+        print_version(true);
+        return 0;
+    } else if (args.help) {
+        print_help_message();
+        return 0;
+    } else if (args.dump_scan) {
+        // Dump all scanned tokens to stderr
+        return dump_tokens(args.execute, args.expr, args.filename);
+    }
+
+    /* info_verbose(args.verbosity, "Compiling '%s'", argv[1]); */
+
+    std::string source_name = args.execute ? "<string>" : args.filename;
+
+    // 1. Parse input file
+    Parser parser{};
+    Ast ast;
+
+    int result = parse_input(parser, ast, args);
+
+    if (result != 0) {
+        return result;
+    }
+
+    success(1, args.verbosity, "parse successful");
+
+    // 2. Check functions have a return statement
+
+    // 3. Infer types
+    infer_types(ast);
+
+    success(1, args.verbosity, "type inference successful");
+
+    // 4. Check types
+    int error_count = check_types(source_name, ast, args.verbosity);
 
     if (args.typecheck_only || error_count > 0) {
         return error_count > 0 ? 1 : 0;
     }
 
+    // 5. Optimisations
+
+    // 5a. Eliminate dead code
+
+    // 5b. Constant folding
+
     // 7. Add explicit type conversions
+
+    success(1, args.verbosity, "compilation successful");
 
     return 0;
 }
