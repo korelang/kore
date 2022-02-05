@@ -125,7 +125,7 @@ int check_types(const std::string& source_name, const Ast& ast, int verbosity) {
     return error_count;
 }
 
-int main(int argc, char** argv) {
+int run(int argc, char** argv) {
     auto args = parse_commandline(argc, argv);
 
     if (args.error_message.size() > 0) {
@@ -188,4 +188,12 @@ int main(int argc, char** argv) {
     success(1, args.verbosity, "compilation successful");
 
     return 0;
+}
+
+int main(int argc, char** argv) {
+    try {
+        run(argc, argv);
+    } catch (std::runtime_error& ex) {
+        error("%s", ex.what());
+    }
 }
