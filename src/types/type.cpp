@@ -23,8 +23,36 @@ bool Type::is_numeric() const noexcept {
     }
 }
 
+bool Type::is_unknown() const noexcept {
+    return _category == TypeCategory::Unknown;
+}
+
+bool Type::is_simple() const noexcept {
+    // TODO: Handle arrays/optionals by checking if their element types are
+    // simple as well
+    switch (_category) {
+        case TypeCategory::Bool:
+        case TypeCategory::Char:
+        case TypeCategory::Float:
+        case TypeCategory::Integer:
+        case TypeCategory::Str:
+        case TypeCategory::Unknown:
+        case TypeCategory::Void:
+            return true;
+
+        default:
+            return false;
+    }
+}
+
 TypeCategory Type::category() const noexcept {
     return _category;
+}
+
+const Type* Type::unify(const ArrayType* array_type) const {
+    UNUSED_PARAM(array_type);
+    
+    return Type::unknown();
 }
 
 const Type* Type::unify(const Type* other_type) const {

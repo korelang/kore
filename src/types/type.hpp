@@ -4,6 +4,7 @@
 #include "token.hpp"
 
 class AstWriter;
+class ArrayType;
 class BoolType;
 class CharType;
 class Integer32Type;
@@ -38,6 +39,8 @@ class Type {
         void set_optional(bool value);
         bool is_optional() const noexcept;
         bool is_numeric() const noexcept;
+        bool is_unknown() const noexcept;
+        bool is_simple() const noexcept;
         TypeCategory category() const noexcept;
         virtual const Type* unify(const Type* other_type) const;
         virtual const Type* unify(const IntegerType* int_type) const;
@@ -45,6 +48,7 @@ class Type {
         virtual const Type* unify(const StrType* str_type) const;
         virtual const Type* unify(const BoolType* bool_type) const;
         virtual const Type* unify(const Optional* optional) const;
+        virtual const Type* unify(const ArrayType* array_type) const;
 
         virtual void write(AstWriter* const writer) = 0;
 

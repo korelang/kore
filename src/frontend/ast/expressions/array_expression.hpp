@@ -5,6 +5,8 @@
 
 #include "ast/expressions/expression.hpp"
 
+class ArrayType;
+
 class ArrayExpression : public Expression {
     public:
         ArrayExpression();
@@ -15,12 +17,14 @@ class ArrayExpression : public Expression {
         void set_end_location(const Location& location);
         void add_element(Expression* expr);
         bool uses_constants_only() const;
+        const Type* type() const override;
 
         void write(AstWriter* const writer) override;
 
     private:
         Location _start, _end;
         std::vector<pointer> _elements;
+        ArrayType* _type;
 };
 
 #endif // KORE_ARRAY_EXPRESSION_HPP
