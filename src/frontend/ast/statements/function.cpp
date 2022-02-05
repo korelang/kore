@@ -81,7 +81,7 @@ void Function::write(AstWriter* const writer) {
     for (const auto& statement : _body) {
         statement->write(writer);
     }
-    
+
     writer->dedent();
     writer->write("}");
     writer->newline();

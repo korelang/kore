@@ -10,11 +10,7 @@ class UnknownType : public Type {
         virtual ~UnknownType();
 
         std::string name() const override;
-
         void write(AstWriter* const writer) override;
-
-    private:
-        
 };
 
 #endif // KORE_UNKNOWN_TYPE_HPP
