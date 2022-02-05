@@ -30,7 +30,6 @@ class Ast {
 
     private:
         std::string _module_name;
-        std::unique_ptr<Statement> _root;
         std::vector<std::unique_ptr<Statement>> _statements;
 };
 
