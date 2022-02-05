@@ -12,6 +12,14 @@ Type::Type(TypeCategory type_category) : _category(type_category) {}
 
 Type::~Type() {}
 
+void Type::set_optional(bool value) {
+    UNUSED_PARAM(value);
+}
+
+bool Type::is_optional() const noexcept {
+    return _category == TypeCategory::Optional;
+}
+
 bool Type::is_numeric() const noexcept {
     switch (_category) {
         case TypeCategory::Float:
