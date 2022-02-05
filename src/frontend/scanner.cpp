@@ -508,7 +508,7 @@ Token Scanner::scan_op_maybe_equal(TokenType op, TokenType equal_op) {
 }
 
 Token Scanner::scan_not_equal() {
-    if (!expect('=')) {
+    if (!expect_peek('=')) {
         throw_error("Expected '=' after '!'");
     }
 
