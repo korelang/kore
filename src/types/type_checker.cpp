@@ -47,7 +47,7 @@ void TypeChecker::visit(VariableAssignment* statement) {
     auto explicit_type = statement->type();
     auto expr_type = statement->expression()->type();
 
-    if (explicit_type->unify(expr_type)->category() == TypeCategory::Unknown) {
+    if (explicit_type->unify(expr_type)->is_unknown()) {
         std::ostringstream oss;
 
         oss << "cannot assign expression of type "
@@ -72,7 +72,7 @@ void TypeChecker::visit(BinaryExpression* expr) {
         if (left_type->is_numeric() && right_type->is_numeric()) {
             auto result_type = left_type->unify(right_type);
 
-            if (result_type->category() == TypeCategory::Unknown) {
+            if (result_type->is_unknown()) {
                 std::ostringstream oss;
 
                 oss << "cannot use binary operation '" << op << "'"
