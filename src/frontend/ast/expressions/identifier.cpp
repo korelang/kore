@@ -3,19 +3,19 @@
 #include "string-utils.hpp"
 
 Identifier::Identifier(const Token& token)
-    : Expression(ExpressionType::identifier, token.location()),
+    : Expression(ExpressionType::Identifier, token.location()),
       _value(token.value()) {
     split_on(token.value(), '.', _parts);
 }
 
 Identifier::Identifier(const std::string& value, const Location& location)
-    : Expression(ExpressionType::identifier, location),
+    : Expression(ExpressionType::Identifier, location),
       _value(value) {
     split_on(value, '.', _parts);
 }
 
 Identifier::Identifier(const std::vector<std::string>& parts, const Location& location)
-    : Expression(ExpressionType::identifier, location),
+    : Expression(ExpressionType::Identifier, location),
       _value(""),
       _parts(parts) {
 }
