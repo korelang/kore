@@ -1,15 +1,17 @@
 #include "ast/ast_writer.hpp"
 
-AstWriter::AstWriter() : _indent(0) {}
+namespace kore {
+    AstWriter::AstWriter() : _indent(0) {}
 
-AstWriter::~AstWriter() {}
+    AstWriter::~AstWriter() {}
 
-void AstWriter::indent() {
-    ++_indent;
-}
+    void AstWriter::indent() {
+        ++_indent;
+    }
 
-void AstWriter::dedent() {
-    if (_indent > 0) {
-        --_indent;
+    void AstWriter::dedent() {
+        if (_indent > 0) {
+            --_indent;
+        }
     }
 }

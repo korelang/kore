@@ -2,16 +2,18 @@
 #include "ast_visitor.hpp"
 #include "utils/unused_parameter.hpp"
 
-AstNode::AstNode() : _location(Location::unknown) {}
+namespace kore {
+    AstNode::AstNode() : _location(Location::unknown) {}
 
-AstNode::AstNode(const Location& location) : _location(location) {}
+    AstNode::AstNode(const Location& location) : _location(location) {}
 
-AstNode::~AstNode() {}
+    AstNode::~AstNode() {}
 
-Location AstNode::location() const {
-    return _location;
-}
+    Location AstNode::location() const {
+        return _location;
+    }
 
-void AstNode::accept(AstVisitor* visitor) {
-    UNUSED_PARAM(visitor);
+    void AstNode::accept(AstVisitor* visitor) {
+        UNUSED_PARAM(visitor);
+    }
 }

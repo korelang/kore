@@ -5,19 +5,21 @@
 
 #include "ast/ast_writer.hpp"
 
-/// Writes an abstract syntax tree to an output stream
-class AstStreamWriter : public AstWriter {
-    public:
-        AstStreamWriter();
-        AstStreamWriter(std::ostream& out);
-        virtual ~AstStreamWriter();
+namespace kore {
+    /// Writes an abstract syntax tree to an output stream
+    class AstStreamWriter : public AstWriter {
+        public:
+            AstStreamWriter();
+            AstStreamWriter(std::ostream& out);
+            virtual ~AstStreamWriter();
 
-        void write(const std::string& value) override;
-        void write(const Ast& ast) override;
-        void newline() override;
+            void write(const std::string& value) override;
+            void write(const Ast& ast) override;
+            void newline() override;
 
-    private:
-        std::ostream* _out;
-};
+        private:
+            std::ostream* _out;
+    };
+}
 
 #endif // KORE_AST_STREAM_WRITER_HPP

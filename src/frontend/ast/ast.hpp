@@ -7,30 +7,37 @@
 
 #include "ast/statements/statement.hpp"
 
-class AstWriter;
+namespace kore {
+    class AstWriter;
 
-/// Represents an abstract syntax tree
-class Ast {
-    public:
-        Ast();
-        Ast(Ast&& ast);
-        virtual ~Ast();
+    /// Represents an abstract syntax tree
+    class Ast {
+        public:
+            using ConstIter = std::vector<std::unique_ptr<Statement>>::const_iterator;
 
-        /// The module name for the parsed file
-        std::string module_name() const;
+            Ast();
+            Ast(Ast&& ast);
+            virtual ~Ast();
 
-        /// Whether this module is the main module or not
-        bool is_main() const noexcept;
+            /// The module name for the parsed file
+            std::string module_name() const;
 
-        /// Add a statement to this AST
-        void add_statement(Statement* statement);
+            /// Whether this module is the main module or not
+            bool is_main() const noexcept;
 
-        /// Write out the AST somewhere
-        void write(AstWriter* const writer) const;
+            /// Add a statement to this AST
+            void add_statement(Statement* statement);
 
-    private:
-        std::string _module_name;
-        std::vector<std::unique_ptr<Statement>> _statements;
-};
+            ConstIter begin() const;
+            ConstIter end() const;
+
+            /// Write out the AST somewhere
+            void write(AstWriter* const writer) const;
+
+        private:
+            std::string _module_name;
+            std::vector<std::unique_ptr<Statement>> _statements;
+    };
+}
 
 #endif // KORE_AST_HPP

@@ -1,14 +1,16 @@
 #include "ast/ast_writer.hpp"
 #include "types/unknown_type.hpp"
 
-UnknownType::UnknownType() : Type(TypeCategory::Unknown) {}
+namespace kore {
+    UnknownType::UnknownType() : Type(TypeCategory::Unknown) {}
 
-UnknownType::~UnknownType() {}
+    UnknownType::~UnknownType() {}
 
-std::string UnknownType::name() const {
-    return "unknown";
-}
+    std::string UnknownType::name() const {
+        return "unknown";
+    }
 
-void UnknownType::write(AstWriter* const writer) {
-    writer->write("unknown");
+    void UnknownType::write(AstWriter* const writer) {
+        writer->write("unknown");
+    }
 }

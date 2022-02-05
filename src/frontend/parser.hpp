@@ -13,153 +13,165 @@
 #include "scanner.hpp"
 #include "token.hpp"
 
-using IdentifierList = std::vector<Identifier*>;
-using ParameterList = std::vector<Identifier*>;
+namespace kore {
+    using IdentifierList = std::vector<Identifier*>;
+    using ParameterList = std::vector<Identifier*>;
 
-/// The parser. Each parse method is annotated with a comment with the /
-/// particular part of the grammar that it handles. It is a recursive descent
-/// parser.
-///
-/// See 'kore.grammer' for the full grammar
-class Parser final {
-    public:
-        Parser();
-        virtual ~Parser();
+    /// The parser. Each parse method is annotated with a comment with the /
+    /// particular part of the grammar that it handles. It is a recursive descent
+    /// parser.
+    ///
+    /// See 'kore.grammer' for the full grammar
+    class Parser final {
+        public:
+            Parser();
+            virtual ~Parser();
 
-        bool failed() const noexcept;
-        int error_count() const noexcept;
+            bool failed() const noexcept;
+            int error_count() const noexcept;
 
-        std::string module_name() const;
+            std::string module_name() const;
 
-        /// Parse a program in a string 
-        /* Ast parse(const std::string& value); */
+            /// Parse a non-module string without requiring a module declaration
+            /// and normal program structure. This is used to parse expressions
+            /// and statements given on the command line or in the REPL
+            void parse_non_module(const std::string& value, Ast* ast);
 
-        /// Parse a program in a file
-        void parse_file(const std::string& path, Ast* ast);
+            /// Parse a program in a string 
+            void parse_string(const std::string& value, Ast* ast);
 
-    private:
-        std::string _module_name;
-        bool _failed;
-        int _error_count;
-        Scanner _scanner;
-        Token _current_token;
-        bool _did_peek;
-        Token _peek_token;
-        Ast* _ast;
-        Function* _current_function;
+            /// Parse a program in a file
+            void parse_file(const std::string& path, Ast* ast);
 
-        const Token* current_token();
+        private:
+            std::string _module_name;
+            bool _failed;
+            int _error_count;
+            Scanner _scanner;
+            Token _current_token;
+            bool _did_peek;
+            Token _peek_token;
+            Ast* _ast;
 
-        const Token* peek_token();
+            /* std::vector<ParserWarnings> _warnings; */
+            /* std::vector<ParserError> _errors; */
 
-        const Token* next_token();
+            const Token* current_token();
 
-        bool expect_named_identifier(const std::string& name);
+            const Token* peek_token();
 
-        bool expect_keyword(const Keyword& keyword);
+            const Token* next_token();
 
-        bool expect_token_type(const TokenType& token_type);
+            bool expect_named_identifier(const std::string& name);
 
-        bool expect_type(const std::string& name);
+            bool expect_keyword(const Keyword& keyword);
 
-        void emit_parser_error(const char* const format, ...);
+            bool expect_token_type(const TokenType& token_type);
 
-        Expression* make_parser_error(const std::string& msg);
+            bool expect_type(const std::string& name);
 
-        void set_module_name(const std::string& module_name);
+            void emit_parser_error(const char* const format, ...);
 
-        void add_statement(Statement* const parent, Statement* statement);
+            Expression* make_parser_error(const std::string& msg);
 
-        // When we encounter an error, this method is called to advance the
-        // parser (and scanner) to the beginning of the next expression.
-        // Otherwise, we will continue to parse the erroreous expression which
-        // might lead to some unintelligible error messages
-        void advance_to_next_statement_boundary();
+            void set_module_name(const std::string& module_name);
 
-        /// Statement = Declaration | SimpleStmt | IfStmt | ForStmt | Block | ReturnStmt .
-        void parse_statement(Statement* const parent);
+            void add_statement(Statement* const parent, Statement* statement);
 
-        /// StatementList = { Statement ";" } .
-        void parse_statement_list(Statement* const parent);
+            // When we encounter an error, this method is called to advance the
+            // parser (and scanner) to the beginning of the next expression.
+            // Otherwise, we will continue to parse the erroreous expression which
+            // might lead to some unintelligible error messages
+            void advance_to_next_statement_boundary();
 
-        /// ModuleDecl = "module" ModuleName .
-        void parse_module();
+            /// Statement = Declaration | SimpleStmt | IfStmt | ForStmt | Block | ReturnStmt .
+            void parse_statement(Statement* const parent);
 
-        /// ImportDecl = "import" ModuleName { "." ModuleName } [ "{" ModuleList "}" ] .
-        void parse_import_decl();
-        void parse_import_spec();
+            /// StatementList = { Statement ";" } .
+            void parse_statement_list(Statement* const parent);
 
-        bool valid_statement_start(const Token* const token);
+            /// ModuleDecl = "module" ModuleName .
+            void parse_module();
 
-        bool valid_declaration_start(const Token* const token);
+            /// ImportDecl = "import" ModuleName { "." ModuleName } [ "{" ModuleList "}" ] .
+            void parse_import_decl();
+            void parse_import_spec();
 
-        bool valid_function_start(const Token* const token);
+            bool valid_statement_start(const Token* const token);
 
-        void parse_declaration(Statement* const parent);
+            bool valid_declaration_start(const Token* const token);
 
-        /// IfStmt = "if" [ SimpleStmt ] Block [ "else" ( IfStmt | Block ) ] .
-        void parse_if_statement(Statement* const parent);
+            bool valid_function_start(const Token* const token);
 
-        /// TopLevelDecl = Declaration | Function .
-        void parse_toplevel(Statement* const parent);
+            /// TypeAlias = [ "export" ] "type" Identifier "=" Type .
+            /* void parse_type_alias(Statement* const parent); */
 
-        /// Function = [ "export" ] "func" FunctionName FuncSignature [ FunctionBody ] .
-        void parse_function(Statement* const parent);
+            void parse_declaration(Statement* const parent);
 
-        /// FuncSignature = Parameters [ Type ] .
-        void parse_function_signature(Function* const func);
+            /// IfStmt = "if" [ SimpleStmt ] Block [ "else" ( IfStmt | Block ) ] .
+            void parse_if_statement(Statement* const parent);
 
-        /// Parameters = "(" [ ParameterList ] ")" .
-        void parse_function_parameters(Function* const func);
+            /// TopLevelDecl = Declaration | Function .
+            void parse_toplevel(Statement* const parent);
 
-        /// ParameterDecl = [ IdentifierList ] [ "..." ] Type .
-        bool parse_parameter_decl(Function* const func);
+            /// Function = [ "export" ] "func" FunctionName FuncSignature [ FunctionBody ] .
+            void parse_function(Statement* const parent);
 
-        /// ParameterList = ParameterDecl { "," ParameterDecl } .
-        void parse_parameter_list(Function* const func);
+            /// FuncSignature = Parameters [ Type ] .
+            void parse_function_signature(Function* const func);
 
-        /// ReturnStmt = "return" [ ExpressionList ] .
-        void parse_return(Statement* const parent);
+            /// Parameters = "(" [ ParameterList ] ")" .
+            void parse_function_parameters(Function* const func);
 
-        /// IdentifierList = Identifier { "," Identifier } .
-        std::vector<Identifier*> parse_identifier_list();
+            /// ParameterDecl = [ IdentifierList ] [ "..." ] Type .
+            bool parse_parameter_decl(Function* const func);
 
-        Type* parse_type();
+            /// ParameterList = ParameterDecl { "," ParameterDecl } .
+            void parse_parameter_list(Function* const func);
 
-        /// Block = "{" StatementList "}" .
-        void parse_block(Statement* const parent);
+            /// ReturnStmt = "return" [ ExpressionList ] .
+            void parse_return(Statement* const parent);
 
-        /// int_lit = decimal_lit | binary_lit | octal_lit | hex_lit .
-        Expression* parse_literal();
+            /// IdentifierList = Identifier { "," Identifier } .
+            std::vector<Identifier*> parse_identifier_list();
 
-        /// ArrayDecl = Array | ArrayRange | ArrayFill .
-        Expression* parse_array(const Token* const lbracket_token);
+            Type* parse_type();
 
-        /// ArrayFill = "[" Expression ":" Expression "]" .
-        Expression* parse_array_fill_expression(
-            const Token* const lbracket_token,
-            Expression* size_expr
-        );
+            /// Block = "{" StatementList "}" .
+            void parse_block(Statement* const parent);
 
-        /// Array = "[" [ ExpressionList ] "]" .
-        Expression* parse_normal_array_expression(
-            const Token* const lbracket_token,
-            Expression* first_expr
-        );
+            /// int_lit = decimal_lit | binary_lit | octal_lit | hex_lit .
+            Expression* parse_literal();
 
-        /// ArrayRange = Expression ".." Expression .
-        Expression* parse_array_range_expression(const Token* const lbracket_token);
+            /// ArrayDecl = Array | ArrayRange | ArrayFill .
+            Expression* parse_array(const Token* const lbracket_token);
 
-        Identifier* parse_maybe_qualified_identifier();
+            /// ArrayFill = "[" Expression ":" Expression "]" .
+            Expression* parse_array_fill_expression(
+                const Token* const lbracket_token,
+                Expression* size_expr
+            );
 
-        Expression* parse_parenthesised_expression();
+            /// Array = "[" [ ExpressionList ] "]" .
+            Expression* parse_normal_array_expression(
+                const Token* const lbracket_token,
+                Expression* first_expr
+            );
 
-        /// UnaryExpr = UnaryOp UnaryExpr .
-        Expression* parse_unary_expression();
+            /// ArrayRange = Expression ".." Expression .
+            Expression* parse_array_range_expression(const Token* const lbracket_token);
 
-        /// Expression = UnaryExpr | Expression binary_op Expression .
-        /// Expresions are parsed using "precedence climbing"
-        Expression* parse_expression(int precedence);
-};
+            Identifier* parse_maybe_qualified_identifier();
+
+            Expression* parse_parenthesised_expression();
+
+            /// UnaryExpr = UnaryOp UnaryExpr .
+            Expression* parse_unary_expression();
+
+            /// Expression = UnaryExpr | Expression binary_op Expression .
+            /// Expresions are parsed using "precedence climbing"
+            Expression* parse_expression(int precedence);
+    };
+}
 
 #endif // KORE_PARSER_HPP

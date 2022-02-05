@@ -4,18 +4,20 @@
 #include "ast/statements/statement.hpp"
 #include "token.hpp"
 
-class ModuleStatement : public Statement {
-    public:
-        ModuleStatement(const Token& token);
-        ModuleStatement(const std::string& module_name, const Location& location);
-        virtual ~ModuleStatement();
+namespace kore {
+    class ModuleStatement : public Statement {
+        public:
+            ModuleStatement(const Token& token);
+            ModuleStatement(const std::string& module_name, const Location& location);
+            virtual ~ModuleStatement();
 
-        std::string name() const;
+            std::string name() const;
 
-        void write(AstWriter* const writer) override;
+            void write(AstWriter* const writer) override;
 
-    private:
-        std::string _name;
-};
+        private:
+            std::string _name;
+    };
+}
 
 #endif // KORE_MODULE_STATEMENT_HPP

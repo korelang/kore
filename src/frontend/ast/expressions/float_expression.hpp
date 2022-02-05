@@ -5,20 +5,22 @@
 #include "internal_value_types.hpp"
 #include "types/float_type.hpp"
 
-/// A float literal
-class FloatExpression : public Expression {
-    public:
-        FloatExpression(f32 value, Location location);
-        virtual ~FloatExpression();
+namespace kore {
+    /// A float literal
+    class FloatExpression : public Expression {
+        public:
+            FloatExpression(f32 value, Location location);
+            virtual ~FloatExpression();
 
-        const Type* type() const override;
-        f32 value() const noexcept;
+            const Type* type() const override;
+            f32 value() const noexcept;
 
-        void write(AstWriter* const writer) override;
+            void write(AstWriter* const writer) override;
 
-    private:
-        f32 _value;
-        FloatType _type{32};
-};
+        private:
+            f32 _value;
+            FloatType _type{32};
+    };
+}
 
 #endif // KORE_FLOAT_EXPRESSION_HPP

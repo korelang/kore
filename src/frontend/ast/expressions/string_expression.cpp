@@ -1,21 +1,23 @@
 #include "ast/ast_writer.hpp"
 #include "ast/expressions/string_expression.hpp"
 
-StringExpression::StringExpression(const std::string& value, Location location)
-    : Expression(ExpressionType::Literal, location),
-      _value(value) {
-}
+namespace kore {
+    StringExpression::StringExpression(const std::string& value, Location location)
+        : Expression(ExpressionType::Literal, location),
+        _value(value) {
+    }
 
-StringExpression::~StringExpression() {}
+    StringExpression::~StringExpression() {}
 
-std::string StringExpression::value() const noexcept {
-    return _value;
-}
+    std::string StringExpression::value() const noexcept {
+        return _value;
+    }
 
-const Type* StringExpression::type() const {
-    return &_type;
-}
+    const Type* StringExpression::type() const {
+        return &_type;
+    }
 
-void StringExpression::write(AstWriter* const writer) {
-    writer->write(value());
+    void StringExpression::write(AstWriter* const writer) {
+        writer->write(value());
+    }
 }

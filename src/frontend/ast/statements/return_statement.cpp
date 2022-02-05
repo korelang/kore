@@ -1,13 +1,15 @@
 #include "ast/ast_writer.hpp"
 #include "ast/statements/return_statement.hpp"
 
-Return::Return(Expression* expr) : _expr(std::move(expr)) {}
+namespace kore {
+    Return::Return(Expression* expr) : _expr(std::move(expr)) {}
 
-Return::~Return() {}
+    Return::~Return() {}
 
-void Return::write(AstWriter* const writer) {
-    writer->write("return<");
-    _expr->write(writer);
-    writer->write(">");
-    writer->newline();
+    void Return::write(AstWriter* const writer) {
+        writer->write("return<");
+        _expr->write(writer);
+        writer->write(">");
+        writer->newline();
+    }
 }

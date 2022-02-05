@@ -3,15 +3,17 @@
 
 #include "token_type.hpp"
 
-enum class TokenCategory {
-    comment,
-    op,
-    bin_op,
-    literal,
-    unary_op,
-    other,
-};
+namespace kore {
+    enum class TokenCategory {
+        comment,
+        op,
+        bin_op,
+        literal,
+        unary_op,
+        other,
+    };
 
-TokenCategory token_category_from_type(TokenType type);
+    TokenCategory token_category_from_type(TokenType type);
+}
 
 #endif // KORE_TOKEN_CATEGORY_HPPPP

@@ -1,3 +1,10 @@
 module main
 
-a = 1 + 2
+#a = 1 + 2
+arr i32[] = [1, 2, 3, 4]
+#flag bool = true
+#symbol char = '€'
+#unicode str = "你好，世界"
+maybe str? = "yes"
+
+#b str? = 'b'?

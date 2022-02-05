@@ -5,41 +5,43 @@
 
 #include <sstream>
 
-IntegerType::IntegerType(int num_bits)
-    : Type(TypeCategory::Integer),
-      _num_bits(num_bits) {
-}
-
-IntegerType::~IntegerType() {}
-
-std::string IntegerType::name() const {
-    if (_num_bits == 8) {
-        return "byte";
+namespace kore {
+    IntegerType::IntegerType(int num_bits)
+        : Type(TypeCategory::Integer),
+        _num_bits(num_bits) {
     }
 
-    std::ostringstream oss;
-    oss << "i" << _num_bits;
+    IntegerType::~IntegerType() {}
 
-    return oss.str();
-}
+    std::string IntegerType::name() const {
+        if (_num_bits == 8) {
+            return "byte";
+        }
 
-int IntegerType::num_bits() const noexcept {
-    return _num_bits;
-}
+        std::ostringstream oss;
+        oss << "i" << _num_bits;
 
-const Type* IntegerType::unify(const Type* other_type) const {
-    if (other_type->category() == category()) {
-        return other_type->unify(this);
+        return oss.str();
     }
-    
-    return Type::unknown();
-}
 
-const Type* IntegerType::unify(const IntegerType* int_type) const {
-    // Return the type of the integer with the most bits
-    return int_type->num_bits() > this->num_bits() ? int_type : this;
-}
+    int IntegerType::num_bits() const noexcept {
+        return _num_bits;
+    }
 
-void IntegerType::write(AstWriter* const writer) {
-    writer->write(name());
+    const Type* IntegerType::unify(const Type* other_type) const {
+        if (other_type->category() == category()) {
+            return other_type->unify(this);
+        }
+        
+        return Type::unknown();
+    }
+
+    const Type* IntegerType::unify(const IntegerType* int_type) const {
+        // Return the type of the integer with the most bits
+        return int_type->num_bits() > this->num_bits() ? int_type : this;
+    }
+
+    void IntegerType::write(AstWriter* const writer) {
+        writer->write(name());
+    }
 }

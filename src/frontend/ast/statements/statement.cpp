@@ -12,47 +12,49 @@
 #include "types/type.hpp"
 #include "utils/unused_parameter.hpp"
 
-Statement::Statement() : AstNode(Location::unknown) {}
+namespace kore {
+    Statement::Statement() : AstNode(Location::unknown) {}
 
-Statement::Statement(Location location, StatementType statement_type)
-    : AstNode(location), _statement_type(statement_type) {}
+    Statement::Statement(Location location, StatementType statement_type)
+        : AstNode(location), _statement_type(statement_type) {}
 
-Statement::~Statement() {}
+    Statement::~Statement() {}
 
-void Statement::add_statement(Statement* statement) {
-    UNUSED_PARAM(statement);
+    void Statement::add_statement(Statement* statement) {
+        UNUSED_PARAM(statement);
 
-    throw std::runtime_error("This statement type does not contain other statements");
-}
+        throw std::runtime_error("This statement type does not contain other statements");
+    }
 
-StatementType Statement::statement_type() const {
-    return _statement_type;
-}
+    StatementType Statement::statement_type() const {
+        return _statement_type;
+    }
 
-Function* Statement::make_function(bool exported, const Token& func_name) {
-    return new Function(exported, func_name);
-}
+    Function* Statement::make_function(bool exported, const Token& func_name) {
+        return new Function(exported, func_name);
+    }
 
-Return* Statement::make_return(Expression* expr) {
-    return new Return(expr);
-}
+    Return* Statement::make_return(Expression* expr) {
+        return new Return(expr);
+    }
 
-Statement* Statement::make_module_decl(const std::string& module_name, const Location& location) {
-    return new ModuleStatement(module_name, location);
-}
+    Statement* Statement::make_module_decl(const std::string& module_name, const Location& location) {
+        return new ModuleStatement(module_name, location);
+    }
 
-Statement* Statement::make_module_decl(const Token& token) {
-    return new ModuleStatement(token);
-}
+    Statement* Statement::make_module_decl(const Token& token) {
+        return new ModuleStatement(token);
+    }
 
-Statement* Statement::make_import_decl(Identifier* import_spec) {
-    return new ImportStatement(import_spec);
-}
+    Statement* Statement::make_import_decl(Identifier* import_spec) {
+        return new ImportStatement(import_spec);
+    }
 
-Statement* Statement::make_variable_decl(const Token& identifier, const Token& type) {
-    return new VariableDeclaration(identifier, type);
-}
+    Statement* Statement::make_variable_decl(const Token& identifier, const Token& type) {
+        return new VariableDeclaration(identifier, type);
+    }
 
-Statement* Statement::make_variable_assignment(const Token& identifier, Type* type, Expression* expr) {
-    return new VariableAssignment(identifier, type, expr);
+    Statement* Statement::make_variable_assignment(const Token& identifier, Type* type, Expression* expr) {
+        return new VariableAssignment(identifier, type, expr);
+    }
 }

@@ -7,36 +7,38 @@
 #include "ast/statements/statement.hpp"
 #include "ast/statements/statement_list.hpp"
 
-class Identifier;
-class Type;
+namespace kore {
+    class Identifier;
+    class Type;
 
-using ParameterList = std::vector<Identifier*>;
+    using ParameterList = std::vector<Identifier*>;
 
-class Function : public Statement {
-    public:
-        Function();
-        Function(bool exported);
-        Function(bool exported, const Token& token);
-        virtual ~Function();
+    class Function : public Statement {
+        public:
+            Function();
+            Function(bool exported);
+            Function(bool exported, const Token& token);
+            virtual ~Function();
 
-        std::string name() const;
-        bool exported() const noexcept;
-        ParameterList parameters();
-        Type* return_type();
-        /* StatementList body(); */
+            std::string name() const;
+            bool exported() const noexcept;
+            ParameterList parameters();
+            Type* return_type();
+            /* StatementList body(); */
 
-        void add_parameter(Expression* parameter);
-        void set_return_type(Type* type);
-        void add_statement(Statement* statment) override;
+            void add_parameter(Expression* parameter);
+            void set_return_type(Type* type);
+            void add_statement(Statement* statment) override;
 
-        void write(AstWriter* const writer) override;
+            void write(AstWriter* const writer) override;
 
-    private:
-        Identifier _name;
-        bool _exported;
-        ParameterList _parameters;
-        Type* _return_type;
-        StatementList _body;
-};
+        private:
+            Identifier _name;
+            bool _exported;
+            ParameterList _parameters;
+            Type* _return_type;
+            StatementList _body;
+    };
+}
 
 #endif // KORE_FUNCTION_HPP

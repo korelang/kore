@@ -3,19 +3,21 @@
 
 #include "ast/expressions/expression.hpp"
 
-class UnaryExpression : public Expression {
-    public:
-        UnaryExpression(const std::string& op, Expression* expr, Location location);
-        virtual ~UnaryExpression();
+namespace kore {
+    class UnaryExpression : public Expression {
+        public:
+            UnaryExpression(const std::string& op, Expression* expr, Location location);
+            virtual ~UnaryExpression();
 
-        std::string op() const;
-        reference expr();
+            std::string op() const;
+            reference expr();
 
-        void write(AstWriter* const writer) override;
+            void write(AstWriter* const writer) override;
 
-    private:
-        std::string _op;
-        pointer _expr;
-};
+        private:
+            std::string _op;
+            pointer _expr;
+    };
+}
 
 #endif // KORE_UNARY_EXPRESSION_HPP
