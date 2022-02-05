@@ -532,6 +532,8 @@ Token Scanner::next_token() {
         read_line();
     }
 
+    skip_whitespace();
+
     if (eol() && eof()) {
         auto eof_token = Token::make_eof(lnum, col, col);
 
