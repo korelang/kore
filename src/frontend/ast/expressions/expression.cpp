@@ -29,7 +29,7 @@ namespace kore {
     }
 
     const Type* Expression::type() const {
-        throw new std::runtime_error("Called implemented Expression::type method");
+        throw std::runtime_error("Called unimplemented Expression::type method");
     }
 
     void Expression::set_type(const Type* type) {
