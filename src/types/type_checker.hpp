@@ -5,6 +5,7 @@
 
 #include "ast/ast.hpp"
 #include "ast/ast_visitor.hpp"
+#include "types/symbol_table.hpp"
 
 namespace kore {
     /// Contains all the information about a type error
@@ -26,7 +27,7 @@ namespace kore {
 
     class TypeChecker final : public AstVisitor {
         public:
-            TypeChecker();
+            TypeChecker(SymbolTable& symbol_table);
             virtual ~TypeChecker();
 
             /// Typecheck an AST
@@ -35,6 +36,8 @@ namespace kore {
             std::vector<TypeError> errors();
 
         private:
+            SymbolTable& _symbol_table;
+
             // How many errors to tolerate before bailing out
             int _error_threshold = -1;
 
@@ -48,6 +51,7 @@ namespace kore {
             );
 
             void visit(BinaryExpression* expr) override;
+            void visit(Identifier* expr) override;
 
             /* void visit(IfStatement* statement) override; */
             void visit(VariableAssignment* statement) override;

@@ -17,7 +17,9 @@ namespace kore {
             std::string qualified_name() const;
             bool is_qualified() const noexcept;
             std::size_t size() const noexcept;
+            const Type* type() const override;
 
+            void accept(AstVisitor* visitor) override;
             void write(AstWriter* const writer) override;
 
         private:

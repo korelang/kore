@@ -13,7 +13,8 @@ namespace kore {
         : message(message),
         location(location) {}
 
-    TypeChecker::TypeChecker() {}
+    TypeChecker::TypeChecker(SymbolTable& symbol_table)
+        : _symbol_table(symbol_table) {}
 
     TypeChecker::~TypeChecker() {}
 
@@ -44,21 +45,33 @@ namespace kore {
     /*     } */
     /* } */
 
+    void TypeChecker::visit(Identifier* expr) {
+        if (!_symbol_table.find_identifier(expr->name())) {
+            push_error("use of undefined variable " + expr->name(), expr->location());
+        }
+    }
+
     void TypeChecker::visit(VariableAssignment* statement) {
-        auto explicit_type = statement->type();
+        auto declared_type = statement->declared_type();
         auto expr_type = statement->expression()->type();
 
-        if (explicit_type->unify(expr_type)->is_unknown()) {
-            std::ostringstream oss;
+        // If the variable was not given an explicit type, rely on inferred
+        // type instead
+        if (!declared_type->is_unknown()) {
+            if (declared_type->unify(expr_type)->is_unknown()) {
+                std::ostringstream oss;
 
-            oss << "cannot assign expression of type "
-                << statement->expression()->type()->name()
-                << " to variable of type "
-                << statement->type()->name()
-                << " without conversion";
+                oss << "cannot assign expression of type "
+                    << expr_type->name()
+                    << " to variable of type "
+                    << declared_type->name()
+                    << " without conversion";
 
-            push_error(oss.str(), statement->location());
+                push_error(oss.str(), statement->location());
+            }
         }
+
+        _symbol_table.insert_identifier(statement->identifier());
     }
 
     void TypeChecker::visit(BinaryExpression* expr) {

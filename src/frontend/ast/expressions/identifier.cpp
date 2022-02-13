@@ -1,3 +1,4 @@
+#include "ast/ast_visitor.hpp"
 #include "ast/ast_writer.hpp"
 #include "ast/expressions/identifier.hpp"
 #include "string-utils.hpp"
@@ -41,6 +42,14 @@ namespace kore {
 
     std::size_t Identifier::size() const noexcept {
         return _parts.size();
+    }
+
+    const Type* Identifier::type() const {
+        return _type;
+    }
+
+    void Identifier::accept(AstVisitor* visitor) {
+        visitor->visit(this);
     }
 
     void Identifier::write(AstWriter* const writer) {

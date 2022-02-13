@@ -14,9 +14,10 @@ namespace kore {
             VariableAssignment(const Token& identifier, Type* type, Expression* expr);
             virtual ~VariableAssignment();
 
-            Identifier identifier() const;
+            const Identifier* identifier() const;
             Expression* expression() const;
             const Type* type() const;
+            const Type* declared_type() const;
             void set_type(const Type* type);
 
             void write(AstWriter* const writer) override;

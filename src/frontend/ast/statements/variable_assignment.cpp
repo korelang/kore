@@ -21,12 +21,14 @@ namespace kore {
             identifier.location().start(),
             expr->location().end()
         );
+
+        _identifier.set_type(type);
     }
 
     VariableAssignment::~VariableAssignment() {}
 
-    Identifier VariableAssignment::identifier() const {
-        return _identifier;
+    const Identifier* VariableAssignment::identifier() const {
+        return &_identifier;
     }
 
     Expression* VariableAssignment::expression() const {
@@ -34,17 +36,20 @@ namespace kore {
     }
 
     void VariableAssignment::set_type(const Type* type) {
-        UNUSED_PARAM(type);
-        /* _type.reset(type); */
+        _identifier.set_type(type);
     }
 
     const Type* VariableAssignment::type() const {
+        return _identifier.type();
+    }
+
+    const Type* VariableAssignment::declared_type() const {
         return _type.get();
     }
 
     void VariableAssignment::write(AstWriter* const writer) {
         writer->write("variable_assignment<");
-        writer->write(identifier().name());
+        writer->write(identifier()->name());
         writer->write(" ");
         /* _type->write(writer); */
         writer->write(" = ");

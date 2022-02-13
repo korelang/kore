@@ -4,7 +4,8 @@
 #include "types/unknown_type.hpp"
 
 namespace kore {
-    TypeInferrer::TypeInferrer() {}
+    TypeInferrer::TypeInferrer(SymbolTable& symbol_table)
+        : _symbol_table(symbol_table) {}
 
     TypeInferrer::~TypeInferrer() {}
 
@@ -34,7 +35,17 @@ namespace kore {
     /* void TypeInferrer::visit(FloatExpression* expr) {} */
     /* void TypeInferrer::visit(IntegerExpression* expr) {} */
 
-    /* void TypeInferrer::visit(Identifier* expr) {} */
+    void TypeInferrer::visit(Identifier* expr) {
+        auto identifier = _symbol_table.find_identifier(expr->name());
+
+        // If no identifier was found, this is an undefined variable which is
+        // caught by the type checker
+        if (identifier) {
+            expr->set_type(identifier->type());
+        } else {
+            expr->set_type(Type::unknown());
+        }
+    }
 
     void TypeInferrer::visit(UnaryExpression* expr) {
         expr->set_type(expr->expr()->type());
@@ -48,7 +59,12 @@ namespace kore {
     //void TypeInferrer::visit(ReturnStatement* statement) {}
 
     void TypeInferrer::visit(VariableAssignment* statement) {
-        statement->set_type(statement->expression()->type());
+        auto expr_type = statement->expression()->type();
+
+        // Set the type of the identifier/variable and save it in the symbol
+        // table
+        statement->set_type(expr_type);
+        _symbol_table.insert_identifier(statement->identifier());
     }
 
     /* void TypeInferrer::visit(VariableDeclaration* statement) {} */
