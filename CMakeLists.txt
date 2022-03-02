@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 14)
 set(INCLUDE_DIRS
     "./src"
     "./src/frontend"
+    "./src/backend"
 )
 
 set(BASE_SOURCES
@@ -71,6 +72,13 @@ set(BASE_SOURCES
     src/logging/logging.cpp
     src/utf8/utf8.cpp
     src/options.cpp
+
+    # Backend
+    src/backend/codegen/bytecode/bytecode.cpp
+    src/backend/codegen/bytecode/bytecode_codegen.cpp
+    src/backend/codegen/bytecode/bytecode_dumper.cpp
+    src/backend/vm/value_type.cpp
+    src/backend/vm/vm.cpp
 )
 
 set(SOURCES

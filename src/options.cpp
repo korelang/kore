@@ -78,6 +78,8 @@ namespace kore {
                     parsed_args.dump_parse = true;
                 } else if (arg == "--dump-scan") {
                     parsed_args.dump_scan = true;
+                } else if (arg == "--dump-codegen") {
+                    parsed_args.dump_codegen = true;
                 } else if (arg == "--version") {
                     parsed_args.version = true;
                 } else if (arg == "--version-only") {

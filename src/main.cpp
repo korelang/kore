@@ -1,9 +1,13 @@
+#include <array>
 #include <iostream>
 #include <sstream>
 
-#include "ast/ast_stream_writer.hpp"
-#include "logging/logging.hpp"
+#include "frontend/ast/ast_stream_writer.hpp"
+#include "backend/codegen/bytecode/bytecode_codegen.hpp"
+#include "backend/codegen/bytecode/bytecode_dumper.hpp"
+#include "backend/vm/vm.hpp"
 #include "debug_time.hpp"
+#include "logging/logging.hpp"
 #include "options.hpp"
 #include "parser.hpp"
 #include "scanner.hpp"
@@ -193,10 +197,35 @@ namespace kore {
         /* optimiser.optimise_constant_folding(); */
 
         /* success_group("optimisation", "constant folding"); */
+        // 6. Add explicit type conversions
 
-        // 7. Add explicit type conversions
+        // 7. Compilation
+        BytecodeGenerator code_generator{};
 
-        success(1, args.verbosity, "compilation successful");
+        /* std::fstream output_file( */
+        /*     args.filename, */
+        /*     std::fstream::out | std::fstream::binary */
+        /* ); */
+
+        if (args.dump_codegen) {
+            debug_group("compilation", "dumping generated code");
+
+            BytecodeDumper dumper;
+            code_generator.set_writer(&dumper);
+            code_generator.compile(ast);
+        } else {
+            success(1, args.verbosity, "compilation successful");
+        }
+
+        // 8. Run code
+        std::array<bytecode_type, 3> code = {
+            50331649,
+            50397186,
+            167903233,
+        };
+
+        Vm vm;
+        vm.run(code.data(), code.size());
 
         return 0;
     }
