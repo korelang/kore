@@ -345,27 +345,22 @@ namespace kore {
             parse_block(if_statement);
             if_statement->add_branch(condition);
 
-            if (!expect_keyword(Keyword::Else)) {
-                add_statement(parent, if_statement);
-                return;
-            }
-
             // Parse multiple 'else-if' statements
-            while (expect_keyword(Keyword::If)) {
-                auto elseif_condition = parse_expression(operator_base_precedence());
+            while (expect_keyword(Keyword::Else)) {
+                if (expect_keyword(Keyword::If)) {
+                    auto elseif_condition = parse_expression(operator_base_precedence());
 
-                if (elseif_condition->is_error()) {
-                    advance_to_next_statement_boundary();
-                    break;
+                    if (elseif_condition->is_error()) {
+                        advance_to_next_statement_boundary();
+                        break;
+                    }
+
+                    parse_block(if_statement);
+                    if_statement->add_branch(elseif_condition);
+                } else {
+                    parse_block(if_statement);
+                    if_statement->add_else_branch();
                 }
-
-                parse_block(if_statement);
-                if_statement->add_branch(elseif_condition);
-            }
-
-            if (expect_keyword(Keyword::Else)) {
-                parse_block(if_statement);
-                if_statement->add_else_branch();
             }
 
             add_statement(parent, if_statement);
