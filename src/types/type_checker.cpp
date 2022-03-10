@@ -79,7 +79,7 @@ namespace kore {
         auto right = expr->right();
         auto op = expr->op();
 
-        if (op == "+" || op == "-" || op == "*" || op == "/") {
+        if (op == BinOp::Plus || op == BinOp::Minus || op == BinOp::Mult || op == BinOp::Div) {
             auto left_type = left->type();
             auto right_type = right->type();
 
@@ -89,7 +89,7 @@ namespace kore {
                 if (result_type->is_unknown()) {
                     std::ostringstream oss;
 
-                    oss << "cannot use binary operation '" << op << "'"
+                    oss << "cannot use binary operation '" << binop_to_string(op) << "'"
                         << " with numeric types "
                         << left_type->name()
                         << " and "
