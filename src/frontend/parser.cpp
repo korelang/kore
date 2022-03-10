@@ -433,17 +433,14 @@ namespace kore {
 
     void Parser::parse_function_signature(Function* const func) {
         if (expect_token_type(TokenType::lparen)) {
-            if (expect_token_type(TokenType::rparen)) {
-                // No parameters, just return
-                return;
+            if (!expect_token_type(TokenType::rparen)) {
+                parse_function_parameters(func);
             }
-
-            parse_function_parameters(func);
 
             Type* return_type = parse_type();
 
-            // If no return type was specified, mark it as unknown and infer it in
-            // the typechecker
+            // If no return type was specified, mark it as unknown and infer it
+            // in the typechecker
             func->set_return_type(return_type ? return_type : new UnknownType());
         }
     }
