@@ -66,7 +66,7 @@ namespace kore {
         try {
             do {
                 token = scanner.next_token();
-                std::cerr << token << std::endl;
+                token.column_format(std::cerr) << std::endl;
             } while (!token.is_eof());
         } catch (const std::runtime_error& ex) {
             return 1;

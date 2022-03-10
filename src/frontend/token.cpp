@@ -233,6 +233,10 @@ namespace kore {
         return os;
     }
 
+    std::ostream& Token::column_format(std::ostream& os) const {
+        return os << type() << "\t" << value() << "\t" << location();
+    }
+
     std::ostream& operator<<(std::ostream& os, const Token& token) {
         return os << token.type() << "<" << token.value() << "> at " << token.location();
     }
