@@ -1,3 +1,4 @@
+#include "ast/ast_visitor.hpp"
 #include "ast/ast_writer.hpp"
 #include "ast/expressions/integer_expression.hpp"
 
@@ -20,5 +21,13 @@ namespace kore {
 
     void IntegerExpression::write(AstWriter* const writer) {
         writer->write(std::to_string(value()));
+    }
+
+    void IntegerExpression::accept(AstVisitor* visitor) {
+        if (visitor->precondition(this)) {
+            return;
+        }
+
+        visitor->visit(this);
     }
 }

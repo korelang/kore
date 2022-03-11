@@ -11,6 +11,7 @@ namespace kore {
             virtual ~Branch();
 
             void write(AstWriter* const writer) override;
+            void accept(AstVisitor* visitor) override;
 
         private:
             Expression* _condition;

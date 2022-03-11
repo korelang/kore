@@ -1,3 +1,4 @@
+#include "ast/ast_visitor.hpp"
 #include "ast/ast_writer.hpp"
 #include "ast/statements/branch.hpp"
 #include "if_statement.hpp"
@@ -40,6 +41,11 @@ namespace kore {
         if (has_else_branch()) {
             writer->write("else ");
             branches.back()->write(writer);
+    void IfStatement::accept(AstVisitor* visitor) {
+        for (auto& branch : _branches) {
+            branch->accept(visitor);
         }
+
+        visitor->visit(this);
     }
 }

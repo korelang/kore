@@ -1,3 +1,4 @@
+#include "ast/ast_visitor.hpp"
 #include "ast/ast_writer.hpp"
 #include "ast/expressions/bool_expression.hpp"
 
@@ -19,5 +20,13 @@ namespace kore {
 
     void BoolExpression::write(AstWriter* const writer) {
         writer->write(_value);
+    }
+
+    void BoolExpression::accept(AstVisitor* visitor) {
+        if (visitor->precondition(this)) {
+            return;
+        }
+
+        visitor->visit(this);
     }
 }

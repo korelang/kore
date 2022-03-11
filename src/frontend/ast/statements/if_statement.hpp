@@ -20,6 +20,7 @@ namespace kore {
             bool has_else_branch() const;
 
             void write(AstWriter* const writer) override;
+            void accept(AstVisitor* visitor) override;
 
         private:
             bool _has_else_branch;

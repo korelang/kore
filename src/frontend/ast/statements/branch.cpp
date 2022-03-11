@@ -1,3 +1,4 @@
+#include "ast/ast_visitor.hpp"
 #include "ast/ast_writer.hpp"
 #include "branch.hpp"
 #include "ast/expressions/expression.hpp"
@@ -28,5 +29,13 @@ namespace kore {
         }
 
         writer->write("}\n");
+    }
+
+    void Branch::accept(AstVisitor* visitor) {
+        _condition->accept(visitor);
+
+        for (auto& statement : _statements) {
+            statement->accept(visitor);
+        }
     }
 }
