@@ -13,6 +13,9 @@ namespace kore {
         constexpr int KORE_VM_MAX_REGISTERS = KORE_VM_MAX_REGISTERS;
     #endif
 
+    // Type alias for registers ('register' is a reserved keyword)
+    using Reg = int;
+
     /// Kore's register-based virtual machine
     class Vm final {
         public:

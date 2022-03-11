@@ -6,15 +6,15 @@
 #include "backend/vm/vm.hpp"
 
 #define LOAD_OPCODE(type) {\
-    int dest_reg;\
-    int value;\
+    Reg dest_reg;\
+    Reg value;\
     decode_address2_opcode(curr_instruction, &dest_reg, &value);\
     _registers[dest_reg] = from_##type(value);\
 }
 
 #define BINARY_ARITH_OPCODE(type) {\
-    int dest_reg;\
-    int op1_reg, op2_reg;\
+    Reg dest_reg;\
+    Reg op1_reg, op2_reg;\
     decode_address3_opcode(curr_instruction, &dest_reg, &op1_reg, &op2_reg);\
     \
     auto value1 = _registers[op1_reg].as_##type();\
@@ -90,12 +90,12 @@ namespace kore {
         return static_cast<Bytecode>(instruction >> 24);
     }
 
-    void inline Vm::decode_address2_opcode(bytecode_type opcode, int* dest_reg, int* value) {
+    void inline Vm::decode_address2_opcode(bytecode_type opcode, Reg* dest_reg, Reg* value) {
         *dest_reg = (opcode >> 16) & 0xff;
         *value = opcode & 0xffff;
     }
 
-    void inline Vm::decode_address3_opcode(bytecode_type opcode, int* dest_reg, int* op1, int* op2) {
+    void inline Vm::decode_address3_opcode(bytecode_type opcode, Reg* dest_reg, Reg* op1, Reg* op2) {
         *dest_reg = (opcode >> 16) & 0xff;
         *op1 = (opcode >> 8) & 0xff;
         *op2 = opcode & 0xff;
