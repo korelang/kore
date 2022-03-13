@@ -9,8 +9,7 @@ namespace kore {
         _statements(std::move(statements)) {
     }
 
-    Branch::Branch(StatementList statements)
-        : _statements(std::move(statements)) {
+    Branch::Branch(StatementList statements) : Branch(nullptr, std::move(statements)) {
     }
 
     Branch::~Branch() {

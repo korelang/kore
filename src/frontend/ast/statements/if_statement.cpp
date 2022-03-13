@@ -11,18 +11,18 @@ namespace kore {
     }
 
     void IfStatement::add_branch(Expression* condition) {
-        branches.emplace_back(new Branch(condition, std::move(statement_accumulator)));
-        statement_accumulator.clear();
+        _branches.emplace_back(new Branch(condition, std::move(_statement_accumulator)));
+        _statement_accumulator.clear();
     }
 
     void IfStatement::add_else_branch() {
         _has_else_branch = true;
-        branches.emplace_back(new Branch(std::move(statement_accumulator)));
-        statement_accumulator.clear();
+        _branches.emplace_back(new Branch(std::move(_statement_accumulator)));
+        _statement_accumulator.clear();
     }
 
     void IfStatement::add_statement(Statement* statement) {
-        statement_accumulator.emplace_back(statement);
+        _statement_accumulator.emplace_back(statement);
     }
 
     bool IfStatement::has_else_branch() const {
@@ -31,16 +31,19 @@ namespace kore {
 
     void IfStatement::write(AstWriter* const writer) {
         writer->write("if ");
-        branches[0]->write(writer);
+        _branches[0]->write(writer);
 
-        for (std::vector<Branch>::size_type i = 1; i < branches.size() - 1; ++i) {
+        for (std::vector<Branch>::size_type i = 1; i < _branches.size() - 1; ++i) {
             writer->write("else if ");
-            branches[i]->write(writer);
+            _branches[i]->write(writer);
         }
-
         if (has_else_branch()) {
+
             writer->write("else ");
-            branches.back()->write(writer);
+            _branches.back()->write(writer);
+        }
+    }
+
     void IfStatement::accept(AstVisitor* visitor) {
         for (auto& branch : _branches) {
             branch->accept(visitor);
