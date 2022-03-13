@@ -1,9 +1,33 @@
 #include "backend/codegen/bytecode/bytecode.hpp"
 #include "backend/codegen/bytecode/bytecode_codegen.hpp"
+#include "backend/vm/vm.hpp"
 #include "utils/unused_parameter.hpp"
 
 namespace kore {
     const std::string BytecodeGenerator::_bytecode_version = "1.0.0";
+
+    std::map<TypeCategory, std::map<BinOp, Bytecode>> _binop_map = {
+        {
+            TypeCategory::Integer, {
+                {BinOp::Plus,  Bytecode::AddI32},
+                {BinOp::Minus, Bytecode::SubI32},
+                {BinOp::Mult,  Bytecode::MultI32},
+                {BinOp::Pow,   Bytecode::PowI32},
+                {BinOp::Div,   Bytecode::DivI32},
+                {BinOp::Lt,    Bytecode::LtI32},
+            },
+        },
+        {
+            TypeCategory::Float, {
+                {BinOp::Plus,  Bytecode::AddF32},
+                {BinOp::Minus, Bytecode::SubF32},
+                {BinOp::Mult,  Bytecode::MultF32},
+                {BinOp::Pow,   Bytecode::PowF32},
+                {BinOp::Div,   Bytecode::DivF32},
+                {BinOp::Lt,    Bytecode::LtF32},
+            },
+        },
+    };
 
     BytecodeGenerator::BytecodeGenerator() {}
 
@@ -34,38 +58,26 @@ namespace kore {
     /*     *out << code; */
     /* } */
 
+    Bytecode BytecodeGenerator::get_binop_instruction(
+        TypeCategory type_category,
+        BinOp binop
+    ) {
+        return _binop_map[type_category][binop];
+    }
+
     void BytecodeGenerator::visit(BinaryExpression* expr) {
-        switch (expr->type()->category()) {
-            /* case TypeCategory::Char: */
-            /*     emit(Bytecode::CharAdd); */
-            /*     break; */
+        int reg2 = get_register_operand();
+        int reg1 = get_register_operand();
+        int dest_reg = allocate_register();
 
-            case TypeCategory::Float: {
-                int reg2 = get_register_operand();
-                int reg1 = get_register_operand();
-                int dest_reg = allocate_register();
-                _writer->write(Bytecode::AddF32, dest_reg, reg1, reg2);
-                _register_stack.push(dest_reg);
-                break;
-            }
+        _writer->write(
+            get_binop_instruction(expr->type()->category(), expr->op()),
+            dest_reg,
+            reg1,
+            reg2
+        );
 
-            case TypeCategory::Integer: {
-                int reg2 = get_register_operand();
-                int reg1 = get_register_operand();
-                int dest_reg = allocate_register();
-                _writer->write(Bytecode::AddI32, dest_reg, reg1, reg2);
-                _register_stack.push(dest_reg);
-                break;
-            }
-
-            /* case TypeCategory::Str: */
-            /*     emit(Bytecode::StrAdd); */
-            /*     break; */
-
-            default:
-                break;
-                /* kore_unreachable(); */
-        }
+        _register_stack.push(dest_reg);
     }
 
     void BytecodeGenerator::visit(BoolExpression* expr) {
@@ -83,10 +95,14 @@ namespace kore {
         _register_stack.push(reg);
     }
 
+    void BytecodeGenerator::visit(FloatExpression* expr) {
+        auto reg = allocate_register();
+        _writer->write(Bytecode::LoadF32, reg, expr->value());
+        _register_stack.push(reg);
+    }
+
     void BytecodeGenerator::visit(VariableAssignment* statement) {
         UNUSED_PARAM(statement);
-
-        // a = 1 + 2
 
         int reg = get_register_operand();
 
@@ -96,6 +112,10 @@ namespace kore {
     }
 
     int BytecodeGenerator::allocate_register() {
+        if (_registers >= KORE_VM_MAX_REGISTERS) {
+            throw std::runtime_error("No more registers");
+        }
+
         return _registers++;
     }
 
