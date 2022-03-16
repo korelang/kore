@@ -53,6 +53,15 @@ namespace kore {
             //virtual void precondition(ReturnStatement* statement);
             virtual bool precondition(VariableAssignment* statement);
             virtual bool precondition(VariableDeclaration* statement);
+
+            virtual bool postcondition(Branch* statement);
+            virtual bool postcondition(Function* statement);
+            virtual bool postcondition(IfStatement* statement);
+            virtual bool postcondition(ImportStatement* statement);
+            virtual bool postcondition(ModuleStatement* statement);
+            //virtual voipostrecondition(ReturnStatement* statement);
+            virtual bool postcondition(VariableAssignment* statement);
+            virtual bool postcondition(VariableDeclaration* statement);
     };
 }
 

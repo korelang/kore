@@ -37,8 +37,8 @@ namespace kore {
             writer->write("else if ");
             _branches[i]->write(writer);
         }
-        if (has_else_branch()) {
 
+        if (has_else_branch()) {
             writer->write("else ");
             _branches.back()->write(writer);
         }

@@ -65,6 +65,7 @@ set(BASE_SOURCES
     src/types/unknown_type.cpp
     src/types/type_inferrer.cpp
     src/types/type_checker.cpp
+    src/types/scope.cpp
     src/types/symbol_table.cpp
 
     src/logging/color_attributes.cpp

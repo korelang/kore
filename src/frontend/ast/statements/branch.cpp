@@ -31,10 +31,20 @@ namespace kore {
     }
 
     void Branch::accept(AstVisitor* visitor) {
-        _condition->accept(visitor);
+        if (visitor->precondition(this)) {
+            return;
+        }
+
+        if (_condition) {
+            _condition->accept(visitor);
+        }
 
         for (auto& statement : _statements) {
             statement->accept(visitor);
+        }
+
+        if (visitor->postcondition(this)) {
+            return;
         }
     }
 }

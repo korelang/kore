@@ -12,7 +12,7 @@
 #include "parser.hpp"
 #include "scanner.hpp"
 #include "token.hpp"
-#include "types/symbol_table.hpp"
+#include "types/scope.hpp"
 #include "types/type_checker.hpp"
 #include "types/type_inferrer.hpp"
 
@@ -98,14 +98,14 @@ namespace kore {
         return 0;
     }
 
-    void infer_types(Ast& ast, SymbolTable& symbol_table) {
-        TypeInferrer type_inferrer{symbol_table};
+    void infer_types(Ast& ast, ScopeStack& scope_stack) {
+        TypeInferrer type_inferrer{scope_stack};
 
         type_inferrer.infer(ast);
     }
 
-    int check_types(const std::string& source_name, const Ast& ast, SymbolTable& symbol_table, int verbosity) {
-        TypeChecker type_checker{symbol_table};
+    int check_types(const std::string& source_name, const Ast& ast, ScopeStack& scope_stack, int verbosity) {
+        TypeChecker type_checker{scope_stack};
 
         int error_count = type_checker.check(ast);
 
@@ -171,15 +171,14 @@ namespace kore {
 
         // 2. Check functions have a return statement
 
-        SymbolTable symbol_table;
 
         // 3. Infer types
-        infer_types(ast, symbol_table);
-
+        ScopeStack scope_stack;
+        infer_types(ast, scope_stack);
         success(1, args.verbosity, "type inference successful");
 
         // 4. Check types
-        int error_count = check_types(source_name, ast, symbol_table, args.verbosity);
+        int error_count = check_types(source_name, ast, scope_stack, args.verbosity);
 
         if (args.typecheck_only || error_count > 0) {
             return error_count > 0 ? 1 : 0;

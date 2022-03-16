@@ -60,7 +60,7 @@ namespace kore {
 
     void VariableAssignment::accept(AstVisitor* visitor) {
         _expr->accept(visitor);
-        _identifier.accept(visitor);
+        /* _identifier.accept(visitor); */
 
         visitor->visit(this);
     }

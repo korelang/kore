@@ -176,4 +176,44 @@ namespace kore {
         UNUSED_PARAM(statement);
         return false;
     }
+
+    bool AstVisitor::postcondition(Branch* statement) {
+        UNUSED_PARAM(statement);
+        return false;
+    }
+
+    bool AstVisitor::postcondition(Function* statement) {
+        UNUSED_PARAM(statement);
+        return false;
+    }
+
+    bool AstVisitor::postcondition(IfStatement* statement) {
+        UNUSED_PARAM(statement);
+        return false;
+    }
+
+    bool AstVisitor::postcondition(ImportStatement* statement) {
+        UNUSED_PARAM(statement);
+        return false;
+    }
+
+    bool AstVisitor::postcondition(ModuleStatement* statement) {
+        UNUSED_PARAM(statement);
+        return false;
+    }
+
+    /* void AstVisitor::postcondition(ReturnStatement* statement) { */
+    /*     UNUSED_PARAM(statement); */
+    /*     return false; */
+    /* } */
+
+    bool AstVisitor::postcondition(VariableAssignment* statement) {
+        UNUSED_PARAM(statement);
+        return false;
+    }
+
+    bool AstVisitor::postcondition(VariableDeclaration* statement) {
+        UNUSED_PARAM(statement);
+        return false;
+    }
 }

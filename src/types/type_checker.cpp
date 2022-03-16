@@ -1,6 +1,7 @@
 #include "type_checker.hpp"
 #include "ast/expressions/binary_expression.hpp"
 #include "ast/expressions/expression.hpp"
+#include "ast/statements/branch.hpp"
 #include "ast/statements/statement.hpp"
 #include "ast/statements/variable_assignment.hpp"
 #include "ast/statements/variable_declaration.hpp"
@@ -13,8 +14,8 @@ namespace kore {
         : message(message),
         location(location) {}
 
-    TypeChecker::TypeChecker(SymbolTable& symbol_table)
-        : _symbol_table(symbol_table) {}
+    TypeChecker::TypeChecker(ScopeStack& scope_stack)
+        : _scope_stack(scope_stack) {}
 
     TypeChecker::~TypeChecker() {}
 
@@ -46,7 +47,9 @@ namespace kore {
     /* } */
 
     void TypeChecker::visit(Identifier* expr) {
-        if (!_symbol_table.find_identifier(expr->name())) {
+        auto entry = _scope_stack.get(expr->name());
+
+        if (!entry) {
             push_error("use of undefined variable " + expr->name(), expr->location());
         }
     }
@@ -71,7 +74,9 @@ namespace kore {
             }
         }
 
-        _symbol_table.insert_identifier(statement->identifier());
+        if (!_scope_stack.get(statement->identifier()->name())) {
+            _scope_stack.insert(statement->identifier());
+        }
     }
 
     void TypeChecker::visit(BinaryExpression* expr) {
@@ -111,5 +116,17 @@ namespace kore {
                 push_error(oss.str(), expr->location());
             }
         }
+    }
+
+    bool TypeChecker::precondition(Branch* branch) {
+        UNUSED_PARAM(branch);
+        _scope_stack.enter(false);
+        return false;
+    }
+
+    bool TypeChecker::postcondition(Branch* branch) {
+        UNUSED_PARAM(branch);
+        _scope_stack.leave();
+        return false;
     }
 }

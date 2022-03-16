@@ -4,20 +4,20 @@
 #include "ast/ast.hpp"
 #include "ast/ast_visitor.hpp"
 #include "ast/statements/variable_assignment.hpp"
-#include "types/symbol_table.hpp"
+#include "types/scope.hpp"
 
 namespace kore {
     /// Class that tries to infer the types of nodes in an AST
     class TypeInferrer final : public AstVisitor {
         public:
-            TypeInferrer(SymbolTable& symbol_table);
+            TypeInferrer(ScopeStack& scope_stack);
             virtual ~TypeInferrer();
 
             void infer(Ast& ast);
 
         private:
             // We need a symbol table for inference of the types of variables
-            SymbolTable& _symbol_table;
+            ScopeStack& _scope_stack;
 
             /* void visit(ArrayExpression* expr) override; */
             /* void visit(ArrayFillExpression* expr) override; */
@@ -41,6 +41,9 @@ namespace kore {
             //void visit(ReturnStatement* statement);
             void visit(VariableAssignment* statement) override;
             /* void visit(VariableDeclaration* statement) override; */
+
+            bool precondition(Branch* branch) override;
+            bool postcondition(Branch* branch) override;
     };
 }
 
