@@ -64,6 +64,8 @@ namespace kore {
         }
 
         try {
+            debug_group("scan", "dumping scanned tokens");
+
             do {
                 token = scanner.next_token();
                 token.column_format(std::cerr) << std::endl;
@@ -88,11 +90,13 @@ namespace kore {
 
         if (!parser.failed()) {
             if (args.dump_parse) {
+                debug_group("parse", "dumping ast");
                 AstStreamWriter stream_writer{std::cerr};
                 stream_writer.write(ast);
             }
         } else {
             error("%d errors", parser.error_count());
+            return 1;
         }
 
         return 0;
@@ -152,8 +156,6 @@ namespace kore {
             // Dump all scanned tokens to stderr
             return dump_tokens(args.execute, args.expr, args.filename);
         }
-
-        /* info_verbose(args.verbosity, "Compiling '%s'", argv[1]); */
 
         std::string source_name = args.execute ? "<string>" : args.filename;
 
@@ -234,7 +236,7 @@ int main(int argc, char** argv) {
     try {
         return kore::run(argc, argv);
     } catch (std::runtime_error& ex) {
-        kore::error("%s", ex.what());
+        kore::error_group("fatal", "%s", ex.what());
 
         return 1;
     }
