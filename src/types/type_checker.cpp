@@ -5,15 +5,12 @@
 #include "ast/statements/statement.hpp"
 #include "ast/statements/variable_assignment.hpp"
 #include "ast/statements/variable_declaration.hpp"
+#include "errors/errors.hpp"
 #include "utils/unused_parameter.hpp"
 
 #include <sstream>
 
 namespace kore {
-    TypeError::TypeError(const std::string& message, const Location& location)
-        : message(message),
-        location(location) {}
-
     TypeChecker::TypeChecker(ScopeStack& scope_stack)
         : _scope_stack(scope_stack) {}
 
@@ -29,15 +26,16 @@ namespace kore {
         return _errors.size();
     }
 
-    std::vector<TypeError> TypeChecker::errors() {
+    std::vector<errors::Error> TypeChecker::errors() {
         return _errors;
     }
 
-    void TypeChecker::push_error(
-        const std::string& message,
-        const Location& location
-    ) {
-        _errors.emplace_back(message, location);
+    void TypeChecker::push_error(errors::Error error) {
+        if (_error_threshold != _NO_ERROR_THRESHOLD && static_cast<int>(_errors.size()) >= _error_threshold) {
+            return;
+        }
+
+        _errors.emplace_back(error);
     }
 
     /* void TypeChecker::visit(IfStatement* statement) { */
@@ -50,7 +48,7 @@ namespace kore {
         auto entry = _scope_stack.find(expr->name());
 
         if (!entry) {
-            push_error("use of undefined variable " + expr->name(), expr->location());
+            push_error(errors::typing::undefined_variable(expr));
         }
     }
 
@@ -62,15 +60,7 @@ namespace kore {
         // type instead
         if (!declared_type->is_unknown()) {
             if (declared_type->unify(expr_type)->is_unknown()) {
-                std::ostringstream oss;
-
-                oss << "cannot assign expression of type "
-                    << expr_type->name()
-                    << " to variable of type "
-                    << declared_type->name()
-                    << " without conversion";
-
-                push_error(oss.str(), statement->location());
+                push_error(errors::typing::cannot_assign(expr_type, declared_type, statement->location()));
             }
         }
 
@@ -83,12 +73,7 @@ namespace kore {
             // This variable did not already exist in the inner scope, check
             // that it does not shadow a variable in an outer scope
             if (shadows_outer_scope(identifier)) {
-                auto message =
-                    "variable " +
-                    identifier->name() +
-                    " shadows variable in outer scope";
-
-                push_error(message, statement->location());
+                push_error(errors::typing::variables_shadows(identifier, statement->location()));
             }
         } else {
             // TODO
@@ -110,28 +95,12 @@ namespace kore {
                 auto result_type = left_type->unify(right_type);
 
                 if (result_type->is_unknown()) {
-                    std::ostringstream oss;
-
-                    oss << "cannot use binary operation '" << binop_to_string(op) << "'"
-                        << " with numeric types "
-                        << left_type->name()
-                        << " and "
-                        << right_type->name()
-                        << " without conversion";
-
-                    push_error(oss.str(), expr->location());
+                    push_error(errors::typing::incompatible_binop(left_type, right_type, op, expr->location()));
                 } else {
                     expr->set_type(result_type);
                 }
             } else {
-                std::ostringstream oss;
-
-                oss << "binary expression must have numeric operands but got "
-                    << left_type->name()
-                    << " and "
-                    << right_type->name();
-
-                push_error(oss.str(), expr->location());
+                push_error(errors::typing::binop_numeric_operands(left_type, right_type, op, expr->location()));
             }
         }
     }

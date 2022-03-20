@@ -11,7 +11,7 @@
 #include "types/type.hpp"
 #include "types/optional.hpp"
 #include "types/unknown_type.hpp"
-#include "errors.hpp"
+#include "errors/errors.hpp"
 #include "operator.hpp"
 #include "parser.hpp"
 

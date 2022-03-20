@@ -2,7 +2,7 @@
 #include <sstream>
 #include <string>
 
-#include "errors.hpp"
+#include "errors/errors.hpp"
 #include "keywords.hpp"
 #include "logging/logging.hpp"
 #include "scanner.hpp"

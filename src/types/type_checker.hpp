@@ -5,22 +5,10 @@
 
 #include "ast/ast.hpp"
 #include "ast/ast_visitor.hpp"
+#include "errors/error.hpp"
 #include "types/scope.hpp"
 
 namespace kore {
-    /// Contains all the information about a type error
-    struct TypeError {
-        TypeError(const std::string& message, const Location& location);
-
-        std::string message;
-
-        Location location;
-
-        // Used for e.g. multiple declaration errors to point to the previous
-        // declaration
-        Location other_location;
-    };
-
     class VariableDeclaration;
     class VariableAssignment;
     class BinaryExpression;
@@ -33,23 +21,19 @@ namespace kore {
             /// Typecheck an AST
             int check(const Ast& ast);
 
-            std::vector<TypeError> errors();
+            std::vector<errors::Error> errors();
 
         private:
+            static constexpr int _NO_ERROR_THRESHOLD = -1;
+
             ScopeStack& _scope_stack;
 
             // How many errors to tolerate before bailing out
-            int _error_threshold = -1;
+            int _error_threshold = _NO_ERROR_THRESHOLD;
 
-            std::vector<TypeError> _errors;
+            std::vector<errors::Error> _errors;
 
-            void push_error(const std::string& message, const Location& location);
-            void push_error(
-                const std::string& message,
-                const Location& location,
-                const Location& otherLocation
-            );
-
+            void push_error(errors::Error error);
             void visit(BinaryExpression* expr) override;
             void visit(Identifier* expr) override;
 

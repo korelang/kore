@@ -42,7 +42,6 @@ set(BASE_SOURCES
     src/frontend/ast/statements/variable_declaration.cpp
     src/frontend/ast/statements/variable_assignment.cpp
 
-    src/frontend/errors.cpp
     src/frontend/keywords.cpp
     src/frontend/location.cpp
     src/frontend/operator.cpp
@@ -68,6 +67,8 @@ set(BASE_SOURCES
     src/types/scope.cpp
     src/types/symbol_table.cpp
 
+    src/errors/error.cpp
+    src/errors/errors.cpp
     src/logging/color_attributes.cpp
     src/logging/colors.cpp
     src/logging/logging.cpp
