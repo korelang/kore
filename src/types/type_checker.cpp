@@ -47,7 +47,7 @@ namespace kore {
     /* } */
 
     void TypeChecker::visit(Identifier* expr) {
-        auto entry = _scope_stack.get(expr->name());
+        auto entry = _scope_stack.find(expr->name());
 
         if (!entry) {
             push_error("use of undefined variable " + expr->name(), expr->location());
@@ -74,8 +74,26 @@ namespace kore {
             }
         }
 
-        if (!_scope_stack.get(statement->identifier()->name())) {
-            _scope_stack.insert(statement->identifier());
+        auto identifier = statement->identifier();
+        auto entry = _scope_stack.find_inner(identifier->name());
+
+        if (!entry) {
+            _scope_stack.insert(identifier);
+
+            // This variable did not already exist in the inner scope, check
+            // that it does not shadow a variable in an outer scope
+            if (shadows_outer_scope(identifier)) {
+                auto message =
+                    "variable " +
+                    identifier->name() +
+                    " shadows variable in outer scope";
+
+                push_error(message, statement->location());
+            }
+        } else {
+            // TODO
+            // Variable already exists in this scope, check that we are not
+            // redeclaring a constant variable
         }
     }
 
@@ -128,5 +146,9 @@ namespace kore {
         UNUSED_PARAM(branch);
         _scope_stack.leave();
         return false;
+    }
+
+    bool TypeChecker::shadows_outer_scope(const Identifier* identifier) {
+        return _scope_stack.find_enclosing(identifier->name()) != nullptr;
     }
 }

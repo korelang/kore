@@ -22,8 +22,9 @@ namespace kore {
             Scope(bool func_scope_start)
                 : func_scope_start(func_scope_start) {}
 
-            bool func_scope_start;
+            ScopeEntry* find(const std::string& name);
 
+            bool func_scope_start;
             ScopeMap _map;
         };
     }
@@ -34,14 +35,23 @@ namespace kore {
             ScopeStack();
             virtual ~ScopeStack();
 
+            int levels() const;
             void enter(bool func_scope_start = false);
             void leave();
-            ScopeEntry* get(const std::string& name);
+            ScopeEntry* find(const std::string& name);
+            ScopeEntry* find_inner(const std::string& name);
+            ScopeEntry* find_enclosing(const std::string& name);
             void insert(const Identifier* identifier);
             void clear();
 
         private:
             std::vector<Scope> _scopes;
+
+            ScopeEntry* find_in_range(
+                const std::string& name,
+                int start_lvl,
+                int end_lvl
+            );
     };
 }
 

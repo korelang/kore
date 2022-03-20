@@ -26,7 +26,7 @@ namespace kore {
     }
 
     void TypeInferrer::visit(Identifier* expr) {
-        auto entry = _scope_stack.get(expr->name());
+        auto entry = _scope_stack.find(expr->name());
 
         // If no identifier was found, this is an undefined variable which is
         // caught by the type checker

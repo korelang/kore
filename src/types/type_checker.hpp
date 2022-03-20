@@ -58,6 +58,9 @@ namespace kore {
 
             bool precondition(Branch* branch) override;
             bool postcondition(Branch* branch) override;
+
+            /// Check if a variable shadows a variable in an outer scope
+            bool shadows_outer_scope(const Identifier* identifier);
     };
 }
 
