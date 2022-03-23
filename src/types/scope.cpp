@@ -41,12 +41,16 @@ namespace kore {
     }
 
     void ScopeStack::insert(const Identifier* identifier) {
+        insert(identifier, 0);
+    }
+
+    void ScopeStack::insert(const Identifier* identifier, Reg reg) {
         auto& last = _scopes.back()._map;
 
         last.emplace(
             identifier->name(),
             ScopeEntry {
-                .reg = 0,
+                .reg = reg,
                 .level = static_cast<int>(_scopes.size()),
                 .identifier = identifier,
             }

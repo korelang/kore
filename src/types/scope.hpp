@@ -42,6 +42,7 @@ namespace kore {
             ScopeEntry* find_inner(const std::string& name);
             ScopeEntry* find_enclosing(const std::string& name);
             void insert(const Identifier* identifier);
+            void insert(const Identifier* identifier, Reg reg);
             void clear();
 
         private:

@@ -3,26 +3,33 @@
 
 #include <stack>
 
-#include "backend/codegen/bytecode/bytecode.hpp"
-#include "backend/codegen/codegen.hpp"
-#include "backend/vm/vm.hpp"
+#include "codegen/bytecode/bytecode.hpp"
+#include "codegen/bytecode/bytecode_array_writer.hpp"
+#include "codegen/codegen.hpp"
+#include "register.hpp"
+#include "types/scope.hpp"
 
 namespace kore {
-    class BytecodeGenerator final : public Codegen<Bytecode> {
+    class BytecodeGenerator final : public AstVisitor {
         public:
-            BytecodeGenerator();
+            BytecodeGenerator(ScopeStack& scope_stack);
             virtual ~BytecodeGenerator();
 
-            void emit_version() override;
-            void emit_header() override;
-            /* void write(Bytecode code) override; */
-            void emit(Bytecode bytecode) override;
+            void compile(const Ast& ast);
 
             void visit(BinaryExpression* expr) override;
             void visit(BoolExpression* expr) override;
             void visit(IntegerExpression* expr) override;
             void visit(FloatExpression* expr) override;
+            void visit(Identifier* expr) override;
             void visit(VariableAssignment* statement) override;
+            void visit(IfStatement* statement) override;
+
+            bool precondition(Branch* statement) override;
+            /* bool postcondition(Branch* statement) override; */
+
+            code_iterator begin() const;
+            code_iterator end() const;
 
         private:
             // For now, we just use a very simple register allocator with
@@ -32,6 +39,10 @@ namespace kore {
             std::stack<Reg> _register_stack;
 
             const static std::string _bytecode_version;
+
+            BytecodeArrayWriter _writer;
+
+            ScopeStack& _scope_stack;
 
         private:
             Reg allocate_register();

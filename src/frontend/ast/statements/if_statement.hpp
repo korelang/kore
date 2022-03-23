@@ -8,7 +8,7 @@
 #include "ast/expressions/expression.hpp"
 
 namespace kore {
-    using branch_iterator = std::iterator<std::input_iterator_tag, Branch*>;
+    using branch_iterator = std::vector<std::unique_ptr<Branch>>::const_iterator;
 
     class IfStatement : public Statement {
         public:
@@ -21,6 +21,8 @@ namespace kore {
             void add_statement(Statement* statement) override;
             bool has_else_branch() const;
 
+            branch_iterator begin() const;
+            branch_iterator end() const;
             branch_iterator branches();
 
             void write(AstWriter* const writer) override;

@@ -15,6 +15,18 @@ namespace kore {
     Branch::~Branch() {
     }
 
+    Expression* Branch::condition() {
+        return _condition;
+    }
+
+    body_iterator Branch::begin() const {
+        return _statements.begin();
+    }
+
+    body_iterator Branch::end() const {
+        return _statements.end();
+    }
+
     void Branch::write(AstWriter* const writer) {
         // Only "if" and "else if" branches have conditions
         if (_condition) {

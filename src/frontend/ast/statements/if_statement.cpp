@@ -29,6 +29,14 @@ namespace kore {
         return _has_else_branch;
     }
 
+    branch_iterator IfStatement::begin() const {
+        return _branches.cbegin();
+    }
+
+    branch_iterator IfStatement::end() const {
+        return _branches.cend();
+    }
+
     void IfStatement::write(AstWriter* const writer) {
         writer->write("if ");
         _branches[0]->write(writer);

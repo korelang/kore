@@ -77,10 +77,12 @@ set(BASE_SOURCES
 
     # Backend
     src/backend/codegen/bytecode/bytecode.cpp
+    src/backend/codegen/bytecode/bytecode_array_writer.cpp
     src/backend/codegen/bytecode/bytecode_codegen.cpp
     src/backend/codegen/bytecode/bytecode_dumper.cpp
     src/backend/vm/value_type.cpp
     src/backend/vm/vm.cpp
+    src/backend/decode_instruction.cpp
 )
 
 set(SOURCES

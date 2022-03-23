@@ -10,12 +10,12 @@ namespace kore {
     }
 
     void Codegen::compile(const Ast& ast) {
-        if (!out) {
-            throw std::runtime_error("Output stream not set for compilation");
-        }
+        /* if (!out) { */
+        /*     throw std::runtime_error("Output stream not set for compilation"); */
+        /* } */
 
-        emit_header();
-        emit_version();
+        /* emit_header(); */
+        /* emit_version(); */
 
         for (auto const& statement : ast) {
             statement->accept(this);

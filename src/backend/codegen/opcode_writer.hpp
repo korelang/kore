@@ -3,6 +3,7 @@
 
 #include <string>
 
+#include "backend/register.hpp"
 #include "internal_value_types.hpp"
 
 namespace kore {
@@ -12,10 +13,13 @@ namespace kore {
             virtual void write_header() = 0;
             virtual void write(Opcode opcode) = 0;
             /* virtual void write(const char* const bytes, std::size_t count) = 0; */
-            virtual void write(Opcode opcode, i32 value) = 0;
+            /* virtual void write(Opcode opcode, i32 value) = 0; */
             /* virtual void write(Opcode opcode, bool value) = 0; */
-            virtual void write(Opcode opcode, int reg, i32 value) = 0;
-            virtual void write(Opcode opcode, int destination_reg, int reg_operand1, int reg_operand2) = 0;
+            virtual void write(Opcode opcode, Reg reg, i32 value) = 0;
+            virtual void write(Opcode opcode, Reg destination_reg, Reg reg_operand1, Reg reg_operand2) = 0;
+            virtual void save_patch_location() = 0;
+            virtual void write_jump(Opcode opcode, Reg reg) = 0;
+            virtual void patch_jump() = 0;
 
             virtual bool is_dumper() const noexcept {
                 return false;
