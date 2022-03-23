@@ -5,6 +5,7 @@
 
 #include "backend/codegen/bytecode/bytecode.hpp"
 #include "backend/vm/value_type.hpp"
+#include "backend/register.hpp"
 
 namespace kore {
     #ifndef KORE_VM_MAX_REGISTERS
@@ -12,9 +13,6 @@ namespace kore {
     #else
         constexpr int KORE_VM_MAX_REGISTERS = KORE_VM_MAX_REGISTERS;
     #endif
-
-    // Type alias for registers ('register' is a reserved keyword)
-    using Reg = int;
 
     /// Kore's register-based virtual machine
     class Vm final {
@@ -35,6 +33,7 @@ namespace kore {
             Bytecode inline decode_opcode(bytecode_type instruction);
             void inline decode_address2_opcode(bytecode_type opcode, int* dest_reg, int* value);
             void inline decode_address3_opcode(bytecode_type opcode, int* dest_reg, int* op1, int* op2);
+            void throw_unknown_opcode(Bytecode opcode);
     };
 }
 

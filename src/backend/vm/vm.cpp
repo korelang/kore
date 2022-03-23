@@ -1,7 +1,6 @@
 // const bool isCpuLittleEndian = 1 == *(char*)(&__one__); // CPU endianness
 
 #include <sstream>
-#include <iostream>
 
 #include "backend/vm/vm.hpp"
 
@@ -12,7 +11,7 @@
     _registers[dest_reg] = from_##type(value);\
 }
 
-#define BINARY_ARITH_OPCODE(type) {\
+#define BINARY_ARITH_OPCODE(type, op) {\
     Reg dest_reg;\
     Reg op1_reg, op2_reg;\
     decode_address3_opcode(curr_instruction, &dest_reg, &op1_reg, &op2_reg);\
@@ -20,7 +19,62 @@
     auto value1 = _registers[op1_reg].as_##type();\
     auto value2 = _registers[op2_reg].as_##type();\
     \
-    _registers[dest_reg] = from_##type(value1 + value2);\
+    _registers[dest_reg] = from_##type(value1 op value2);\
+}
+
+#define BINARY_OP_CASES(type, opcode_suffix) {\
+    case Bytecode::Add##opcode_suffix:\
+        BINARY_ARITH_OPCODE(type, +)\
+        break;\
+    \
+    case Bytecode::Sub##opcode_suffix:\
+        BINARY_ARITH_OPCODE(type, -)\
+        break;\
+    \
+    case Bytecode::Mult##opcode_suffix:\
+        BINARY_ARITH_OPCODE(type, *)\
+        break;\
+    \
+    case Bytecode::Div##opcode_suffix:\
+        BINARY_ARITH_OPCODE(type, /)\
+        break;\
+}
+
+#define RELOP_OPCODE(type, op) {\
+    Reg dest_reg;\
+    Reg op1_reg, op2_reg;\
+    decode_address3_opcode(curr_instruction, &dest_reg, &op1_reg, &op2_reg);\
+    \
+    auto value1 = _registers[op1_reg].as_##type();\
+    auto value2 = _registers[op2_reg].as_##type();\
+    \
+    _registers[dest_reg] = from_bool(value1 op value2);\
+}
+
+#define RELOP_CASES(type, opcode_suffix) {\
+    case Bytecode::Lt##opcode_suffix:\
+        RELOP_OPCODE(type, <)\
+        break;\
+    \
+    case Bytecode::Gt##opcode_suffix:\
+        RELOP_OPCODE(type, <)\
+        break;\
+    \
+    case Bytecode::Le##opcode_suffix:\
+        RELOP_OPCODE(type, <)\
+        break;\
+    \
+    case Bytecode::Ge##opcode_suffix:\
+        RELOP_OPCODE(type, <)\
+        break;\
+    \
+    case Bytecode::Eq##opcode_suffix:\
+        RELOP_OPCODE(type, <)\
+        break;\
+    \
+    case Bytecode::Neq##opcode_suffix:\
+        RELOP_OPCODE(type, <)\
+        break;\
 }
 
 namespace kore {
@@ -48,38 +102,55 @@ namespace kore {
                     LOAD_OPCODE(i64)
                     break;
 
-                case Bytecode::AddI32:
-                    BINARY_ARITH_OPCODE(i32)
-                    break;
+                BINARY_OP_CASES(i32, I32)
+                BINARY_OP_CASES(i64, I64)
+                BINARY_OP_CASES(f32, F32)
+                BINARY_OP_CASES(f64, F64)
 
-                case Bytecode::AddI64:
-                    BINARY_ARITH_OPCODE(i64)
-                    break;
+                RELOP_CASES(i32, I32)
 
-                case Bytecode::AddF32:
-                    BINARY_ARITH_OPCODE(f32)
+                case Bytecode::Move: {
+                    Reg dest_reg = (curr_instruction >> 16) & 0xff;
+                    Reg src_reg = (curr_instruction >> 8) & 0xff;
+                    _registers[dest_reg] = _registers[src_reg];
                     break;
+                }
 
-                case Bytecode::AddF64:
-                    BINARY_ARITH_OPCODE(f64)
+                case Bytecode::Jump: {
+                    int offset = curr_instruction & 0xffff;
+                    _pc += offset;
                     break;
+                }
+
+                case Bytecode::JumpIf: {
+                    Reg reg = (curr_instruction >> 16) & 0xff;
+
+                    if (_registers[reg].as_bool()) {
+                        int offset = curr_instruction & 0xffff;
+                        // Adjust since we already incremented the pc
+                        _pc += offset - 1;
+                    }
+                    break;
+                }
+
+                case Bytecode::JumpIfNot: {
+                    Reg reg = (curr_instruction >> 16) & 0xff;
+
+                    if (!_registers[reg].as_bool()) {
+                        int offset = curr_instruction & 0xffff;
+                        // Adjust since we already incremented the pc
+                        _pc += offset - 1;
+                    }
+                    break;
+                }
 
                 case Bytecode::StoreI32Global:
                     break;
 
-                default: {
-                    std::ostringstream oss;
-                    oss << "Unsupported bytecode at " << _pc << ": " << opcode;
-                    throw std::runtime_error(oss.str());
-                }
+                default:
+                    throw_unknown_opcode(opcode);
             }
         }
-
-        /* #ifdef KORE_VM_DEBUG */
-        for (int i = 0; i < 3/*KORE_VM_MAX_REGISTERS*/; ++i) {
-            std::cerr << "r" << i << " => " << _registers[i].as_i32() << std::endl;
-        }
-        /* #endif */
     }
 
     void Vm::run(const std::vector<bytecode_type>& code) {
@@ -100,7 +171,16 @@ namespace kore {
         *op1 = (opcode >> 8) & 0xff;
         *op2 = opcode & 0xff;
     }
+
+    void Vm::throw_unknown_opcode(Bytecode opcode) {
+        std::ostringstream oss;
+        oss << "Unsupported bytecode at " << _pc << ": " << opcode;
+        throw std::runtime_error(oss.str());
+    }
 }
 
 #undef LOAD_OPCODE
 #undef BINARY_ARITH_OPCODE
+#undef BINARY_OP_CASES
+#undef RELOP_OPCODE
+#undef RELOP_CASES
