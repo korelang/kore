@@ -463,9 +463,9 @@ namespace kore {
 
     Token Scanner::scan_equal_or_arrow() {
         if (expect_peek('>')) {
-            return make_inline_token(TokenType::arrow, col);
+            return make_inline_token(TokenType::arrow, col, 2);
         } else if (expect_peek('=')) {
-            return make_inline_token(TokenType::equal, col);
+            return make_inline_token(TokenType::equal, col, 2);
         }
 
         return make_one_char_token(TokenType::assign);
@@ -513,7 +513,7 @@ namespace kore {
             throw_error("Expected '=' after '!'");
         }
 
-        return make_inline_token(TokenType::not_equal, col);
+        return make_inline_token(TokenType::not_equal, col, 2);
     }
 
     Token Scanner::scan_multiline_comment() {

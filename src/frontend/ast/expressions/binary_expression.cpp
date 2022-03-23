@@ -18,7 +18,7 @@ namespace kore {
         {"<=",  BinOp::Le},
         {">",   BinOp::Gt},
         {">=",  BinOp::Ge},
-        {"=",   BinOp::Equal},
+        {"==",  BinOp::Equal},
         {"!=",  BinOp::NotEqual},
         {"or",  BinOp::Or},
         {"and", BinOp::And},
