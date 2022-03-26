@@ -15,7 +15,6 @@
 
 namespace kore {
     using IdentifierList = std::vector<Identifier*>;
-    using ParameterList = std::vector<Identifier*>;
 
     /// The parser. Each parse method is annotated with a comment with the /
     /// particular part of the grammar that it handles. It is a recursive descent

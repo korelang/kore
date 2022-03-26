@@ -89,6 +89,7 @@ namespace kore {
         JumpIfNot,
         Call,
         Ret,
+        RetReg,
     };
 
     std::string bytecode_to_string(Bytecode bytecode);

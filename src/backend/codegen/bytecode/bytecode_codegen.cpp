@@ -1,6 +1,5 @@
 #include "backend/codegen/bytecode/bytecode.hpp"
 #include "backend/codegen/bytecode/bytecode_codegen.hpp"
-#include "backend/vm/vm.hpp"
 #include "utils/unused_parameter.hpp"
 
 namespace kore {
@@ -45,6 +44,9 @@ namespace kore {
     BytecodeGenerator::~BytecodeGenerator() {}
 
     void BytecodeGenerator::compile(const Ast& ast) {
+        _objects.clear();
+        new_compiled_object("<main>");
+
         for (auto const& statement : ast) {
             statement->accept(this);
         }
@@ -58,38 +60,47 @@ namespace kore {
     }
 
     void BytecodeGenerator::visit(BinaryExpression* expr) {
+        auto obj = current_object();
         int reg2 = get_register_operand();
         int reg1 = get_register_operand();
-        int dest_reg = allocate_register();
+        int dest_reg = obj->allocate_register();
 
         _writer.write_3address(
             get_binop_instruction(expr->type()->category(), expr->op()),
             dest_reg,
             reg1,
-            reg2
+            reg2,
+            obj
         );
 
         _register_stack.push(dest_reg);
     }
 
     void BytecodeGenerator::visit(BoolExpression* expr) {
-        auto reg = allocate_register();
-        _writer.write_1address(
+        auto obj = current_object();
+        auto reg = obj->allocate_register();
+
+        _writer.write_load(
             Bytecode::LoadBool,
-            reg, expr->value() == "true" ? 1 : 0
+            reg, expr->value() == "true" ? 1 : 0,
+            obj
         );
         _register_stack.push(reg);
     }
 
     void BytecodeGenerator::visit(IntegerExpression* expr) {
-        auto reg = allocate_register();
-        _writer.write_1address(Bytecode::LoadI32, reg, expr->value());
+        auto obj = current_object();
+        auto reg = obj->allocate_register();
+
+        _writer.write_load(Bytecode::LoadI32, reg, expr->value(), obj);
         _register_stack.push(reg);
     }
 
     void BytecodeGenerator::visit(FloatExpression* expr) {
-        auto reg = allocate_register();
-        _writer.write_1address(Bytecode::LoadF32, reg, expr->value());
+        auto obj = current_object();
+        auto reg = obj->allocate_register();
+
+        _writer.write_load(Bytecode::LoadF32, reg, expr->value(), obj);
         _register_stack.push(reg);
     }
 
@@ -99,21 +110,28 @@ namespace kore {
     }
 
     void BytecodeGenerator::visit(VariableAssignment* statement) {
+        auto obj = current_object();
         auto entry = _scope_stack.find_inner(statement->identifier()->name());
         Reg dest_reg;
         Reg reg = get_register_operand();
 
         if (!entry) {
-            dest_reg = allocate_register();
+            dest_reg = obj->allocate_register();
             _scope_stack.insert(statement->identifier(), dest_reg);
         } else {
             dest_reg = entry->reg;
         }
 
-        _writer.write_2address(Bytecode::Move, dest_reg, reg);
+        if (dest_reg != reg) {
+            // A little pre-optimisation: Do not emit moves from and to the
+            // same register
+            _writer.write_2address(Bytecode::Move, dest_reg, reg, obj);
+        }
     }
 
     void BytecodeGenerator::visit(IfStatement* statement) {
+        auto obj = current_object();
+
         // Labels for all unconditional jumps to the end of the conditional
         // that need to be backpatched after all code has been generated
         std::vector<Label> labels;
@@ -124,10 +142,10 @@ namespace kore {
 
             if (condition) {
                 branch->condition()->accept(this);
-                label = _writer.write_jump(Bytecode::JumpIfNot, get_register_operand());
+                label = _writer.write_jump(Bytecode::JumpIfNot, get_register_operand(), obj);
             }
 
-            _scope_stack.enter(false);
+            _scope_stack.enter();
             for (auto& statement : *branch) {
                 statement->accept(this);
             }
@@ -136,15 +154,30 @@ namespace kore {
             if (condition) {
                 // Write an unconditional jump to skip the entire conditional
                 // statement after the branch's body has been executed
-                labels.push_back(_writer.write_jump(Bytecode::Jump));
+                labels.push_back(_writer.write_jump(Bytecode::Jump, obj));
 
-                _writer.patch_jump(label);
+                _writer.patch_jump(label, obj);
             }
         }
 
         for (Label label : labels) {
             // Patch all jumps to end of the conditional statement
-            _writer.patch_jump(label);
+            _writer.patch_jump(label, obj);
+        }
+    }
+
+    void BytecodeGenerator::visit(Return* statement) {
+        UNUSED_PARAM(statement);
+
+        auto obj = current_object();
+
+        // If the return statement returns an expression, get its register
+        // and return it, otherwise just return
+        if (statement->expr()) {
+            auto reg = get_register_operand();
+            _writer.write_1address(Bytecode::RetReg, reg, obj);
+        } else {
+            _writer.write_opcode(Bytecode::Ret, obj);
         }
     }
 
@@ -153,26 +186,28 @@ namespace kore {
         return true;
     }
 
-    /* bool BytecodeGenerator::postcondition(Branch* branch) { */
-    /*     UNUSED_PARAM(branch); */
-    /*     _scope_stack.leave(); */
-    /*     return false; */
-    /* } */
+    bool BytecodeGenerator::precondition(Function* statement) {
+        UNUSED_PARAM(statement);
 
-    code_iterator BytecodeGenerator::begin() const {
-        return _writer.begin();
-    }
+        start_function_compile(statement);
+        auto obj = current_object();
 
-    code_iterator BytecodeGenerator::end() const {
-        return _writer.end();
-    }
+        // Enter a new function scope and add all function
+        // arguments to that scope
+        _scope_stack.enter_function_scope();
 
-    int BytecodeGenerator::allocate_register() {
-        if (_registers >= KORE_VM_MAX_REGISTERS) {
-            throw std::runtime_error("No more registers");
+        for (auto parameter : statement->parameters()) {
+            _scope_stack.insert(parameter, obj->allocate_register());
         }
 
-        return _registers++;
+        return false;
+    }
+
+    bool BytecodeGenerator::postcondition(Function* statement) {
+        UNUSED_PARAM(statement);
+
+        end_function_compile();
+        return false;
     }
 
     int BytecodeGenerator::get_register_operand() {
@@ -180,5 +215,18 @@ namespace kore {
         _register_stack.pop();
 
         return reg;
+    }
+
+    CompiledObject* BytecodeGenerator::current_object() {
+        return _current_object;
+    }
+
+    void BytecodeGenerator::start_function_compile(Function* statement) {
+        new_compiled_object(statement);
+        _current_object = _objects.back().get();
+    }
+
+    void BytecodeGenerator::end_function_compile() {
+        _current_object = _objects.front().get();
     }
 }

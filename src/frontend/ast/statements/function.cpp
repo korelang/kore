@@ -1,24 +1,28 @@
 #include "ast/ast_writer.hpp"
+#include "ast/ast_visitor.hpp"
 #include "ast/statements/function.hpp"
 #include "types/type.hpp"
 #include "types/unknown_type.hpp"
 
 namespace kore {
     Function::Function()
-        : _name("<missing>", Location::unknown),
+        : Statement(Location::unknown, StatementType::Function),
+        _name("<missing>"),
         _exported(false),
         _return_type(new UnknownType()) {
     }
 
     Function::Function(bool exported, const Token& token)
-        : _name(token),
+        : Statement(token.location(), StatementType::Function),
+        _name(token),
         _exported(exported),
         _return_type(new UnknownType()) {
 
     }
 
     Function::Function(bool exported)
-        : _name("<missing>", Location::unknown),
+        : Statement(Location::unknown, StatementType::Function),
+        _name("<missing>"),
         _exported(exported),
         _return_type(new UnknownType()) {
     }
@@ -41,12 +45,8 @@ namespace kore {
         return _return_type;
     }
 
-    /* StatementList Function::body() { */
-    /*     return _body; */
-    /* } */
-
-    void Function::add_parameter(Expression* parameter) {
-        _parameters.emplace_back(dynamic_cast<Identifier*>(parameter));
+    void Function::add_parameter(Parameter* parameter) {
+        _parameters.push_back(parameter);
     }
 
     void Function::set_return_type(Type* type) {
@@ -55,6 +55,14 @@ namespace kore {
 
     void Function::add_statement(Statement* statement) {
         _body.emplace_back(std::move(statement));
+    }
+
+    Function::body_iterator Function::begin() {
+        return _body.begin();
+    }
+
+    Function::body_iterator Function::end() {
+        return _body.end();
     }
 
     void Function::write(AstWriter* const writer) {
@@ -86,5 +94,17 @@ namespace kore {
         writer->dedent();
         writer->write("}");
         writer->newline();
+    }
+
+    void Function::accept(AstVisitor* visitor) {
+        if (!visitor->precondition(this)) {
+            for (auto& statement : _body) {
+                statement->accept(visitor);
+            }
+        }
+
+        visitor->visit(this);
+
+        visitor->postcondition(this);
     }
 }

@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "ast/expressions/identifier.hpp"
+#include "ast/expressions/parameter.hpp"
 #include "ast/statements/statement.hpp"
 #include "ast/statements/statement_list.hpp"
 
@@ -11,9 +11,12 @@ namespace kore {
     class Identifier;
     class Type;
 
-    using ParameterList = std::vector<Identifier*>;
+    using ParameterList = std::vector<Parameter*>;
 
     class Function : public Statement {
+        public:
+            using body_iterator = StatementList::iterator;
+
         public:
             Function();
             Function(bool exported);
@@ -24,13 +27,16 @@ namespace kore {
             bool exported() const noexcept;
             ParameterList parameters();
             Type* return_type();
-            /* StatementList body(); */
 
-            void add_parameter(Expression* parameter);
+            void add_parameter(Parameter* parameter);
             void set_return_type(Type* type);
             void add_statement(Statement* statment) override;
 
+            body_iterator begin();
+            body_iterator end();
+
             void write(AstWriter* const writer) override;
+            void accept(AstVisitor* visitor) override;
 
         private:
             Identifier _name;

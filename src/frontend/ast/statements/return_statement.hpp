@@ -7,10 +7,14 @@
 namespace kore {
     class Return : public Statement {
         public:
+            Return();
             Return(Expression* expr);
             virtual ~Return();
 
+            Expression* expr();
+
             void write(AstWriter* const writer) override;
+            void accept(AstVisitor* visitor) override;
 
         private:
             Expression::pointer _expr;

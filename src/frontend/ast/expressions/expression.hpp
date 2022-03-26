@@ -20,6 +20,7 @@ namespace kore {
         Identifier,
         Error,
         Literal,
+        Parameter,
         Unary,
     };
 
@@ -61,6 +62,7 @@ namespace kore {
             static Identifier* make_identifier(const std::vector<std::string>&, const Location&);
             static Expression* make_unary(const std::string& op, Expression*, const Location&);
             static Expression* make_binary(const std::string& op, Expression*, Expression*, const Location&);
+            static Expression* make_parameter(const Token&, Type*);
 
             template<typename T, typename ...Args>
             static Expression* make_expression(Args... args) {

@@ -7,5 +7,6 @@
 #include "ast/expressions/float_expression.hpp"
 #include "ast/expressions/identifier.hpp"
 #include "ast/expressions/integer_expression.hpp"
+#include "ast/expressions/parameter.hpp"
 #include "ast/expressions/string_expression.hpp"
 #include "ast/expressions/unary_expression.hpp"

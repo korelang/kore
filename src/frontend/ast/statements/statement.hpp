@@ -16,6 +16,8 @@ namespace kore {
         ImportDecl,
         VariableDecl,
         VariableAssignment,
+        Function,
+        Return,
     };
 
     /// Base class for all statements

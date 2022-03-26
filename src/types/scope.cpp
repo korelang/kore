@@ -9,7 +9,7 @@ namespace kore {
 
     ScopeStack::ScopeStack() {
         // Create top-level scope
-        enter(false);
+        enter();
     }
 
     ScopeStack::~ScopeStack() {}
@@ -18,8 +18,12 @@ namespace kore {
         return _scopes.size();
     }
 
-    void ScopeStack::enter(bool func_scope_start) {
-        _scopes.emplace_back(func_scope_start);
+    void ScopeStack::enter() {
+        _scopes.emplace_back(false);
+    }
+
+    void ScopeStack::enter_function_scope() {
+        _scopes.emplace_back(true);
     }
 
     void ScopeStack::leave() {
@@ -59,6 +63,8 @@ namespace kore {
 
     void ScopeStack::clear() {
         _scopes.clear();
+        enter();
+    }
     }
 
     ScopeEntry* ScopeStack::find_in_range(

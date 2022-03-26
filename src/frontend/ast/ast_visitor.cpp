@@ -38,6 +38,10 @@ namespace kore {
         UNUSED_PARAM(expr);
     }
 
+    void AstVisitor::visit(Parameter* expr) {
+        UNUSED_PARAM(expr);
+    }
+
     void AstVisitor::visit(IntegerExpression* expr) {
         UNUSED_PARAM(expr);
     }
@@ -125,9 +129,9 @@ namespace kore {
         UNUSED_PARAM(statement);
     }
 
-    //void AstVisitor::visit(ReturnStatement* statement) {
-    //    UNUSED_PARAM(statement);
-    //}
+    void AstVisitor::visit(Return* statement) {
+        UNUSED_PARAM(statement);
+    }
 
     void AstVisitor::visit(VariableAssignment* statement) {
         UNUSED_PARAM(statement);
@@ -162,10 +166,10 @@ namespace kore {
         return false;
     }
 
-    /* void AstVisitor::precondition(ReturnStatement* statement) { */
-    /*     UNUSED_PARAM(statement); */
-    /*     return false; */
-    /* } */
+    bool AstVisitor::precondition(Return* statement) {
+        UNUSED_PARAM(statement);
+        return false;
+    }
 
     bool AstVisitor::precondition(VariableAssignment* statement) {
         UNUSED_PARAM(statement);
@@ -202,10 +206,10 @@ namespace kore {
         return false;
     }
 
-    /* void AstVisitor::postcondition(ReturnStatement* statement) { */
-    /*     UNUSED_PARAM(statement); */
-    /*     return false; */
-    /* } */
+    bool AstVisitor::postcondition(Return* statement) {
+        UNUSED_PARAM(statement);
+        return false;
+    }
 
     bool AstVisitor::postcondition(VariableAssignment* statement) {
         UNUSED_PARAM(statement);

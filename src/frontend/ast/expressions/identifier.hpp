@@ -9,6 +9,7 @@ namespace kore {
     class Identifier : public Expression {
         public:
             Identifier(const Token& token);
+            Identifier(const std::string& value);
             Identifier(const std::string& value, const Location& location);
             Identifier(const std::vector<std::string>& value, const Location& location);
             virtual ~Identifier();
@@ -21,6 +22,11 @@ namespace kore {
 
             void accept(AstVisitor* visitor) override;
             void write(AstWriter* const writer) override;
+
+        protected:
+            // Used by function parameters that get constructed with a
+            // type and a different ExpressionType
+            Identifier(const Token& token, Type* type);
 
         private:
             std::string _value;

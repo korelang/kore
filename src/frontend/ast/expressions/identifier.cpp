@@ -10,6 +10,12 @@ namespace kore {
         split_on(token.value(), '.', _parts);
     }
 
+    Identifier::Identifier(const std::string& value)
+        : Expression(ExpressionType::Identifier, Location::unknown),
+        _value(value) {
+        split_on(value, '.', _parts);
+    }
+
     Identifier::Identifier(const std::string& value, const Location& location)
         : Expression(ExpressionType::Identifier, location),
         _value(value) {
@@ -27,6 +33,8 @@ namespace kore {
     std::string Identifier::name() const {
         if (size()) {
             return _parts.back();
+        } else if (!_value.empty()) {
+            return _value;
         }
 
         return "<missing>";
@@ -56,5 +64,11 @@ namespace kore {
         writer->write("identifier<");
         writer->write(qualified_name());
         writer->write(">");
+    }
+
+    Identifier::Identifier(const Token& token, Type* type)
+        : Expression(ExpressionType::Parameter, token.location()),
+          _value(token.value()) {
+        set_type(type);
     }
 }

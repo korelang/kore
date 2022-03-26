@@ -4,10 +4,15 @@
 #include "decode_instruction.hpp"
 
 namespace kore {
-    void decode_instructions(BytecodeGenerator generator) {
+    void decode_instructions(const CompiledObject* const compiled_object) {
         int pos = 0;
 
-        for (auto instruction : generator) {
+        std::cout << compiled_object->name() << std::endl;
+        std::cout << compiled_object->location() << std::endl;
+        std::cout << compiled_object->locals_count() << std::endl;
+        std::cout << compiled_object->reg_count() << std::endl;
+
+        for (auto instruction : *compiled_object) {
             auto opcode = static_cast<Bytecode>(instruction >> 24);
 
             switch (opcode) {
@@ -135,11 +140,34 @@ namespace kore {
                     }
                     break;
 
+                case Bytecode::Ret: {
+                        std::cerr << pos
+                            << "     "
+                            << bytecode_to_string(opcode)
+                            << std::endl;
+
+                        ++pos;
+                    }
+                    break;
+
+                case Bytecode::RetReg: {
+                        Reg reg = (instruction >> 16) & 0xff;
+
+                        std::cerr << pos
+                            << "     "
+                            << bytecode_to_string(opcode)
+                            << " r" << reg
+                            << std::endl;
+
+                        ++pos;
+                    }
+                    break;
+
                 case Bytecode::Call:
-                case Bytecode::Ret:
                 case Bytecode::LoadLocal:
                 case Bytecode::StoreLocal:
                 case Bytecode::LoadI32Global:
+                    std::cerr << "not implemented" << std::endl;
                     ++pos;
                     break;
             }

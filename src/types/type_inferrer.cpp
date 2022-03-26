@@ -52,7 +52,7 @@ namespace kore {
 
     bool TypeInferrer::precondition(Branch* branch) {
         UNUSED_PARAM(branch);
-        _scope_stack.enter(false);
+        _scope_stack.enter();
         return false;
     }
 

@@ -36,7 +36,8 @@ namespace kore {
             virtual ~ScopeStack();
 
             int levels() const;
-            void enter(bool func_scope_start = false);
+            void enter();
+            void enter_function_scope();
             void leave();
             ScopeEntry* find(const std::string& name);
             ScopeEntry* find_inner(const std::string& name);

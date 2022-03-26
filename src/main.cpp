@@ -204,21 +204,27 @@ namespace kore {
         // 6. Add explicit type conversions
 
         // 7. Compilation
+        scope_stack.clear();
         BytecodeGenerator code_generator{scope_stack};
         code_generator.compile(ast);
         success(1, args.verbosity, "compilation successful");
 
         if (args.dump_codegen) {
-            debug_group("compilation", "dumping generated code");
-            decode_instructions(code_generator);
+            std::vector<std::unique_ptr<CompiledObject>> compiled_objects;
+            code_generator.acquire_compiled_code(std::back_inserter(compiled_objects));
+            debug_group("compilation", "dumping generated code for %d objects", compiled_objects.size());
+
+            for (auto& compiled_object : compiled_objects) {
+                decode_instructions(compiled_object.get());
+            }
 
             return 0;
         }
 
         // 8. Run code
-        Vm vm;
-        std::vector<bytecode_type> code{code_generator.begin(), code_generator.end()};
-        vm.run(code);
+        /* Vm vm; */
+        /* std::vector<bytecode_type> code{code_generator.begin(), code_generator.end()}; */
+        /* vm.run(code); */
 
         return 0;
     }

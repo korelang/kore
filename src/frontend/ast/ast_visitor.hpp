@@ -19,6 +19,7 @@ namespace kore {
             virtual void visit(CharExpression* expr);
             virtual void visit(FloatExpression* expr);
             virtual void visit(Identifier* expr);
+            virtual void visit(Parameter* expr);
             virtual void visit(IntegerExpression* expr);
             virtual void visit(StringExpression* expr);
             virtual void visit(UnaryExpression* expr);
@@ -41,7 +42,7 @@ namespace kore {
             virtual void visit(IfStatement* statement);
             virtual void visit(ImportStatement* statement);
             virtual void visit(ModuleStatement* statement);
-            //virtual void visit(ReturnStatement* statement);
+            virtual void visit(Return* statement);
             virtual void visit(VariableAssignment* statement);
             virtual void visit(VariableDeclaration* statement);
 
@@ -50,7 +51,7 @@ namespace kore {
             virtual bool precondition(IfStatement* statement);
             virtual bool precondition(ImportStatement* statement);
             virtual bool precondition(ModuleStatement* statement);
-            //virtual void precondition(ReturnStatement* statement);
+            virtual bool precondition(Return* statement);
             virtual bool precondition(VariableAssignment* statement);
             virtual bool precondition(VariableDeclaration* statement);
 
@@ -59,7 +60,7 @@ namespace kore {
             virtual bool postcondition(IfStatement* statement);
             virtual bool postcondition(ImportStatement* statement);
             virtual bool postcondition(ModuleStatement* statement);
-            //virtual voipostrecondition(ReturnStatement* statement);
+            virtual bool postcondition(Return* statement);
             virtual bool postcondition(VariableAssignment* statement);
             virtual bool postcondition(VariableDeclaration* statement);
     };

@@ -28,6 +28,7 @@ set(BASE_SOURCES
     src/frontend/ast/expressions/float_expression.cpp
     src/frontend/ast/expressions/identifier.cpp
     src/frontend/ast/expressions/integer_expression.cpp
+    src/frontend/ast/expressions/parameter.cpp
     src/frontend/ast/expressions/string_expression.cpp
     src/frontend/ast/expressions/unary_expression.cpp
 
@@ -36,10 +37,10 @@ set(BASE_SOURCES
     src/frontend/ast/statements/branch.cpp
     src/frontend/ast/statements/if_statement.cpp
     src/frontend/ast/statements/function.cpp
-    src/frontend/ast/statements/return_statement.cpp
     src/frontend/ast/statements/import_statement.cpp
     src/frontend/ast/statements/module_statement.cpp
     src/frontend/ast/statements/variable_declaration.cpp
+    src/frontend/ast/statements/return_statement.cpp
     src/frontend/ast/statements/variable_assignment.cpp
 
     src/frontend/keywords.cpp
@@ -80,6 +81,7 @@ set(BASE_SOURCES
     src/backend/codegen/bytecode/bytecode_array_writer.cpp
     src/backend/codegen/bytecode/bytecode_codegen.cpp
     src/backend/codegen/bytecode/bytecode_dumper.cpp
+    src/backend/codegen/compiled_object.cpp
     src/backend/vm/value_type.cpp
     src/backend/vm/vm.cpp
     src/backend/decode_instruction.cpp

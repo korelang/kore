@@ -8,6 +8,7 @@
 #include "ast/expressions/float_expression.hpp"
 #include "ast/expressions/identifier.hpp"
 #include "ast/expressions/integer_expression.hpp"
+#include "ast/expressions/parameter.hpp"
 #include "ast/expressions/string_expression.hpp"
 #include "ast/expressions/unary_expression.hpp"
 #include "ast/parser_error_node.hpp"
@@ -113,5 +114,12 @@ namespace kore {
         const Location& location
     ) {
         return new BinaryExpression(op, left, right, location);
+    }
+
+    Expression* Expression::make_parameter(
+        const Token& token,
+        Type* type
+    ) {
+        return new Parameter(token, type);
     }
 }

@@ -459,23 +459,25 @@ namespace kore {
     }
 
     bool Parser::parse_parameter_decl(Function* const func) {
-        auto token = current_token();
+        auto token = *current_token();
 
-        if (token->type() == TokenType::identifier) {
-            func->add_parameter(Expression::make_identifier(*token));
-            token = next_token();
+        if (token.type() == TokenType::identifier) {
+            Type* arg_type = nullptr;
+            auto next = next_token();
 
-            if (token->is_type()) {
-                // TODO: Parse type
-                token = next_token();
+            if (next->is_type()) {
+                arg_type = parse_type();
             }
 
-            if (token->type() == TokenType::comma) {
+            auto parameter = Expression::make_parameter(token, arg_type);
+            func->add_parameter(static_cast<Parameter*>(parameter));
+
+            if (next->type() == TokenType::comma) {
                 next_token();
-            } else if (token->type() == TokenType::rparen) {
+            } else if (next->type() == TokenType::rparen) {
                 return false;
             } else {
-                emit_parser_error("Unexpected token '%s' in function parameter", token->type());
+                emit_parser_error("Unexpected token '%s' in function parameter", next->type());
                 return false;
             }
         }

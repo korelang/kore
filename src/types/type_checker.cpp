@@ -38,16 +38,12 @@ namespace kore {
         _errors.emplace_back(error);
     }
 
-    /* void TypeChecker::visit(IfStatement* statement) { */
-    /*     for (auto branch : statement->branches()) { */
-    /*         branch->accept(this); */
-    /*     } */
-    /* } */
-
     void TypeChecker::visit(Identifier* expr) {
         auto entry = _scope_stack.find(expr->name());
 
-        if (!entry) {
+        if (entry) {
+            expr->set_type(entry->identifier->type());
+        } else {
             push_error(errors::typing::undefined_variable(expr));
         }
     }
@@ -107,12 +103,32 @@ namespace kore {
 
     bool TypeChecker::precondition(Branch* branch) {
         UNUSED_PARAM(branch);
-        _scope_stack.enter(false);
+        _scope_stack.enter();
         return false;
     }
 
     bool TypeChecker::postcondition(Branch* branch) {
         UNUSED_PARAM(branch);
+        _scope_stack.leave();
+        return false;
+    }
+
+    bool TypeChecker::precondition(Function* statement) {
+        UNUSED_PARAM(statement);
+
+        // Enter a new function scope and add all function
+        // arguments to that scope
+        _scope_stack.enter_function_scope();
+
+        for (auto parameter : statement->parameters()) {
+            _scope_stack.insert(parameter);
+        }
+
+        return false;
+    }
+
+    bool TypeChecker::postcondition(Function* statement) {
+        UNUSED_PARAM(statement);
         _scope_stack.leave();
         return false;
     }

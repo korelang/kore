@@ -63,6 +63,7 @@ namespace kore {
             case JumpIfNot:      return "jumpifnot";
             case Call:           return "call";
             case Ret:            return "return";
+            case RetReg:         return "retreg";
         }
     }
 
