@@ -80,7 +80,6 @@ set(BASE_SOURCES
     src/backend/codegen/bytecode/bytecode.cpp
     src/backend/codegen/bytecode/bytecode_array_writer.cpp
     src/backend/codegen/bytecode/bytecode_codegen.cpp
-    src/backend/codegen/bytecode/bytecode_dumper.cpp
     src/backend/codegen/compiled_object.cpp
     src/backend/vm/value_type.cpp
     src/backend/vm/vm.cpp
