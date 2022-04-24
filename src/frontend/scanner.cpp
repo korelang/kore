@@ -506,8 +506,8 @@ namespace kore {
     }
 
     Token Scanner::scan_op_maybe_equal(TokenType op, TokenType equal_op) {
-        if (expect('=')) {
-            return make_inline_token(equal_op, col);
+        if (expect_peek('=')) {
+            return make_inline_token(equal_op, col, 2);
         }
 
         return make_one_char_token(op);
