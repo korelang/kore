@@ -93,6 +93,7 @@ namespace kore {
                 debug_group("parse", "dumping ast");
                 AstStreamWriter stream_writer{std::cerr};
                 stream_writer.write(ast);
+                return 0;
             }
         } else {
             error("%d errors", parser.error_count());
@@ -119,10 +120,10 @@ namespace kore {
             for (auto& type_error : type_checker.errors()) {
                 std::ostringstream oss;
 
-                oss << type_error.location;
+                oss << type_error.location.colon_format();
 
                 error_indent(
-                    "[%s: %s]: %s",
+                    "[%s:%s]: %s",
                     source_name.c_str(),
                     oss.str().c_str(),
                     type_error.message.c_str()
@@ -165,7 +166,7 @@ namespace kore {
 
         int result = parse_input(parser, ast, args);
 
-        if (result != 0) {
+        if (result != 0 || (result == 0 && args.dump_parse)) {
             return result;
         }
 
