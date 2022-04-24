@@ -22,10 +22,10 @@ namespace kore {
                     break;
 
                 case Bytecode::LoadBool:
-                case Bytecode::LoadI32:
-                case Bytecode::LoadI64:
-                case Bytecode::LoadF32:
-                case Bytecode::LoadF64: {
+                case Bytecode::CloadI32:
+                case Bytecode::CloadI64:
+                case Bytecode::CloadF32:
+                case Bytecode::CloadF64: {
                         Reg dest_reg = (instruction >> 16) & 0xff;
                         i32 value = instruction & 0xffff;
 
@@ -163,11 +163,12 @@ namespace kore {
                     }
                     break;
 
-                case Bytecode::Call:
-                case Bytecode::LoadLocal:
-                case Bytecode::StoreLocal:
-                case Bytecode::LoadI32Global:
-                    std::cerr << "not implemented" << std::endl;
+                default:
+                    std::cerr
+                        << "Opcode "
+                        << bytecode_to_string(opcode)
+                        << " not yet implemented"
+                        << std::endl;
                     ++pos;
                     break;
             }
