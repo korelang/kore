@@ -6,12 +6,35 @@
 
 namespace kore {
     /// Bytecodes in kore are 32-bit integer with a
-    /// 2- or 3-address layout:
+    /// 1, 2 or 3 operand layout:
+    ///
+    /// 1 operand layout:
+    ///
+    /// Used for opcodes that use a single register.
+    ///
+    ///    8 bits           16 bits           8 bits
+    /// +----------+-----------------------+-----------+
+    /// |  opcode  |         unused        |  operand  |
+    /// +----------+-----------------------+-----------+
+    ///
+    /// 2 operand layout:
+    ///
+    /// Used for loads where operand 1 is the target register
+    /// and operand 2 is a constant index or an immediate value.
     ///
     ///    8 bits     8 bits           16 bits
     /// +----------+-----------+-----------------------+
     /// |  opcode  | operand 1 |      operand 2        |
     /// +----------+-----------+-----------------------+
+    ///
+    /// 3 operand layout:
+    ///
+    /// Used for opcodes operating on 3 registers such as the
+    /// AddI32 instruction that adds the 32-bit integers in
+    /// the registers of operand 2 and 3 and stores the result
+    /// in the register of operand 1. For example,
+    ///
+    /// AddI32 r1 r2 r3
     ///
     ///    8 bits     8 bits      8 bits      8 bits
     /// +----------+-----------+-----------+-----------+
@@ -31,15 +54,28 @@ namespace kore {
     enum Bytecode {
         Noop,
         Move,
-        LoadI32Global,
+
+        // Load globals
+        GloadI32,
+        GloadI64,
+        GloadF32,
+        GloadF64,
+
+        // Load constants
         LoadBool,
-        LoadI32,
-        LoadI64,
-        LoadF32,
-        LoadF64,
-        LoadLocal,
+        CloadI32,
+        CloadI64,
+        CloadF32,
+        CloadF64,
+
+        // Load locals
+        LloadI32,
+        LloadI64,
+        LloadF32,
+        LloadF64,
         StoreI32Global,
-        StoreLocal,
+
+        // Arithmetic opcodes
         AddI32,
         AddI64,
         AddF32,
@@ -60,6 +96,8 @@ namespace kore {
         DivI64,
         DivF32,
         DivF64,
+
+        // Comparison opcodes
         LtI32,
         LtI64,
         LtF32,
@@ -84,9 +122,13 @@ namespace kore {
         NeqI64,
         NeqF32,
         NeqF64,
+
+        // Control flow
         Jump,
         JumpIf,
         JumpIfNot,
+
+        // Function calls
         Call,
         Ret,
         RetReg,

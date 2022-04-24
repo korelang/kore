@@ -5,15 +5,20 @@ namespace kore {
         switch (bytecode) {
             case Noop:           return "noop";
             case Move:           return "move";
-            case LoadI32Global:  return "gloadi32";
+            case GloadI32:       return "gloadi32";
+            case GloadI64:       return "gloadi64";
+            case GloadF32:       return "gloadf32";
+            case GloadF64:       return "gloadf64";
             case StoreI32Global: return "gstorei32";
             case LoadBool:       return "loadbool";
-            case LoadI32:        return "loadi32";
-            case LoadI64:        return "loadi64";
-            case LoadF32:        return "loadf32";
-            case LoadF64:        return "loadf64";
-            case LoadLocal:      return "load";
-            case StoreLocal:     return "store";
+            case CloadI32:       return "cloadi32";
+            case CloadI64:       return "cloadi64";
+            case CloadF32:       return "cloadf32";
+            case CloadF64:       return "cloadf64";
+            case LloadI32:       return "lloadi32";
+            case LloadI64:       return "lloadi64";
+            case LloadF32:       return "lloadf32";
+            case LloadF64:       return "lloadf64";
             case AddI32:         return "addi32";
             case AddI64:         return "addi64";
             case AddF32:         return "addf32";
