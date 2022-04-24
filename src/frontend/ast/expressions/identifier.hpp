@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "expression.hpp"
+#include "ast/expressions/expression.hpp"
 
 namespace kore {
     class Identifier : public Expression {

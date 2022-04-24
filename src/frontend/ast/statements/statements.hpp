@@ -1,5 +1,6 @@
 #include "ast/statements/branch.hpp"
 #include "ast/statements/function.hpp"
+#include "ast/statements/expression_statement.hpp"
 #include "ast/statements/return_statement.hpp"
 #include "ast/statements/if_statement.hpp"
 #include "ast/statements/import_statement.hpp"

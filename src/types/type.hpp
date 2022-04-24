@@ -8,6 +8,7 @@ namespace kore {
     class ArrayType;
     class BoolType;
     class CharType;
+    class FunctionType;
     class Integer32Type;
     class IntegerType;
     class Optional;
@@ -30,8 +31,13 @@ namespace kore {
         Void,
     };
 
+    struct TypeDeleter;
+
     /// Represents the different types
     class Type {
+        public:
+            using pointer = std::unique_ptr<const Type, TypeDeleter>;
+
         public:
             Type();
             virtual ~Type();
@@ -42,6 +48,7 @@ namespace kore {
             bool is_numeric() const noexcept;
             bool is_unknown() const noexcept;
             bool is_simple() const noexcept;
+            bool is_function() const noexcept;
             TypeCategory category() const noexcept;
             virtual const Type* unify(const Type* other_type) const;
             virtual const Type* unify(const IntegerType* int_type) const;
@@ -50,6 +57,7 @@ namespace kore {
             virtual const Type* unify(const BoolType* bool_type) const;
             virtual const Type* unify(const Optional* optional) const;
             virtual const Type* unify(const ArrayType* array_type) const;
+            virtual const Type* unify(const FunctionType* func_type) const;
 
             virtual void write(AstWriter* const writer) = 0;
 
@@ -61,8 +69,28 @@ namespace kore {
 
         private:
             TypeCategory _category;
+            /* bool _immutable = false; */
             static const UnknownType* _unknown_type;
     };
+
+    // Custom deleter for unique_ptr of types that only deletes
+    // non-shared complex types so simple types (i32, bool
+    struct TypeDeleter {
+        TypeDeleter() {}
+
+        void operator()(Type* type) const {
+            if (!type->is_simple()) {
+                delete type;
+            }
+        }
+
+        void operator()(const Type* type) const {
+            if (!type->is_simple()) {
+                delete type;
+            }
+        }
+    };
+
 }
 
 #endif // KORE_TYPE_HPP

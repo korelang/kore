@@ -22,6 +22,57 @@ namespace kore {
             void write_1address(Bytecode opcode, Reg reg, CompiledObject* target);
             void write_2address(Bytecode opcode, Reg destination_reg, Reg reg_operand, CompiledObject* target);
             void write_3address(Bytecode opcode, Reg destination_reg, Reg reg_operand1, Reg reg_operand2, CompiledObject* target);
+
+            template<typename InputIterator>
+            void write_variable_length(
+                Bytecode opcode,
+                int size,
+                InputIterator first,
+                InputIterator last,
+                CompiledObject* target
+            ) {
+                std::vector<std::uint8_t> bytes{
+                    static_cast<std::uint8_t>(opcode),
+                    static_cast<std::uint8_t>(size)
+                };
+                bytes.insert(bytes.end(), first, last);
+                std::size_t i = 0;
+
+                // Pack every four bytes into a 32-bit big-endian integer
+                for (; i < bytes.size() / 4; ++i) {
+                    int idx = i * 4;
+
+                    bytecode_type instruction =
+                          ((bytes[idx + 0] << 24) & 0xff)
+                        | ((bytes[idx + 1] << 16) & 0xff)
+                        | ((bytes[idx + 2] << 8)  & 0xff)
+                        | ((bytes[idx + 3] << 0)  & 0xff);
+
+                    target->add_instruction(instruction);
+                }
+
+                int remaining_bytes = bytes.size() % 4;
+
+                // Pack any remaining (<4) bytes into a 32-bit big-endian integer
+                // padded with zeroes
+                if (remaining_bytes > 0) {
+                    int idx = i * 4;
+
+                    bytecode_type instruction = 0;
+                    instruction |= (bytes[idx] << 24) & 0xff;
+
+                    if (remaining_bytes > 1) {
+                        instruction |= (bytes[idx + 1] << 16) & 0xff;
+                    }
+
+                    if (remaining_bytes > 2) {
+                        instruction |= (bytes[idx + 2] << 8) & 0xff;
+                    }
+
+                    target->add_instruction(instruction);
+                }
+            }
+
             void save_patch_location(CompiledObject* target);
             Label write_jump(Bytecode opcode, CompiledObject* target);
             Label write_jump(Bytecode opcode, Reg reg, CompiledObject* target);

@@ -3,7 +3,9 @@
 #include <sstream>
 
 #include "errors.hpp"
+#include "ast/expressions/call.hpp"
 #include "ast/expressions/identifier.hpp"
+#include "types/function_type.hpp"
 /* #include "logging.hpp" */
 
 namespace kore {
@@ -58,6 +60,39 @@ namespace kore {
 
             Error undefined_variable(const Identifier* identifier) {
                 return Error(ErrorType::Typing, "use of undefined variable " + identifier->name(), identifier->location());
+            }
+
+            Error unknown_call(const Call* call) {
+                return Error(ErrorType::Typing, "unknown function called: " + call->name(), call->location());
+            }
+
+            Error incorrect_parameter_type(const Expression* expression, const Type* arg_type, const Type* param_type, Call* call, int arg_index) {
+                std::ostringstream oss;
+
+                oss << "function " << call->name() << " expected "
+                    << arg_type->name() << " for argument " << arg_index
+                    << " but got " << param_type->name() << " instead";
+
+                return Error(ErrorType::Typing, oss.str(), expression->location());
+            }
+
+            Error not_a_function(const Call* call, const Type* type) {
+                std::string message = "expected type of " +
+                    call->name() + " in call to be " + call->expected_func_type_name() +
+                    ", but got " + type->name();
+
+                return Error(ErrorType::Typing, message, call->location());
+            }
+
+            Error incorrect_arg_count(const Call* call, const Type* type) {
+                std::ostringstream oss;
+
+                oss << "incorrect argument count for "
+                    << call->name()
+                    << ": expected " << call->arg_count()
+                    << ", but got " << type->name();
+
+                return Error(ErrorType::Typing, oss.str(), call->location());
             }
         }
     }

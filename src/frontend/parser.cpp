@@ -8,12 +8,31 @@
 #include "logging/colors.hpp"
 #include "logging/logging.hpp"
 #include "types/array_type.hpp"
+#include "types/function_type.hpp"
 #include "types/type.hpp"
 #include "types/optional.hpp"
 #include "types/unknown_type.hpp"
 #include "errors/errors.hpp"
 #include "operator.hpp"
 #include "parser.hpp"
+
+#ifdef KORE_DEBUG_PARSER
+    #define KORE_DEBUG_PARSER_LOG_TOKEN(prefix) {\
+        auto token = current_token();\
+        \
+        if (token) {\
+            std::cerr << prefix << ": " << *token << std::endl;\
+        } else {\
+            std::cerr\
+                << "Attempt to log null current token at "\
+                << __LINE__\
+                << ": " << __FILE__\
+                << std::endl;\
+        }\
+    }
+#else
+    #define KORE_DEBUG_PARSER_LOG_TOKEN(prefix)
+#endif
 
 namespace kore {
     Parser::Parser()
@@ -84,9 +103,12 @@ namespace kore {
         return false;
     }
 
-    bool Parser::expect_token_type(const TokenType& token_type) {
+    bool Parser::expect_token_type(const TokenType& token_type, bool advance) {
         if (current_token()->type() == token_type) {
-            next_token();
+            if (advance) {
+                next_token();
+            }
+
             return true;
         }
 
@@ -150,6 +172,8 @@ namespace kore {
     }
 
     void Parser::parse_statement(Statement* const parent) {
+        KORE_DEBUG_PARSER_LOG_TOKEN("statement")
+
         auto token = current_token();
 
         if (token->is_keyword()) {
@@ -181,6 +205,8 @@ namespace kore {
     }
 
     void Parser::advance_to_next_statement_boundary() {
+        KORE_DEBUG_PARSER_LOG_TOKEN("advance to next statement boundary")
+
         while (!_scanner.eof()) {
             auto token = current_token();
             /* auto token_type = token->type(); */
@@ -208,6 +234,8 @@ namespace kore {
     }
 
     void Parser::parse_module() {
+        KORE_DEBUG_PARSER_LOG_TOKEN("module")
+
         auto token = current_token();
 
         if (expect_keyword(Keyword::Module)) {
@@ -304,6 +332,8 @@ namespace kore {
     /* } */
 
     void Parser::parse_declaration(Statement* const parent) {
+        KORE_DEBUG_PARSER_LOG_TOKEN("declaration")
+
         /* if (expect_keyword(Keyword::Type)) { */
         /*     parse_type_alias(parent); */
         /*     return; */
@@ -315,8 +345,22 @@ namespace kore {
             return;
         }
 
-        auto identifier = *token;
+        auto identifier_token = *token;
         token = next_token();
+
+        if (expect_token_type(TokenType::lparen, false)) {
+            auto identifier = new Identifier(identifier_token);
+
+            add_statement(
+                parent,
+                Statement::make_function_call(
+                    parse_function_call(identifier)
+                )
+            );
+
+            return;
+        }
+
         Type* decl_type = parse_type();
         auto type = *token;
 
@@ -327,10 +371,19 @@ namespace kore {
 
         Expression* expr = parse_expression(operator_base_precedence());
 
-        add_statement(parent, Statement::make_variable_assignment(identifier, decl_type, expr));
+        add_statement(
+            parent,
+            Statement::make_variable_assignment(
+                identifier_token,
+                decl_type,
+                expr
+            )
+        );
     }
 
     void Parser::parse_if_statement(Statement* const parent) {
+        KORE_DEBUG_PARSER_LOG_TOKEN("if")
+
         if (expect_keyword(Keyword::If)) {
             // TODO: This will not be cleaned up if something throws
             auto if_statement = new IfStatement();
@@ -395,6 +448,8 @@ namespace kore {
     }
 
     void Parser::parse_function(Statement* const parent) {
+        KORE_DEBUG_PARSER_LOG_TOKEN("function")
+
         bool exported = expect_keyword(Keyword::Export);
         bool is_func = expect_keyword(Keyword::Func);
 
@@ -419,6 +474,7 @@ namespace kore {
         const Token func_name(*token);
         next_token();
 
+        KORE_DEBUG_PARSER_LOG_TOKEN("function name")
         Function* func = Statement::make_function(exported, func_name);
 
         if (!func) {
@@ -432,6 +488,8 @@ namespace kore {
     }
 
     void Parser::parse_function_signature(Function* const func) {
+        KORE_DEBUG_PARSER_LOG_TOKEN("function signature")
+
         if (expect_token_type(TokenType::lparen)) {
             if (!expect_token_type(TokenType::rparen)) {
                 parse_function_parameters(func);
@@ -446,6 +504,8 @@ namespace kore {
     }
 
     void Parser::parse_function_parameters(Function* const func) {
+        KORE_DEBUG_PARSER_LOG_TOKEN("function parameters")
+
         const Token* token = current_token();
 
         if (token->is_identifier()) {
@@ -459,6 +519,8 @@ namespace kore {
     }
 
     bool Parser::parse_parameter_decl(Function* const func) {
+        KORE_DEBUG_PARSER_LOG_TOKEN("parameter declaration")
+
         auto token = *current_token();
 
         if (token.type() == TokenType::identifier) {
@@ -486,6 +548,8 @@ namespace kore {
     }
 
     void Parser::parse_parameter_list(Function* const func) {
+        KORE_DEBUG_PARSER_LOG_TOKEN("parameter list")
+
         auto token = current_token();
         Location loc = token->location();
 
@@ -497,6 +561,8 @@ namespace kore {
     }
 
     void Parser::parse_return(Statement* const parent) {
+        KORE_DEBUG_PARSER_LOG_TOKEN("parameter list")
+
         if (expect_keyword(Keyword::Return)) {
             // TODO: Should be an expression list in the future
             auto expr = parse_expression(operator_base_precedence());
@@ -531,6 +597,8 @@ namespace kore {
     }
 
     void Parser::parse_block(Statement* const parent) {
+        KORE_DEBUG_PARSER_LOG_TOKEN("block")
+
         if (expect_token_type(TokenType::lbrace)) {
             parse_statement_list(parent);
 
@@ -541,6 +609,8 @@ namespace kore {
     }
 
     Type* Parser::parse_type() {
+        KORE_DEBUG_PARSER_LOG_TOKEN("type")
+
         auto token = current_token();
 
         if (token->is_type()) {
@@ -573,6 +643,8 @@ namespace kore {
     }
 
     Expression* Parser::parse_literal() {
+        KORE_DEBUG_PARSER_LOG_TOKEN("literal")
+
         auto token = current_token();
         Expression* result = nullptr;
 
@@ -622,6 +694,8 @@ namespace kore {
     }
 
     Expression* Parser::parse_array(const Token* const lbracket_token) {
+        KORE_DEBUG_PARSER_LOG_TOKEN("array")
+
         next_token();
         auto first_expr = parse_expression(operator_base_precedence());
         Expression* result = nullptr;
@@ -641,6 +715,7 @@ namespace kore {
         const Token* const lbracket_token,
         Expression* size_expr
     ) {
+        KORE_DEBUG_PARSER_LOG_TOKEN("array fill")
         Expression* fill_expr = parse_expression(operator_base_precedence());
 
         if (!expect_token_type(TokenType::rbracket)) {
@@ -654,6 +729,8 @@ namespace kore {
         const Token* const lbracket_token,
         Expression* first_elem_expr
     ) {
+        KORE_DEBUG_PARSER_LOG_TOKEN("normal array")
+
         ArrayExpression* array_expr = dynamic_cast<ArrayExpression*>(Expression::make_empty_array());
         array_expr->add_element(first_elem_expr);
         array_expr->set_start_location(lbracket_token->location());
@@ -677,6 +754,8 @@ namespace kore {
     }
 
     Expression* Parser::parse_array_range_expression(const Token* const lbracket_token) {
+        KORE_DEBUG_PARSER_LOG_TOKEN("normal array")
+
         int base_precedence = operator_base_precedence();
         auto start_expr = parse_expression(base_precedence);
 
@@ -690,6 +769,8 @@ namespace kore {
     }
 
     Identifier* Parser::parse_maybe_qualified_identifier() {
+        KORE_DEBUG_PARSER_LOG_TOKEN("identifier")
+
         std::vector<std::string> identifier;
         auto token = current_token();
         Location loc = token->location();
@@ -705,7 +786,7 @@ namespace kore {
 
                 token = next_token();
             } else {
-                emit_parser_error("Expected an possibly qualified identifier");
+                emit_parser_error("Expected a possibly qualified identifier");
                 break;
             }
         } while (true);
@@ -714,9 +795,10 @@ namespace kore {
     }
 
     Expression* Parser::parse_unary_expression() {
-        Expression* expr = parse_literal();
+        KORE_DEBUG_PARSER_LOG_TOKEN("unary expression")
+        auto expr = parse_subexpr();
 
-        if (!expr->is_error()) {
+        if (expr && !expr->is_error()) {
             return expr;
         }
 
@@ -764,7 +846,79 @@ namespace kore {
         /* return make_parser_error("Expected unary operator"); */
     }
 
+    Expression* Parser::parse_subexpr() {
+        KORE_DEBUG_PARSER_LOG_TOKEN("subexpr")
+        auto expr = parse_operand();
+
+        if (expr && expr->is_identifier()) {
+            if (current_token()->type() != TokenType::lparen) {
+                return expr;
+            }
+
+            auto call = parse_function_call(expr);
+
+            if (!call->is_error()) {
+                return call;
+            }
+        }
+
+        return expr;
+    }
+
+    Expression* Parser::parse_operand() {
+        KORE_DEBUG_PARSER_LOG_TOKEN("operand")
+        auto expr = parse_literal();
+
+        if (expr && !expr->is_error()) {
+            return expr;
+        }
+
+        return parse_maybe_qualified_identifier();
+    }
+
+    Expression* Parser::parse_function_call(Expression* func_name) {
+        KORE_DEBUG_PARSER_LOG_TOKEN("call")
+
+        std::vector<Expression*> expr_list;
+        auto result = parse_expression_list(expr_list);
+
+        if (result && result->is_error()) {
+            advance_to_next_statement_boundary();
+            return result;
+        }
+
+        return Expression::make_call(
+            static_cast<Identifier*>(func_name),
+            expr_list
+        );
+    }
+
+    Expression* Parser::parse_expression_list(std::vector<Expression*>& expr_list) {
+        KORE_DEBUG_PARSER_LOG_TOKEN("exprlist")
+
+        if (!expect_token_type(TokenType::lparen)) {
+            return nullptr;
+        }
+
+        auto precedence = operator_base_precedence();
+        Expression* expr = nullptr;
+
+        while ((expr = parse_expression(precedence))) {
+            KORE_DEBUG_PARSER_LOG_TOKEN("exprlist:expr")
+            expr_list.push_back(expr);
+
+            if (expect_token_type(TokenType::rparen)) {
+                break;
+            } else if (!expect_token_type(TokenType::comma)) {
+                return nullptr;
+            }
+        }
+
+        return nullptr;
+    }
+
     Expression* Parser::parse_parenthesised_expression() {
+        KORE_DEBUG_PARSER_LOG_TOKEN("parenthesised expression")
         Expression* expr = parse_expression(operator_base_precedence());
 
         if (expect_token_type(TokenType::rparen)) {
@@ -776,6 +930,7 @@ namespace kore {
     }
 
     Expression* Parser::parse_expression(int precedence) {
+        KORE_DEBUG_PARSER_LOG_TOKEN("expression")
         Expression* left = parse_unary_expression();
 
         if (left->is_error()) {
@@ -843,3 +998,5 @@ namespace kore {
         }
     }
 }
+
+#undef KORE_DEBUG_PARSER_LOG_TOKEN

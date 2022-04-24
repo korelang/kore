@@ -3,6 +3,7 @@
 #include "ast/expressions/array_range_expression.hpp"
 #include "ast/expressions/binary_expression.hpp"
 #include "ast/expressions/bool_expression.hpp"
+#include "ast/expressions/call.hpp"
 #include "ast/expressions/char_expression.hpp"
 #include "ast/expressions/expression.hpp"
 #include "ast/expressions/float_expression.hpp"
@@ -14,6 +15,21 @@
 #include "ast/parser_error_node.hpp"
 
 namespace kore {
+    std::ostream& operator<<(std::ostream& os, ExpressionType expr_type) {
+        switch (expr_type) {
+            case ExpressionType::Array:      os << "array"; break;
+            case ExpressionType::Binary:     os << "binary"; break;
+            case ExpressionType::Call:       os << "call"; break;
+            case ExpressionType::Identifier: os << "identifier"; break;
+            case ExpressionType::Error:      os << "error"; break;
+            case ExpressionType::Literal:    os << "literal"; break;
+            case ExpressionType::Parameter:  os << "parameter"; break;
+            case ExpressionType::Unary:      os << "unary"; break;
+        }
+
+        return os;
+    }
+
     Expression::Expression(ExpressionType type, const Location& location)
         : AstNode(location),
         _expr_type(type) {
@@ -22,7 +38,15 @@ namespace kore {
     Expression::~Expression() {}
 
     bool Expression::is_error() const noexcept {
-        return false;
+        return expr_type() == ExpressionType::Error;
+    }
+
+    bool Expression::is_literal() const noexcept {
+        return expr_type() == ExpressionType::Literal;
+    }
+
+    bool Expression::is_identifier() const noexcept {
+        return expr_type() == ExpressionType::Identifier;
     }
 
     ExpressionType Expression::expr_type() const {
@@ -36,10 +60,6 @@ namespace kore {
     void Expression::set_type(const Type* type) {
         _type = type;
     }
-
-    /* Statement* Expression::as_statement() const { */
-    /*     return ExpressionStatement(this); */
-    /* } */
 
     void Expression::set_parenthesised(bool flag) {
         _parenthesised = flag;
@@ -121,5 +141,9 @@ namespace kore {
         Type* type
     ) {
         return new Parameter(token, type);
+    }
+
+    Expression* Expression::make_call(Identifier* identifier, std::vector<Expression*>& parameters) {
+        return new Call(identifier, parameters);
     }
 }

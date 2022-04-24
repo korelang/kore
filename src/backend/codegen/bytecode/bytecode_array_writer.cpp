@@ -48,7 +48,7 @@ namespace kore {
     }
 
     void BytecodeArrayWriter::save_patch_location(CompiledObject* target) {
-        _patch_locations[_label_count] = target->size() - 1;
+        _patch_locations[_label_count] = target->code_size() - 1;
     }
 
     Label BytecodeArrayWriter::write_jump(Bytecode opcode, CompiledObject* target) {
@@ -72,7 +72,7 @@ namespace kore {
         }
 
         auto patch_pos = _patch_locations[label];
-        auto pos = target->size() - 1;
+        auto pos = target->code_size() - 1;
         auto offset = pos - patch_pos + 1;
         auto patched_code = (*target)[patch_pos] | (offset & JUMP_BITMASK);
 

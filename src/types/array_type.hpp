@@ -4,22 +4,6 @@
 #include "types/type.hpp"
 
 namespace kore {
-    struct TypeDeleter {
-        TypeDeleter() {}
-
-        void operator()(Type* type) const {
-            if (!type->is_simple()) {
-                delete type;
-            }
-        }
-
-        void operator()(const Type* type) const {
-            if (!type->is_simple()) {
-                delete type;
-            }
-        }
-    };
-
     class ArrayType : public Type {
         public:
             ArrayType();
@@ -39,7 +23,7 @@ namespace kore {
 
         private:
             int _rank;
-            std::unique_ptr<const Type, TypeDeleter> _element_type;
+            Type::pointer _element_type;
     };
 }
 

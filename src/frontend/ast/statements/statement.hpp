@@ -38,6 +38,7 @@ namespace kore {
             static Statement* make_import_decl(Identifier*);
             static Statement* make_variable_decl(const Token& identifier, const Token& type);
             static Statement* make_variable_assignment(const Token& identifier, Type* type, Expression* expr);
+            static Statement* make_function_call(Expression* expression);
 
         private:
             StatementType _statement_type;

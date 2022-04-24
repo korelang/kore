@@ -65,7 +65,10 @@ namespace kore {
 
             bool expect_keyword(const Keyword& keyword);
 
-            bool expect_token_type(const TokenType& token_type);
+            bool expect_token_type(
+                const TokenType& token_type,
+                bool advance = true
+            );
 
             bool expect_type(const std::string& name);
 
@@ -166,6 +169,14 @@ namespace kore {
 
             /// UnaryExpr = UnaryOp UnaryExpr .
             Expression* parse_unary_expression();
+
+            Expression* parse_subexpr();
+
+            Expression* parse_operand();
+
+            Expression* parse_function_call(Expression* func_name);
+
+            Expression* parse_expression_list(std::vector<Expression*>& expr_list);
 
             /// Expression = UnaryExpr | Expression binary_op Expression .
             /// Expresions are parsed using "precedence climbing"

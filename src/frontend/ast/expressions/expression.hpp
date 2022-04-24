@@ -17,6 +17,7 @@ namespace kore {
     enum class ExpressionType {
         Array,
         Binary,
+        Call,
         Identifier,
         Error,
         Literal,
@@ -24,10 +25,11 @@ namespace kore {
         Unary,
     };
 
+    std::ostream& operator<<(std::ostream& os, ExpressionType expr_type);
+
     /// Base class for all expressions
     class Expression : public AstNode {
         public:
-            // Internal type for subexpressions
             using pointer = std::unique_ptr<Expression>;
             using reference = std::unique_ptr<Expression>&;
 
@@ -37,16 +39,13 @@ namespace kore {
 
             virtual bool is_error() const noexcept;
             bool is_literal() const noexcept;
+            bool is_identifier() const noexcept;
             ExpressionType expr_type() const;
             // TODO: Should this actually be const Type* const
             virtual const Type* type() const;
             void set_type(const Type* type);
 
             void set_parenthesised(bool flag);
-
-            /// Wrap this expression as a statement
-            /// TODO: Give an example
-            /* Statement* as_statement() const; */
 
             static Expression* make_parser_error(const std::string& msg, const Location&);
             static Expression* make_array_fill(Expression*, Expression*, const Location&);
@@ -63,6 +62,7 @@ namespace kore {
             static Expression* make_unary(const std::string& op, Expression*, const Location&);
             static Expression* make_binary(const std::string& op, Expression*, Expression*, const Location&);
             static Expression* make_parameter(const Token&, Type*);
+            static Expression* make_call(Identifier*, std::vector<Expression*>& parameters);
 
             template<typename T, typename ...Args>
             static Expression* make_expression(Args... args) {

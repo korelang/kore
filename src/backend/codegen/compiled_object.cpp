@@ -43,8 +43,12 @@ namespace kore {
         _instructions.push_back(instruction);
     }
 
-    int CompiledObject::size() const {
+    int CompiledObject::code_size() const {
         return _instructions.size();
+    }
+
+    bool CompiledObject::is_main_object() const {
+        return name() == "<main>";
     }
 
     bytecode_type& CompiledObject::operator[](int index) {
@@ -57,5 +61,9 @@ namespace kore {
 
     CompiledObject::instruction_iterator CompiledObject::end() const {
         return _instructions.end();
+    }
+
+    bytecode_type* CompiledObject::instructions() {
+        return _instructions.data();
     }
 }

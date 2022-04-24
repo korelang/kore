@@ -39,6 +39,7 @@ namespace kore {
             // Statements
             virtual void visit(Branch* statement);
             virtual void visit(Function* statement);
+            virtual void visit(class Call* statement);
             virtual void visit(IfStatement* statement);
             virtual void visit(ImportStatement* statement);
             virtual void visit(ModuleStatement* statement);
@@ -48,6 +49,7 @@ namespace kore {
 
             virtual bool precondition(Branch* statement);
             virtual bool precondition(Function* statement);
+            virtual bool precondition(class Call* statement);
             virtual bool precondition(IfStatement* statement);
             virtual bool precondition(ImportStatement* statement);
             virtual bool precondition(ModuleStatement* statement);
@@ -57,6 +59,7 @@ namespace kore {
 
             virtual bool postcondition(Branch* statement);
             virtual bool postcondition(Function* statement);
+            virtual bool postcondition(class Call* statement);
             virtual bool postcondition(IfStatement* statement);
             virtual bool postcondition(ImportStatement* statement);
             virtual bool postcondition(ModuleStatement* statement);

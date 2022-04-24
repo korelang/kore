@@ -2,7 +2,6 @@
 #define KORE_BYTECODE_GENERATOR_HPP
 
 #include <memory>
-#include <stack>
 #include <vector>
 
 #include "codegen/bytecode/bytecode.hpp"
@@ -16,6 +15,7 @@ namespace kore {
     class BytecodeGenerator final : public AstVisitor {
         public:
             using CompiledObjectPtr = std::unique_ptr<CompiledObject>;
+            using RegIterator = std::vector<Reg>::iterator;
 
         public:
             BytecodeGenerator(ScopeStack& scope_stack);
@@ -35,6 +35,7 @@ namespace kore {
             void visit(Identifier* expr) override;
             void visit(VariableAssignment* statement) override;
             void visit(IfStatement* statement) override;
+            void visit(class Call* call) override;
             void visit(Return* statement) override;
 
             bool precondition(Branch* statement) override;
@@ -44,7 +45,7 @@ namespace kore {
 
         private:
             const static std::string _bytecode_version;
-            std::stack<Reg> _register_stack;
+            std::vector<Reg> _register_stack;
             BytecodeArrayWriter _writer;
             ScopeStack& _scope_stack;
 
@@ -53,6 +54,8 @@ namespace kore {
 
         private:
             Reg get_register_operand();
+            RegIterator get_register_operands(int count);
+            void free_registers(int count);
             Bytecode get_binop_instruction(
                 TypeCategory type_category,
                 BinOp binop

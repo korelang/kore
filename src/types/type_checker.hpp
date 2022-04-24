@@ -39,6 +39,7 @@ namespace kore {
 
             /* void visit(IfStatement* statement) override; */
             void visit(VariableAssignment* statement) override;
+            void visit(class Call* statement) override;
 
             bool precondition(Branch* branch) override;
             bool postcondition(Branch* branch) override;

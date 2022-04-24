@@ -24,10 +24,13 @@ namespace kore {
             virtual ~Function();
 
             std::string name() const;
+            const Identifier* identifier() const;
             bool exported() const noexcept;
-            ParameterList parameters();
-            Type* return_type();
+            int arity() const;
+            FunctionType* type() const;
+            const Type* return_type();
 
+            const Identifier* parameter(int param_index);
             void add_parameter(Parameter* parameter);
             void set_return_type(Type* type);
             void add_statement(Statement* statment) override;
@@ -41,9 +44,9 @@ namespace kore {
         private:
             Identifier _name;
             bool _exported;
-            ParameterList _parameters;
-            Type* _return_type;
+            std::unique_ptr<FunctionType> _type;
             StatementList _body;
+            StatementList _returns;
     };
 }
 

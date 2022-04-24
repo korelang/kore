@@ -14,6 +14,8 @@ namespace kore {
     class CompiledObject final {
         public:
             friend class BytecodeArrayWriter;
+            friend class BytecodeFormatWriter;
+
             using instruction_iterator = std::vector<bytecode_type>::const_iterator;
 
         public:
@@ -28,7 +30,8 @@ namespace kore {
             int reg_count() const;
             Reg allocate_register();
             void add_instruction(bytecode_type instruction);
-            int size() const;
+            int code_size() const;
+            bool is_main_object() const;
 
             bytecode_type& operator[](int index);
 
@@ -44,6 +47,8 @@ namespace kore {
             // For now, we just use a very simple register allocator with
             // a maximum of 256 registers that just bumps a register count
             int _reg_count = 0;
+
+            bytecode_type* instructions();
     };
 }
 

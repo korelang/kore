@@ -73,7 +73,7 @@ namespace kore {
             obj
         );
 
-        _register_stack.push(dest_reg);
+        _register_stack.push_back(dest_reg);
     }
 
     void BytecodeGenerator::visit(BoolExpression* expr) {
@@ -85,28 +85,28 @@ namespace kore {
             reg, expr->value() == "true" ? 1 : 0,
             obj
         );
-        _register_stack.push(reg);
+        _register_stack.push_back(reg);
     }
 
     void BytecodeGenerator::visit(IntegerExpression* expr) {
         auto obj = current_object();
         auto reg = obj->allocate_register();
 
-        _writer.write_load(Bytecode::LoadI32, reg, expr->value(), obj);
-        _register_stack.push(reg);
+        _writer.write_load(Bytecode::CloadI32, reg, expr->value(), obj);
+        _register_stack.push_back(reg);
     }
 
     void BytecodeGenerator::visit(FloatExpression* expr) {
         auto obj = current_object();
         auto reg = obj->allocate_register();
 
-        _writer.write_load(Bytecode::LoadF32, reg, expr->value(), obj);
-        _register_stack.push(reg);
+        _writer.write_load(Bytecode::CloadF32, reg, expr->value(), obj);
+        _register_stack.push_back(reg);
     }
 
     void BytecodeGenerator::visit(Identifier* expr) {
         auto entry = _scope_stack.find(expr->name());
-        _register_stack.push(entry->reg);
+        _register_stack.push_back(entry->reg);
     }
 
     void BytecodeGenerator::visit(VariableAssignment* statement) {
@@ -166,6 +166,25 @@ namespace kore {
         }
     }
 
+    void BytecodeGenerator::visit(class Call* call) {
+        // Generate code in reverse order of arguments so we can
+        // get the registers in the correct order for the call
+        for (int i = call->arg_count() - 1; i >= 0; --i) {
+            call->arg(i)->accept(this);
+        }
+
+        auto obj = current_object();
+        auto first = _register_stack.cbegin() + (_register_stack.size() - call->arg_count());
+
+        _writer.write_variable_length(
+            Bytecode::Call,
+            call->arg_count(),
+            first,
+            _register_stack.cend(),
+            obj
+        );
+    }
+
     void BytecodeGenerator::visit(Return* statement) {
         UNUSED_PARAM(statement);
 
@@ -196,7 +215,8 @@ namespace kore {
         // arguments to that scope
         _scope_stack.enter_function_scope();
 
-        for (auto parameter : statement->parameters()) {
+        for (int i = 0; i < statement->arity(); ++i) {
+            auto parameter = statement->parameter(i);
             _scope_stack.insert(parameter, obj->allocate_register());
         }
 
@@ -211,10 +231,19 @@ namespace kore {
     }
 
     int BytecodeGenerator::get_register_operand() {
-        auto reg = _register_stack.top();
-        _register_stack.pop();
+        auto reg = _register_stack.back();
+        _register_stack.pop_back();
 
         return reg;
+    }
+
+    BytecodeGenerator::RegIterator BytecodeGenerator::get_register_operands(int count) {
+        return _register_stack.begin() + (_register_stack.size() - count);
+    }
+
+    void BytecodeGenerator::free_registers(int count) {
+        auto begin = _register_stack.begin();
+        _register_stack.erase(begin, begin + _register_stack.size() - count);
     }
 
     CompiledObject* BytecodeGenerator::current_object() {

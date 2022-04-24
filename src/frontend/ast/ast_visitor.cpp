@@ -117,6 +117,10 @@ namespace kore {
         UNUSED_PARAM(statement);
     }
 
+    void AstVisitor::visit(class Call* statement) {
+        UNUSED_PARAM(statement);
+    }
+
     void AstVisitor::visit(IfStatement* statement) {
         UNUSED_PARAM(statement);
     }
@@ -147,6 +151,11 @@ namespace kore {
     }
 
     bool AstVisitor::precondition(Function* statement) {
+        UNUSED_PARAM(statement);
+        return false;
+    }
+
+    bool AstVisitor::precondition(class Call* statement) {
         UNUSED_PARAM(statement);
         return false;
     }
@@ -187,6 +196,11 @@ namespace kore {
     }
 
     bool AstVisitor::postcondition(Function* statement) {
+        UNUSED_PARAM(statement);
+        return false;
+    }
+
+    bool AstVisitor::postcondition(class Call* statement) {
         UNUSED_PARAM(statement);
         return false;
     }

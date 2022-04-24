@@ -24,6 +24,7 @@ namespace kore {
             /* void visit(ArrayRangeExpression* expr) override; */
             void visit(BinaryExpression* expr) override;
             /* void visit(BoolExpression* expr) override; */
+            void visit(class Call* call) override;
             /* void visit(CharExpression* expr) override; */
             /* void visit(FloatExpression* expr) override; */
             void visit(Identifier* expr) override;
@@ -44,6 +45,8 @@ namespace kore {
 
             bool precondition(Branch* branch) override;
             bool postcondition(Branch* branch) override;
+            bool precondition(Function* func) override;
+            bool postcondition(Function* func) override;
     };
 }
 

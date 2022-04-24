@@ -3,6 +3,7 @@
 #include "ast/expressions/array_range_expression.hpp"
 #include "ast/expressions/binary_expression.hpp"
 #include "ast/expressions/bool_expression.hpp"
+#include "ast/expressions/call.hpp"
 #include "ast/expressions/char_expression.hpp"
 #include "ast/expressions/float_expression.hpp"
 #include "ast/expressions/identifier.hpp"

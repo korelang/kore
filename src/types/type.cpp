@@ -54,6 +54,10 @@ namespace kore {
         }
     }
 
+    bool Type::is_function() const noexcept {
+        return category() == TypeCategory::Function;
+    }
+
     TypeCategory Type::category() const noexcept {
         return _category;
     }
@@ -96,6 +100,12 @@ namespace kore {
 
     const Type* Type::unify(const Optional* optional) const {
         UNUSED_PARAM(optional);
+
+        return Type::unknown();
+    }
+
+    const Type* Type::unify(const FunctionType* func_type) const {
+        UNUSED_PARAM(func_type);
 
         return Type::unknown();
     }

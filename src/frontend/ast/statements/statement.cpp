@@ -9,6 +9,7 @@
 #include "ast/statements/statement.hpp"
 #include "ast/statements/variable_assignment.hpp"
 #include "ast/statements/variable_declaration.hpp"
+#include "ast/statements/expression_statement.hpp"
 #include "types/type.hpp"
 #include "utils/unused_parameter.hpp"
 
@@ -56,5 +57,9 @@ namespace kore {
 
     Statement* Statement::make_variable_assignment(const Token& identifier, Type* type, Expression* expr) {
         return new VariableAssignment(identifier, type, expr);
+    }
+
+    Statement* Statement::make_function_call(Expression* expression) {
+        return new ExpressionStatement(expression);
     }
 }

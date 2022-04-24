@@ -8,6 +8,11 @@
 #include "scanner.hpp"
 #include "utf8/utf8.hpp"
 
+// NOTE: No KORE_DEBUG helpers here since it's easy to tell
+// the compiler to emit scanned tokens:
+//
+// $ korec <file> --dump-scan
+
 namespace kore {
     Scanner::Scanner()
         : lnum(0),

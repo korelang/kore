@@ -9,6 +9,10 @@ set(INCLUDE_DIRS
     "./src/backend"
 )
 
+# add_compile_definitions(KORE_DEBUG_PARSER=1)
+add_compile_definitions(KORE_DEBUG_TYPECHECKER=1)
+add_compile_definitions(KORE_DEBUG_TYPEINFERRER=1)
+
 set(BASE_SOURCES
     src/frontend/ast/ast.cpp
     src/frontend/ast/ast_node.cpp
@@ -23,6 +27,7 @@ set(BASE_SOURCES
     src/frontend/ast/expressions/array_range_expression.cpp
     src/frontend/ast/expressions/binary_expression.cpp
     src/frontend/ast/expressions/bool_expression.cpp
+    src/frontend/ast/expressions/call.cpp
     src/frontend/ast/expressions/char_expression.cpp
     src/frontend/ast/expressions/expression.cpp
     src/frontend/ast/expressions/float_expression.cpp
@@ -37,11 +42,13 @@ set(BASE_SOURCES
     src/frontend/ast/statements/branch.cpp
     src/frontend/ast/statements/if_statement.cpp
     src/frontend/ast/statements/function.cpp
+    src/frontend/ast/statements/expression_statement.cpp
     src/frontend/ast/statements/import_statement.cpp
     src/frontend/ast/statements/module_statement.cpp
     src/frontend/ast/statements/variable_declaration.cpp
     src/frontend/ast/statements/return_statement.cpp
     src/frontend/ast/statements/variable_assignment.cpp
+    src/frontend/ast/statements/expression_statement.cpp
 
     src/frontend/keywords.cpp
     src/frontend/location.cpp
@@ -59,6 +66,7 @@ set(BASE_SOURCES
     src/types/bool_type.cpp
     src/types/char_type.cpp
     src/types/float_type.cpp
+    src/types/function_type.cpp
     src/types/integer_type.cpp
     src/types/optional.cpp
     src/types/str_type.cpp
