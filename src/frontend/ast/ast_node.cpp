@@ -13,7 +13,7 @@ namespace kore {
         return _location;
     }
 
-    void AstNode::accept(AstVisitor* visitor) {
+    void AstNode::accept(AstVisitor& visitor) {
         UNUSED_PARAM(visitor);
     }
 }

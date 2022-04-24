@@ -20,11 +20,11 @@ namespace kore {
         writer->newline();
     }
 
-    void Return::accept(AstVisitor* visitor) {
+    void Return::accept(AstVisitor& visitor) {
         if (_expr) {
             _expr->accept(visitor);
         }
 
-        visitor->visit(this);
+        visitor.visit(*this);
     }
 }

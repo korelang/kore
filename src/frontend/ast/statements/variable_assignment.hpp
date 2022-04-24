@@ -21,7 +21,7 @@ namespace kore {
             void set_type(const Type* type);
 
             void write(AstWriter* const writer) override;
-            void accept(AstVisitor* visitor) override;
+            void accept(AstVisitor& visitor) override;
 
         private:
             // TODO: Should this be a variable instead? It is more specific in

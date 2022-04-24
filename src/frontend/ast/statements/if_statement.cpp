@@ -52,11 +52,11 @@ namespace kore {
         }
     }
 
-    void IfStatement::accept(AstVisitor* visitor) {
+    void IfStatement::accept(AstVisitor& visitor) {
         for (auto& branch : _branches) {
             branch->accept(visitor);
         }
 
-        visitor->visit(this);
+        visitor.visit(*this);
     }
 }

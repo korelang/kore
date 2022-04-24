@@ -19,7 +19,7 @@ namespace kore {
         }
     }
 
-    void ExpressionStatement::accept(AstVisitor* visitor) {
+    void ExpressionStatement::accept(AstVisitor& visitor) {
         if (_expression) {
             _expression->accept(visitor);
         }

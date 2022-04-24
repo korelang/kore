@@ -23,11 +23,11 @@ namespace kore {
         writer->write(std::to_string(value()));
     }
 
-    void IntegerExpression::accept(AstVisitor* visitor) {
-        if (visitor->precondition(this)) {
+    void IntegerExpression::accept(AstVisitor& visitor) {
+        if (visitor.precondition(*this)) {
             return;
         }
 
-        visitor->visit(this);
+        visitor.visit(*this);
     }
 }

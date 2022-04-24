@@ -123,14 +123,14 @@ namespace kore {
         writer->newline();
     }
 
-    void Function::accept(AstVisitor* visitor) {
-        if (!visitor->precondition(this)) {
+    void Function::accept(AstVisitor& visitor) {
+        if (!visitor.precondition(*this)) {
             for (auto& statement : _body) {
                 statement->accept(visitor);
             }
         }
 
-        visitor->visit(this);
-        visitor->postcondition(this);
+        visitor.visit(*this);
+        visitor.postcondition(*this);
     }
 }

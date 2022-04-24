@@ -17,7 +17,7 @@ namespace kore {
             Expression* expression();
 
             void write(AstWriter* const writer) override;
-            void accept(AstVisitor* visitor) override;
+            void accept(AstVisitor& visitor) override;
 
         private:
             std::unique_ptr<Expression> _expression;

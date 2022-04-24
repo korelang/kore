@@ -104,14 +104,14 @@ namespace kore {
         writer->write(")");
     }
 
-    void BinaryExpression::accept(AstVisitor* visitor) {
-        if (visitor->precondition(this)) {
+    void BinaryExpression::accept(AstVisitor& visitor) {
+        if (visitor.precondition(*this)) {
             return;
         }
 
         _left->accept(visitor);
         _right->accept(visitor);
 
-        visitor->visit(this);
+        visitor.visit(*this);
     }
 }

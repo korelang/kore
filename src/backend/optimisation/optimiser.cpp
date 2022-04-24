@@ -3,7 +3,7 @@
 namespace kore {
     void Optimiser::optimise(const Ast& ast) {
         for (auto const& statement : ast) {
-            statement->accept(this);
+            statement->accept(*this);
         }
     }
 

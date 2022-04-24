@@ -34,20 +34,20 @@ namespace kore {
             std::vector<errors::Error> _errors;
 
             void push_error(errors::Error error);
-            void visit(BinaryExpression* expr) override;
-            void visit(Identifier* expr) override;
+            void visit(BinaryExpression& binexpr) override;
+            void visit(Identifier& identifier) override;
 
-            /* void visit(IfStatement* statement) override; */
-            void visit(VariableAssignment* statement) override;
-            void visit(class Call* statement) override;
+            /* void visit(IfStatement& statement) override; */
+            void visit(VariableAssignment& assignment) override;
+            void visit(class Call& call) override;
 
-            bool precondition(Branch* branch) override;
-            bool postcondition(Branch* branch) override;
-            bool precondition(Function* statement) override;
-            bool postcondition(Function* statement) override;
+            bool precondition(Branch& branch) override;
+            bool postcondition(Branch& branch) override;
+            bool precondition(Function& func) override;
+            bool postcondition(Function& func) override;
 
             /// Check if a variable shadows a variable in an outer scope
-            bool shadows_outer_scope(const Identifier* identifier);
+            bool shadows_outer_scope(const Identifier& identifier);
     };
 }
 

@@ -17,7 +17,7 @@ namespace kore {
             Location location() const;
 
             virtual void write(AstWriter* const writer) = 0;
-            virtual void accept(AstVisitor* visitor);
+            virtual void accept(AstVisitor& visitor);
 
         protected:
             Location _location;

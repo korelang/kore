@@ -28,20 +28,20 @@ namespace kore {
                 std::move(_objects.begin(), _objects.end(), it);
             }
 
-            void visit(BinaryExpression* expr) override;
-            void visit(BoolExpression* expr) override;
-            void visit(IntegerExpression* expr) override;
-            void visit(FloatExpression* expr) override;
-            void visit(Identifier* expr) override;
-            void visit(VariableAssignment* statement) override;
-            void visit(IfStatement* statement) override;
-            void visit(class Call* call) override;
-            void visit(Return* statement) override;
+            void visit(BinaryExpression& expr) override;
+            void visit(BoolExpression& expr) override;
+            void visit(IntegerExpression& expr) override;
+            void visit(FloatExpression& expr) override;
+            void visit(Identifier& identifier) override;
+            void visit(VariableAssignment& assignment) override;
+            void visit(IfStatement& ifstatement) override;
+            void visit(class Call& call) override;
+            void visit(Return& ret) override;
 
-            bool precondition(Branch* statement) override;
-            bool precondition(Function* statement) override;
+            bool precondition(Branch& statement) override;
+            bool precondition(Function& statement) override;
 
-            bool postcondition(Function* statement) override;
+            bool postcondition(Function& statement) override;
 
         private:
             const static std::string _bytecode_version;
@@ -61,7 +61,7 @@ namespace kore {
                 BinOp binop
             );
             CompiledObject* current_object();
-            void start_function_compile(Function* statement);
+            void start_function_compile(Function* func);
             void end_function_compile();
 
             template<typename ...Args>

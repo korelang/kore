@@ -58,10 +58,10 @@ namespace kore {
         writer->newline();
     }
 
-    void VariableAssignment::accept(AstVisitor* visitor) {
+    void VariableAssignment::accept(AstVisitor& visitor) {
         _expr->accept(visitor);
         /* _identifier.accept(visitor); */
 
-        visitor->visit(this);
+        visitor.visit(*this);
     }
 }

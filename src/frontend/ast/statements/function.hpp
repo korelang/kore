@@ -39,7 +39,7 @@ namespace kore {
             body_iterator end();
 
             void write(AstWriter* const writer) override;
-            void accept(AstVisitor* visitor) override;
+            void accept(AstVisitor& visitor) override;
 
         private:
             Identifier _name;

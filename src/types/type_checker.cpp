@@ -41,7 +41,7 @@ namespace kore {
         _errors.clear();
 
         for (auto const& statement : ast) {
-            statement->accept(this);
+            statement->accept(*this);
         }
 
         return _errors.size();
@@ -59,8 +59,8 @@ namespace kore {
         _errors.emplace_back(error);
     }
 
-    void TypeChecker::visit(Identifier* expr) {
-        auto entry = _scope_stack.find(expr->name());
+    void TypeChecker::visit(Identifier& identifier) {
+        auto entry = _scope_stack.find(identifier.name());
 
         if (entry) {
             KORE_DEBUG_TYPECHECKER_LOG(
@@ -69,15 +69,15 @@ namespace kore {
                 std::string()
             )
 
-            expr->set_type(entry->identifier->type());
+            identifier.set_type(entry->identifier->type());
         } else {
-            push_error(errors::typing::undefined_variable(expr));
+            push_error(errors::typing::undefined_variable(identifier));
         }
     }
 
-    void TypeChecker::visit(VariableAssignment* statement) {
-        auto declared_type = statement->declared_type();
-        auto expr_type = statement->expression()->type();
+    void TypeChecker::visit(VariableAssignment& assignment) {
+        auto declared_type = assignment.declared_type();
+        auto expr_type = assignment.expression()->type();
         KORE_DEBUG_TYPECHECKER_LOG(
             "assignment",
             declared_type->name(),
@@ -88,11 +88,11 @@ namespace kore {
         // type instead
         if (!declared_type->is_unknown()) {
             if (declared_type->unify(expr_type)->is_unknown()) {
-                push_error(errors::typing::cannot_assign(expr_type, declared_type, statement->location()));
+                push_error(errors::typing::cannot_assign(expr_type, declared_type, assignment.location()));
             }
         }
 
-        auto identifier = statement->identifier();
+        auto identifier = assignment.identifier();
         auto entry = _scope_stack.find_inner(identifier->name());
 
         if (!entry) {
@@ -100,8 +100,8 @@ namespace kore {
 
             // This variable did not already exist in the inner scope, check
             // that it does not shadow a variable in an outer scope
-            if (shadows_outer_scope(identifier)) {
-                push_error(errors::typing::variables_shadows(identifier, statement->location()));
+            if (shadows_outer_scope(*identifier)) {
+                push_error(errors::typing::variables_shadows(identifier, assignment.location()));
             }
         } else {
             // TODO
@@ -110,28 +110,28 @@ namespace kore {
         }
     }
 
-    void TypeChecker::visit(class Call* statement) {
+    void TypeChecker::visit(class Call& call) {
         // Find an scoped entry in the current or enclosing scopes for a
         // function definition
-        auto entry = _scope_stack.find(statement->name());
+        auto entry = _scope_stack.find(call.name());
 
         if (!entry) {
-            push_error(errors::typing::unknown_call(statement));
+            push_error(errors::typing::unknown_call(call));
             return;
         }
 
         auto type = entry->identifier->type();
 
         if (type->category() != TypeCategory::Function) {
-            push_error(errors::typing::not_a_function(statement, type));
+            push_error(errors::typing::not_a_function(call, type));
             return;
         }
 
         auto func_type = static_cast<const FunctionType*>(type);
 
-        if (statement->arg_count() != func_type->arity()) {
+        if (call.arg_count() != func_type->arity()) {
             push_error(errors::typing::incorrect_arg_count(
-                statement,
+                call,
                 func_type
             ));
 
@@ -141,8 +141,8 @@ namespace kore {
         KORE_DEBUG_TYPECHECKER_LOG("call", func_type->name(), std::string())
 
         // TODO: Move into Call class
-        for (int i = 0; i < statement->arg_count(); ++i) {
-            auto arg = statement->arg(i);
+        for (int i = 0; i < call.arg_count(); ++i) {
+            auto arg = call.arg(i);
             auto arg_type = arg->type();
             auto param = func_type->parameter(i);
             auto param_type = param->type();
@@ -153,19 +153,19 @@ namespace kore {
                     arg,
                     arg_type,
                     param_type,
-                    statement,
+                    call,
                     i
                 ));
             }
         }
 
-        statement->set_type(func_type->return_type());
+        call.set_type(func_type->return_type());
     }
 
-    void TypeChecker::visit(BinaryExpression* expr) {
-        auto left = expr->left();
-        auto right = expr->right();
-        auto op = expr->op();
+    void TypeChecker::visit(BinaryExpression& binexpr) {
+        auto left = binexpr.left();
+        auto right = binexpr.right();
+        auto op = binexpr.op();
 
         KORE_DEBUG_TYPECHECKER_LOG(
             "binop",
@@ -181,17 +181,17 @@ namespace kore {
                 auto result_type = left_type->unify(right_type);
 
                 if (result_type->is_unknown()) {
-                    push_error(errors::typing::incompatible_binop(left_type, right_type, op, expr->location()));
+                    push_error(errors::typing::incompatible_binop(left_type, right_type, op, binexpr.location()));
                 } else {
-                    expr->set_type(result_type);
+                    binexpr.set_type(result_type);
                 }
             } else {
-                push_error(errors::typing::binop_numeric_operands(left_type, right_type, op, expr->location()));
+                push_error(errors::typing::binop_numeric_operands(left_type, right_type, op, binexpr.location()));
             }
         }
     }
 
-    bool TypeChecker::precondition(Branch* branch) {
+    bool TypeChecker::precondition(Branch& branch) {
         KORE_DEBUG_TYPECHECKER_LOG("pre branch", std::string(), std::string())
 
         UNUSED_PARAM(branch);
@@ -199,7 +199,7 @@ namespace kore {
         return false;
     }
 
-    bool TypeChecker::postcondition(Branch* branch) {
+    bool TypeChecker::postcondition(Branch& branch) {
         KORE_DEBUG_TYPECHECKER_LOG("post branch", std::string(), std::string())
 
         UNUSED_PARAM(branch);
@@ -207,36 +207,36 @@ namespace kore {
         return false;
     }
 
-    bool TypeChecker::precondition(Function* statement) {
+    bool TypeChecker::precondition(Function& func) {
         KORE_DEBUG_TYPECHECKER_LOG("pre function", std::string(), std::string())
-        UNUSED_PARAM(statement);
+        UNUSED_PARAM(func);
 
         // Enter a new function scope and add all function
         // arguments to that scope
         _scope_stack.enter_function_scope();
 
-        for (int i = 0; i < statement->arity(); ++i) {
-            auto parameter = statement->parameter(i);
+        for (int i = 0; i < func.arity(); ++i) {
+            auto parameter = func.parameter(i);
             _scope_stack.insert(parameter);
         }
 
         return false;
     }
 
-    bool TypeChecker::postcondition(Function* statement) {
+    bool TypeChecker::postcondition(Function& func) {
         KORE_DEBUG_TYPECHECKER_LOG(
             "post function",
             std::string(),
             std::string()
         )
 
-        UNUSED_PARAM(statement);
+        UNUSED_PARAM(func);
         _scope_stack.leave();
         return false;
     }
 
-    bool TypeChecker::shadows_outer_scope(const Identifier* identifier) {
-        return _scope_stack.find_enclosing(identifier->name()) != nullptr;
+    bool TypeChecker::shadows_outer_scope(const Identifier& identifier) {
+        return _scope_stack.find_enclosing(identifier.name()) != nullptr;
     }
 }
 

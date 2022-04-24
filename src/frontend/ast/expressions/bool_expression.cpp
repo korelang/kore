@@ -22,11 +22,11 @@ namespace kore {
         writer->write(_value);
     }
 
-    void BoolExpression::accept(AstVisitor* visitor) {
-        if (visitor->precondition(this)) {
+    void BoolExpression::accept(AstVisitor& visitor) {
+        if (visitor.precondition(*this)) {
             return;
         }
 
-        visitor->visit(this);
+        visitor.visit(*this);
     }
 }

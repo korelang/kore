@@ -42,8 +42,8 @@ namespace kore {
         writer->write("}\n");
     }
 
-    void Branch::accept(AstVisitor* visitor) {
-        if (visitor->precondition(this)) {
+    void Branch::accept(AstVisitor& visitor) {
+        if (visitor.precondition(*this)) {
             return;
         }
 
@@ -55,7 +55,7 @@ namespace kore {
             statement->accept(visitor);
         }
 
-        if (visitor->postcondition(this)) {
+        if (visitor.postcondition(*this)) {
             return;
         }
     }

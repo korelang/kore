@@ -56,8 +56,8 @@ namespace kore {
         return _type;
     }
 
-    void Identifier::accept(AstVisitor* visitor) {
-        visitor->visit(this);
+    void Identifier::accept(AstVisitor& visitor) {
+        visitor.visit(*this);
     }
 
     void Identifier::write(AstWriter* const writer) {

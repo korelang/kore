@@ -61,7 +61,7 @@ namespace kore {
         writer->write(name());
     }
 
-    void Call::accept(AstVisitor* visitor) {
-        visitor->visit(this);
+    void Call::accept(AstVisitor& visitor) {
+        visitor.visit(*this);
     }
 }

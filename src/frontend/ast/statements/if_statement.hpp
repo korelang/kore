@@ -26,7 +26,7 @@ namespace kore {
             branch_iterator branches();
 
             void write(AstWriter* const writer) override;
-            void accept(AstVisitor* visitor) override;
+            void accept(AstVisitor& visitor) override;
 
         private:
             bool _has_else_branch;

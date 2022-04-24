@@ -18,7 +18,7 @@ namespace kore {
         writer->write("parameter");
     }
 
-    void Parameter::accept(AstVisitor* visitor) {
-        visitor->visit(this);
+    void Parameter::accept(AstVisitor& visitor) {
+        visitor.visit(*this);
     }
 }

@@ -16,11 +16,11 @@ namespace kore {
             Error incompatible_binop(const Type* left, const Type* right, BinOp op, const Location& location);
             Error binop_numeric_operands(const Type* left, const Type* right, BinOp op, const Location& location);
             Error variables_shadows(const Identifier* identifier, const Location& location);
-            Error undefined_variable(const Identifier* identifier);
-            Error unknown_call(const class Call* call);
-            Error incorrect_parameter_type(const Expression* expression, const Type* arg_type, const Type* param_type, class Call* call, int arg_index);
-            Error not_a_function(const class Call* call, const Type* type);
-            Error incorrect_arg_count(const class Call* call, const Type* type);
+            Error undefined_variable(const Identifier& identifier);
+            Error unknown_call(const class Call& call);
+            Error incorrect_parameter_type(const Expression* expression, const Type* arg_type, const Type* param_type, class Call& call, int arg_index);
+            Error not_a_function(const class Call& call, const Type* type);
+            Error incorrect_arg_count(const class Call& call, const Type* type);
         }
     }
 
