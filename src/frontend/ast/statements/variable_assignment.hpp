@@ -27,8 +27,8 @@ namespace kore {
             // TODO: Should this be a variable instead? It is more specific in
             // this context
             Identifier _identifier;
-            std::unique_ptr<const Type> _type;
-            std::unique_ptr<Expression> _expr;
+            Type::pointer _type;
+            Expression::pointer _expr;
     };
 }
 

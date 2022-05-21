@@ -13,7 +13,7 @@ namespace kore {
     /// Represents an abstract syntax tree
     class Ast {
         public:
-            using ConstIter = std::vector<std::unique_ptr<Statement>>::const_iterator;
+            using ConstIter = std::vector<Statement::pointer>::const_iterator;
 
             Ast();
             Ast(Ast&& ast);
@@ -36,7 +36,7 @@ namespace kore {
 
         private:
             std::string _module_name;
-            std::vector<std::unique_ptr<Statement>> _statements;
+            std::vector<Statement::pointer> _statements;
     };
 }
 

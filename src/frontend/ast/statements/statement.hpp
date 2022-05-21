@@ -23,6 +23,9 @@ namespace kore {
     /// Base class for all statements
     class Statement : public AstNode {
         public:
+            using pointer = std::unique_ptr<Statement>;
+
+        public:
             Statement();
             Statement(Location location, StatementType statement_type);
             virtual ~Statement();

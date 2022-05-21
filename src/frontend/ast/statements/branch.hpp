@@ -4,7 +4,7 @@
 #include "ast/statements/statement_list.hpp"
 
 namespace kore {
-    using body_iterator = std::vector<std::unique_ptr<Statement>>::const_iterator;
+    using body_iterator = std::vector<Statement::pointer>::const_iterator;
 
     class Branch : public Statement {
         public:

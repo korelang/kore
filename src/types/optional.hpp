@@ -16,7 +16,7 @@ namespace kore {
             void write(AstWriter* const writer) const override;
 
         private:
-            std::unique_ptr<Type> _contained_type;
+            Type::pointer _contained_type;
     };
 }
 

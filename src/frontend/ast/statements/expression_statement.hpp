@@ -3,6 +3,7 @@
 
 #include <memory>
 
+#include "ast/expressions/expression.hpp"
 #include "ast/statements/statement.hpp"
 
 namespace kore {
@@ -20,7 +21,7 @@ namespace kore {
             void accept_visit_only(AstVisitor& visitor) override;
 
         private:
-            std::unique_ptr<Expression> _expression;
+            Expression::pointer _expression;
     };
 }
 

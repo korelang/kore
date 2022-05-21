@@ -8,7 +8,8 @@
 #include "ast/expressions/expression.hpp"
 
 namespace kore {
-    using branch_iterator = std::vector<std::unique_ptr<Branch>>::const_iterator;
+    using branch_ptr = std::unique_ptr<Branch>;
+    using branch_iterator = std::vector<branch_ptr>::const_iterator;
 
     class IfStatement : public Statement {
         public:
@@ -32,7 +33,7 @@ namespace kore {
 
         private:
             bool _has_else_branch;
-            std::vector<std::unique_ptr<Branch>> _branches;
+            std::vector<branch_ptr> _branches;
             StatementList _statement_accumulator;
     };
 }
