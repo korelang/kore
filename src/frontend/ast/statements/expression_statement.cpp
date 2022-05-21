@@ -13,15 +13,13 @@ namespace kore {
         return _expression.get();
     }
 
-    void ExpressionStatement::write(AstWriter* const writer) {
-        if (_expression) {
-            _expression->write(writer);
-        }
-    }
-
     void ExpressionStatement::accept(AstVisitor& visitor) {
         if (_expression) {
             _expression->accept(visitor);
         }
+    }
+
+    void ExpressionStatement::accept_visit_only(AstVisitor& visitor) {
+        visitor.visit(*this);
     }
 }

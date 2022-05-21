@@ -10,8 +10,11 @@ namespace kore {
             virtual ~ArrayRangeExpression();
 
             bool uses_constants_only() const;
+            Expression* start_expr();
+            Expression* end_expr();
 
-            void write(AstWriter* const writer) override;
+            void accept(AstVisitor& visitor) override;
+            void accept_visit_only(AstVisitor& visitor) override;
 
         private:
             pointer _start_expr, _end_expr;

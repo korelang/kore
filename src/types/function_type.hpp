@@ -28,7 +28,7 @@ namespace kore {
             void add_parameter();
             void set_return_type();
 
-            void write(AstWriter* const writer) override;
+            void write(AstWriter* const writer) const override;
 
         private:
             Type::pointer _return_type;

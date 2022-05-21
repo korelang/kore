@@ -10,7 +10,7 @@ namespace kore {
         return "unknown";
     }
 
-    void UnknownType::write(AstWriter* const writer) {
+    void UnknownType::write(AstWriter* const writer) const {
         writer->write("unknown");
     }
 }

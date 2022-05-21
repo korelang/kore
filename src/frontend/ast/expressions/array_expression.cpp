@@ -1,4 +1,4 @@
-#include "ast/ast_writer.hpp"
+#include "ast/ast_visitor.hpp"
 #include "ast/expressions/array_expression.hpp"
 #include "types/array_type.hpp"
 
@@ -40,24 +40,29 @@ namespace kore {
         return false;
     }
 
+    int ArrayExpression::size() const {
+        return _elements.size();
+    }
+
+    Expression* ArrayExpression::operator[](int index) {
+        /* KORE_DEBUG_ASSERT(index >= 0 && index < size(), "Array expression index out of range"); */
+
+        return _elements[index].get();
+    }
+
     const Type* ArrayExpression::type() const {
         return _type;
     }
 
-    void ArrayExpression::write(AstWriter* const writer) {
-        writer->write("array<");
-
-        auto it = std::cbegin(_elements);
-        auto last = std::prev(std::cend(_elements));
-
-        for (; it < last; it = std::next(it)) {
-            auto& element = *it;
-
-            element->write(writer);
-            writer->write(", ");
+    void ArrayExpression::accept(AstVisitor& visitor) {
+        for (const auto& element : _elements) {
+            element->accept(visitor);
         }
 
-        (*it)->write(writer);
-        writer->write(">");
+        visitor.visit(*this);
+    }
+
+    void ArrayExpression::accept_visit_only(AstVisitor& visitor) {
+        visitor.visit(*this);
     }
 }

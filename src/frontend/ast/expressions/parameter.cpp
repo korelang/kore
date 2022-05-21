@@ -14,11 +14,11 @@ namespace kore {
 
     Parameter::~Parameter() {}
 
-    void Parameter::write(AstWriter* const writer) {
-        writer->write("parameter");
+    void Parameter::accept(AstVisitor& visitor) {
+        accept_visit_only(visitor);
     }
 
-    void Parameter::accept(AstVisitor& visitor) {
+    void Parameter::accept_visit_only(AstVisitor& visitor) {
         visitor.visit(*this);
     }
 }

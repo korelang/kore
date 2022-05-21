@@ -59,7 +59,7 @@ namespace kore {
             virtual const Type* unify(const ArrayType* array_type) const;
             virtual const Type* unify(const FunctionType* func_type) const;
 
-            virtual void write(AstWriter* const writer) = 0;
+            virtual void write(AstWriter* const writer) const = 0;
 
             static const UnknownType* unknown();
             static Type* from_token(const Token& token);

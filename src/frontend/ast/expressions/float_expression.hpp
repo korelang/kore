@@ -15,7 +15,8 @@ namespace kore {
             const Type* type() const override;
             f32 value() const noexcept;
 
-            void write(AstWriter* const writer) override;
+            void accept(AstVisitor& visitor) override;
+            void accept_visit_only(AstVisitor& visitor) override;
 
         private:
             f32 _value;

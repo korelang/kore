@@ -1,4 +1,4 @@
-#include "ast/ast_writer.hpp"
+#include "ast/ast_visitor.hpp"
 #include "ast/expressions/array_fill_expression.hpp"
 
 namespace kore {
@@ -17,11 +17,22 @@ namespace kore {
         /* return _size_expr->is_literal() && _element_expr->is_literal(); */
     }
 
-    void ArrayFillExpression::write(AstWriter* const writer) {
-        writer->write("array_fill<");
-        _size_expr->write(writer);
-        writer->write(":");
-        _element_expr->write(writer);
-        writer->write(">");
+    Expression* ArrayFillExpression::size_expr() {
+        return _size_expr.get();
+    }
+
+    Expression* ArrayFillExpression::expr() {
+        return _element_expr.get();
+    }
+
+    void ArrayFillExpression::accept(AstVisitor& visitor) {
+        _size_expr->accept(visitor);
+        _element_expr->accept(visitor);
+
+        visitor.visit(*this);
+    }
+
+    void ArrayFillExpression::accept_visit_only(AstVisitor& visitor) {
+        visitor.visit(*this);
     }
 }

@@ -1,7 +1,6 @@
 #include <sstream>
 
 #include "ast/ast_visitor.hpp"
-#include "ast/ast_writer.hpp"
 #include "ast/expressions/call.hpp"
 #include "utils/unused_parameter.hpp"
 
@@ -57,11 +56,11 @@ namespace kore {
         return _type;
     }
 
-    void Call::write(AstWriter* const writer) {
-        writer->write(name());
+    void Call::accept(AstVisitor& visitor) {
+        accept_visit_only(visitor);
     }
 
-    void Call::accept(AstVisitor& visitor) {
+    void Call::accept_visit_only(AstVisitor& visitor) {
         visitor.visit(*this);
     }
 }

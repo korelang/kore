@@ -27,26 +27,7 @@ namespace kore {
         return _statements.end();
     }
 
-    void Branch::write(AstWriter* const writer) {
-        // Only "if" and "else if" branches have conditions
-        if (_condition) {
-            _condition->write(writer);
-        }
-
-        writer->write("{\n");
-        
-        for (auto&& statement : _statements) {
-            statement->write(writer);
-        }
-
-        writer->write("}\n");
-    }
-
     void Branch::accept(AstVisitor& visitor) {
-        if (visitor.precondition(*this)) {
-            return;
-        }
-
         if (_condition) {
             _condition->accept(visitor);
         }
@@ -55,8 +36,10 @@ namespace kore {
             statement->accept(visitor);
         }
 
-        if (visitor.postcondition(*this)) {
-            return;
-        }
+        visitor.visit(*this);
+    }
+
+    void Branch::accept_visit_only(AstVisitor& visitor) {
+        visitor.visit(*this);
     }
 }

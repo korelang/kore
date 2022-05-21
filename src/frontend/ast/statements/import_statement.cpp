@@ -1,4 +1,4 @@
-#include "ast/ast_writer.hpp"
+#include "ast/ast_visitor.hpp"
 #include "ast/statements/import_statement.hpp"
 #include "ast/expressions/identifier.hpp"
 
@@ -14,9 +14,15 @@ namespace kore {
         return _spec->qualified_name();
     }
 
-    void ImportStatement::write(AstWriter* const writer) {
-        writer->write("import ");
-        _spec->write(writer);
-        writer->newline();
+    Identifier* ImportStatement::identifier() {
+        return _spec.get();
+    }
+
+    void ImportStatement::accept(AstVisitor& visitor) {
+        visitor.visit(*this);
+    }
+
+    void ImportStatement::accept_visit_only(AstVisitor& visitor) {
+        visitor.visit(*this);
     }
 }

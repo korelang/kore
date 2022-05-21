@@ -1,5 +1,4 @@
 #include "ast/ast_visitor.hpp"
-#include "ast/ast_writer.hpp"
 #include "ast/statements/branch.hpp"
 #include "if_statement.hpp"
 
@@ -29,6 +28,10 @@ namespace kore {
         return _has_else_branch;
     }
 
+    int IfStatement::branch_count() const {
+        return _branches.size();
+    }
+
     branch_iterator IfStatement::begin() const {
         return _branches.cbegin();
     }
@@ -37,19 +40,12 @@ namespace kore {
         return _branches.cend();
     }
 
-    void IfStatement::write(AstWriter* const writer) {
-        writer->write("if ");
-        _branches[0]->write(writer);
+    branch_ptr& IfStatement::operator[](int index) {
+        return _branches[index];
+    }
 
-        for (std::vector<Branch>::size_type i = 1; i < _branches.size() - 1; ++i) {
-            writer->write("else if ");
-            _branches[i]->write(writer);
-        }
-
-        if (has_else_branch()) {
-            writer->write("else ");
-            _branches.back()->write(writer);
-        }
+    branch_ptr& IfStatement::last_branch() {
+        return _branches[_branches.size()-1];
     }
 
     void IfStatement::accept(AstVisitor& visitor) {
@@ -57,6 +53,10 @@ namespace kore {
             branch->accept(visitor);
         }
 
+        visitor.visit(*this);
+    }
+
+    void IfStatement::accept_visit_only(AstVisitor& visitor) {
         visitor.visit(*this);
     }
 }

@@ -67,7 +67,7 @@ namespace kore {
         return this;
     }
 
-    void FunctionType::write(AstWriter* const writer) {
+    void FunctionType::write(AstWriter* const writer) const {
         writer->write(create_name(true));
     }
 

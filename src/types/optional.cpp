@@ -35,7 +35,7 @@ namespace kore {
         return _contained_type->unify(optional->_contained_type.get());
     }
 
-    void Optional::write(AstWriter* const writer) {
+    void Optional::write(AstWriter* const writer) const {
         _contained_type->write(writer);
         writer->write("?");
     }

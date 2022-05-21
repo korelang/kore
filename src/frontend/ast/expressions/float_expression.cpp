@@ -18,7 +18,11 @@ namespace kore {
         return _value;
     }
 
-    void FloatExpression::write(AstWriter* const writer) {
-        writer->write(std::to_string(value()));
+    void FloatExpression::accept(AstVisitor& visitor) {
+        visitor.visit(*this);
+    }
+
+    void FloatExpression::accept_visit_only(AstVisitor& visitor) {
+        visitor.visit(*this);
     }
 }

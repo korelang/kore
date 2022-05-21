@@ -42,11 +42,12 @@ namespace kore {
 
             const Type* type() const override;
             BinOp op() const;
+            std::string op_string() const;
             Expression* left() const;
             Expression* right() const;
 
-            void write(AstWriter* const writer) override;
             void accept(AstVisitor& visitor) override;
+            void accept_visit_only(AstVisitor& visitor) override;
 
         private:
             BinOp _op;

@@ -20,10 +20,11 @@ namespace kore {
         return &_type;
     }
 
-    void CharExpression::write(AstWriter* const writer) {
-        std::ostringstream oss;
-        oss << "U+" << std::hex << value();
+    void CharExpression::accept(AstVisitor& visitor) {
+        visitor.visit(*this);
+    }
 
-        writer->write(oss.str());
+    void CharExpression::accept_visit_only(AstVisitor& visitor) {
+        visitor.visit(*this);
     }
 }

@@ -13,7 +13,7 @@ namespace kore {
             const Type* unify(const Type* other_type) const override;
             const Type* unify(const BoolType* bool_type) const override;
 
-            void write(AstWriter* const writer) override;
+            void write(AstWriter* const writer) const override;
     };
 }
 

@@ -1,4 +1,4 @@
-#include "ast/ast_writer.hpp"
+#include "ast/ast_visitor.hpp"
 #include "ast/statements/variable_declaration.hpp"
 
 namespace kore {
@@ -24,12 +24,11 @@ namespace kore {
         return _type;
     }
 
-    void VariableDeclaration::write(AstWriter* const writer) {
-        writer->write("variable_declaration<");
-        writer->write(identifier());
-        writer->write(" ");
-        writer->write(type());
-        writer->write(">");
-        writer->newline();
+    void VariableDeclaration::accept(AstVisitor& visitor) {
+        accept_visit_only(visitor);
+    }
+
+    void VariableDeclaration::accept_visit_only(AstVisitor& visitor) {
+        visitor.visit(*this);
     }
 }

@@ -90,47 +90,15 @@ namespace kore {
         return _body.end();
     }
 
-    void Function::write(AstWriter* const writer) {
-        if (exported()) {
-            writer->write("exported ");
-        }
-
-        writer->write("func ");
-        writer->write(name());
-        writer->write("(");
-
-        for (int i = 0; i < arity(); ++i) {
-            /* auto parameter = _type->parameter(i); */
-
-            /* parameter->write(writer); */
-            writer->write(", ");
-        }
-
-        writer->write(")");
-        /* _type->return_type()->write(writer); */
-        writer->write("{");
-
-        // Write function body
-        writer->newline();
-        writer->write("    ");
-
-        for (const auto& statement : _body) {
-            statement->write(writer);
-        }
-
-        writer->dedent();
-        writer->write("}");
-        writer->newline();
-    }
-
     void Function::accept(AstVisitor& visitor) {
-        if (!visitor.precondition(*this)) {
-            for (auto& statement : _body) {
-                statement->accept(visitor);
-            }
+        for (auto& statement : _body) {
+            statement->accept(visitor);
         }
 
         visitor.visit(*this);
-        visitor.postcondition(*this);
+    }
+
+    void Function::accept_visit_only(AstVisitor& visitor) {
+        visitor.visit(*this);
     }
 }

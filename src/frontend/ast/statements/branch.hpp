@@ -17,8 +17,8 @@ namespace kore {
             body_iterator begin() const;
             body_iterator end() const;
 
-            void write(AstWriter* const writer) override;
             void accept(AstVisitor& visitor) override;
+            void accept_visit_only(AstVisitor& visitor) override;
 
         private:
             Expression* _condition;

@@ -17,7 +17,11 @@ namespace kore {
         return &_type;
     }
 
-    void StringExpression::write(AstWriter* const writer) {
-        writer->write(value());
+    void StringExpression::accept(AstVisitor& visitor) {
+        accept_visit_only(visitor);
+    }
+
+    void StringExpression::accept_visit_only(AstVisitor& visitor) {
+        visitor.visit(*this);
     }
 }

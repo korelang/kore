@@ -20,8 +20,8 @@ namespace kore {
             std::size_t size() const noexcept;
             const Type* type() const override;
 
-            void write(AstWriter* const writer) override;
             void accept(AstVisitor& visitor) override;
+            void accept_visit_only(AstVisitor& visitor) override;
 
         protected:
             // Used by function parameters that get constructed with a

@@ -18,15 +18,11 @@ namespace kore {
         return &_type;
     }
 
-    void BoolExpression::write(AstWriter* const writer) {
-        writer->write(_value);
+    void BoolExpression::accept(AstVisitor& visitor) {
+        accept_visit_only(visitor);
     }
 
-    void BoolExpression::accept(AstVisitor& visitor) {
-        if (visitor.precondition(*this)) {
-            return;
-        }
-
+    void BoolExpression::accept_visit_only(AstVisitor& visitor) {
         visitor.visit(*this);
     }
 }

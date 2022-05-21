@@ -41,7 +41,7 @@ namespace kore {
         return int_type->num_bits() > this->num_bits() ? int_type : this;
     }
 
-    void IntegerType::write(AstWriter* const writer) {
+    void IntegerType::write(AstWriter* const writer) const {
         writer->write(name());
     }
 }

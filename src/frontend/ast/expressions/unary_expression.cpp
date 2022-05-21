@@ -17,12 +17,16 @@ namespace kore {
         return _op;
     }
 
-    Expression::reference UnaryExpression::expr() {
-        return _expr;
+    Expression* UnaryExpression::expr() {
+        return _expr.get();
     }
 
-    void UnaryExpression::write(AstWriter* const writer) {
-        writer->write(op());
-        expr()->write(writer);
+    void UnaryExpression::accept(AstVisitor& visitor) {
+        _expr->accept(visitor);
+        visitor.visit(*this);
+    }
+
+    void UnaryExpression::accept_visit_only(AstVisitor& visitor) {
+        visitor.visit(*this);
     }
 }

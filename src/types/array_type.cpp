@@ -56,7 +56,7 @@ namespace kore {
         return name;
     }
 
-    void ArrayType::write(AstWriter* const writer) {
+    void ArrayType::write(AstWriter* const writer) const {
         /* _element_type->write(writer); */
 
         for (int i = 0; i < _rank; ++i) {

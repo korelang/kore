@@ -13,8 +13,8 @@ namespace kore {
 
             Expression* expr();
 
-            void write(AstWriter* const writer) override;
             void accept(AstVisitor& visitor) override;
+            void accept_visit_only(AstVisitor& visitor) override;
 
         private:
             Expression::pointer _expr;

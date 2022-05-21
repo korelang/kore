@@ -14,7 +14,8 @@ namespace kore {
 
             i32 value() const noexcept;
             const Type* type() const override;
-            void write(AstWriter* const writer) override;
+            void accept(AstVisitor& visitor) override;
+            void accept_visit_only(AstVisitor& visitor) override;
 
         private:
             i32 _value;

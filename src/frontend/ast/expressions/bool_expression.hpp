@@ -13,8 +13,8 @@ namespace kore {
             std::string value() const;
             const Type* type() const override;
 
-            void write(AstWriter* const writer) override;
             void accept(AstVisitor& visitor) override;
+            void accept_visit_only(AstVisitor& visitor) override;
 
         private:
             std::string _value;

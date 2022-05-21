@@ -37,18 +37,6 @@ namespace kore {
             virtual void visit_only(StringExpression& expr);
             virtual void visit_only(UnaryExpression& expr);
 
-            virtual bool precondition(ArrayExpression& expr);
-            virtual bool precondition(ArrayFillExpression& expr);
-            virtual bool precondition(ArrayRangeExpression& expr);
-            virtual bool precondition(BinaryExpression& expr);
-            virtual bool precondition(BoolExpression& expr);
-            virtual bool precondition(CharExpression& expr);
-            virtual bool precondition(FloatExpression& expr);
-            virtual bool precondition(Identifier& expr);
-            virtual bool precondition(IntegerExpression& expr);
-            virtual bool precondition(StringExpression& expr);
-            virtual bool precondition(UnaryExpression& expr);
-
             // Statements
             virtual void visit(Branch& statement);
             virtual void visit(Function& statement);
@@ -69,26 +57,6 @@ namespace kore {
             virtual void visit_only(Return& statement);
             virtual void visit_only(VariableAssignment& statement);
             virtual void visit_only(VariableDeclaration& statement);
-
-            virtual bool precondition(Branch& statement);
-            virtual bool precondition(Function& statement);
-            virtual bool precondition(class Call& statement);
-            virtual bool precondition(IfStatement& statement);
-            virtual bool precondition(ImportStatement& statement);
-            virtual bool precondition(ModuleStatement& statement);
-            virtual bool precondition(Return& statement);
-            virtual bool precondition(VariableAssignment& statement);
-            virtual bool precondition(VariableDeclaration& statement);
-
-            virtual bool postcondition(Branch& statement);
-            virtual bool postcondition(Function& statement);
-            virtual bool postcondition(class Call& statement);
-            virtual bool postcondition(IfStatement& statement);
-            virtual bool postcondition(ImportStatement& statement);
-            virtual bool postcondition(ModuleStatement& statement);
-            virtual bool postcondition(Return& statement);
-            virtual bool postcondition(VariableAssignment& statement);
-            virtual bool postcondition(VariableDeclaration& statement);
     };
 }
 

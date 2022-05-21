@@ -25,7 +25,7 @@ namespace kore {
         return this;
     }
 
-    void BoolType::write(AstWriter* const writer) {
+    void BoolType::write(AstWriter* const writer) const {
         writer->write("bool");
     }
 }

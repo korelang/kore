@@ -1,4 +1,4 @@
-#include "ast/ast_writer.hpp"
+#include "ast/ast_visitor.hpp"
 #include "ast/statements/module_statement.hpp"
 
 namespace kore {
@@ -16,9 +16,11 @@ namespace kore {
         return _name;
     }
 
-    void ModuleStatement::write(AstWriter* const writer) {
-        writer->write("module ");
-        writer->write(name());
-        writer->newline();
+    void ModuleStatement::accept(AstVisitor& visitor) {
+        accept_visit_only(visitor);
+    }
+
+    void ModuleStatement::accept_visit_only(AstVisitor& visitor) {
+        visitor.visit(*this);
     }
 }

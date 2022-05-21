@@ -13,7 +13,7 @@ namespace kore {
             std::string name() const override;
             const Type* unify(const Type* other_type) const override;
             const Type* unify(const Optional* optional) const override;
-            void write(AstWriter* const writer) override;
+            void write(AstWriter* const writer) const override;
 
         private:
             std::unique_ptr<Type> _contained_type;

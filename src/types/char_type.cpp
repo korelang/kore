@@ -27,7 +27,7 @@ namespace kore {
         return this;
     }
 
-    void CharType::write(AstWriter* const writer) {
+    void CharType::write(AstWriter* const writer) const {
         writer->write("char");
     }
 }

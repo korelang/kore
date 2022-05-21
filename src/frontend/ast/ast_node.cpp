@@ -16,4 +16,8 @@ namespace kore {
     void AstNode::accept(AstVisitor& visitor) {
         UNUSED_PARAM(visitor);
     }
+
+    void AstNode::accept_visit_only(AstVisitor& visitor) {
+        UNUSED_PARAM(visitor);
+    }
 }

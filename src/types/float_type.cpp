@@ -37,7 +37,7 @@ namespace kore {
     /*     return int_type->num_bits() > this->num_bits() ? int_type : this; */
     /* } */
 
-    void FloatType::write(AstWriter* const writer) {
+    void FloatType::write(AstWriter* const writer) const {
         writer->write(name());
     }
 }

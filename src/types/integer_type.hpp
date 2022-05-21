@@ -14,7 +14,7 @@ namespace kore {
             int num_bits() const noexcept;
             const Type* unify(const Type* other_type) const override;
             const Type* unify(const IntegerType* int_type) const override;
-            void write(AstWriter* const writer) override;
+            void write(AstWriter* const writer) const override;
 
         private:
             int _num_bits;

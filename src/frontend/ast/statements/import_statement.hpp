@@ -16,7 +16,10 @@ namespace kore {
             /// The imported spec e.g. 'system.env'
             std::string spec() const;
 
-            void write(AstWriter* const writer) override;
+            Identifier* identifier();
+
+            void accept(AstVisitor& visitor) override;
+            void accept_visit_only(AstVisitor& visitor) override;
 
         private:
             std::unique_ptr<Identifier> _spec;

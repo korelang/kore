@@ -10,8 +10,11 @@ namespace kore {
             virtual ~ArrayFillExpression();
 
             bool uses_constants_only() const;
+            Expression* size_expr();
+            Expression* expr();
 
-            void write(AstWriter* const writer) override;
+            void accept(AstVisitor& visitor) override;
+            void accept_visit_only(AstVisitor& visitor) override;
 
         private:
             pointer _size_expr;

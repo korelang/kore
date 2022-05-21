@@ -1,5 +1,4 @@
 #include "ast/ast_visitor.hpp"
-#include "ast/ast_writer.hpp"
 #include "ast/statements/variable_assignment.hpp"
 #include "ast/expressions/expression.hpp"
 #include "types/type.hpp"
@@ -47,21 +46,14 @@ namespace kore {
         return _type.get();
     }
 
-    void VariableAssignment::write(AstWriter* const writer) {
-        writer->write("variable_assignment<");
-        writer->write(identifier()->name());
-        writer->write(" ");
-        /* _type->write(writer); */
-        writer->write(" = ");
-        _expr->write(writer);
-        writer->write(">");
-        writer->newline();
-    }
-
     void VariableAssignment::accept(AstVisitor& visitor) {
         _expr->accept(visitor);
         /* _identifier.accept(visitor); */
 
+        visitor.visit(*this);
+    }
+
+    void VariableAssignment::accept_visit_only(AstVisitor& visitor) {
         visitor.visit(*this);
     }
 }

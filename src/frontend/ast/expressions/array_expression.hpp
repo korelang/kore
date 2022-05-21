@@ -18,9 +18,12 @@ namespace kore {
             void set_end_location(const Location& location);
             void add_element(Expression* expr);
             bool uses_constants_only() const;
+            int size() const;
+            Expression* operator[](int index);
             const Type* type() const override;
 
-            void write(AstWriter* const writer) override;
+            void accept(AstVisitor& visitor) override;
+            void accept_visit_only(AstVisitor& visitor) override;
 
         private:
             Location _start, _end;

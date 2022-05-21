@@ -21,12 +21,14 @@ namespace kore {
             void add_statement(Statement* statement) override;
             bool has_else_branch() const;
 
+            int branch_count() const;
             branch_iterator begin() const;
             branch_iterator end() const;
-            branch_iterator branches();
+            branch_ptr& operator[](int index);
+            branch_ptr& last_branch();
 
-            void write(AstWriter* const writer) override;
             void accept(AstVisitor& visitor) override;
+            void accept_visit_only(AstVisitor& visitor) override;
 
         private:
             bool _has_else_branch;

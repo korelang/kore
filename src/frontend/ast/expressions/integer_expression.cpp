@@ -19,15 +19,11 @@ namespace kore {
         return static_cast<const Type*>(&_type);
     }
 
-    void IntegerExpression::write(AstWriter* const writer) {
-        writer->write(std::to_string(value()));
+    void IntegerExpression::accept(AstVisitor& visitor) {
+        accept_visit_only(visitor);
     }
 
-    void IntegerExpression::accept(AstVisitor& visitor) {
-        if (visitor.precondition(*this)) {
-            return;
-        }
-
+    void IntegerExpression::accept_visit_only(AstVisitor& visitor) {
         visitor.visit(*this);
     }
 }

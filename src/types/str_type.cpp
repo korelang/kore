@@ -28,7 +28,7 @@ namespace kore {
         return this;
     }
 
-    void StrType::write(AstWriter* const writer) {
+    void StrType::write(AstWriter* const writer) const {
         writer->write("str");
     }
 }

@@ -60,10 +60,8 @@ namespace kore {
         visitor.visit(*this);
     }
 
-    void Identifier::write(AstWriter* const writer) {
-        writer->write("identifier<");
-        writer->write(qualified_name());
-        writer->write(">");
+    void Identifier::accept_visit_only(AstVisitor& visitor) {
+        visitor.visit(*this);
     }
 
     Identifier::Identifier(const Token& token, Type* type)

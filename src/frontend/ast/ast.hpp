@@ -32,7 +32,7 @@ namespace kore {
             ConstIter end() const;
 
             /// Write out the AST somewhere
-            void write(AstWriter* const writer) const;
+            void write(AstWriter& writer) const;
 
         private:
             std::string _module_name;

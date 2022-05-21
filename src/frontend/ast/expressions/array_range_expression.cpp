@@ -17,11 +17,22 @@ namespace kore {
         return false;
     }
 
-    void ArrayRangeExpression::write(AstWriter* const writer) {
-        writer->write("array_range<");
-        _start_expr->write(writer);
-        writer->write(" .. ");
-        _end_expr->write(writer);
-        writer->write(">");
+    Expression* ArrayRangeExpression::start_expr() {
+        return _start_expr.get();
+    }
+
+    Expression* ArrayRangeExpression::end_expr() {
+        return _end_expr.get();
+    }
+
+    void ArrayRangeExpression::accept(AstVisitor& visitor) {
+        _start_expr->accept(visitor);
+        _end_expr->accept(visitor);
+
+        visitor.visit(*this);
+    }
+
+    void ArrayRangeExpression::accept_visit_only(AstVisitor& visitor) {
+        visitor.visit(*this);
     }
 }

@@ -2,16 +2,14 @@
 #define KORE_AST_WRITER_HPP
 
 #include "ast/ast.hpp"
+#include "ast/ast_visitor.hpp"
 
 namespace kore {
     /// Base class for all AST writers
-    class AstWriter {
+    class AstWriter : public AstVisitor {
         public:
             AstWriter();
             virtual ~AstWriter();
-
-            void indent();
-            void dedent();
 
             /// Write a string to an output stream
             virtual void write(const std::string& value) = 0;
@@ -19,6 +17,9 @@ namespace kore {
             /// Write an AST to an output stream
             virtual void write(const Ast& ast) = 0;
 
+        protected:
+            void indent();
+            void dedent();
             virtual void newline() = 0;
 
         private:

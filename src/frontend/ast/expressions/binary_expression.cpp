@@ -88,6 +88,10 @@ namespace kore {
         return _op;
     }
 
+    std::string BinaryExpression::op_string() const {
+        return binop_to_string(_op);
+    }
+
     Expression* BinaryExpression::left() const {
         return _left.get();
     }
@@ -96,22 +100,14 @@ namespace kore {
         return _right.get();
     }
 
-    void BinaryExpression::write(AstWriter* const writer) {
-        writer->write("(");
-        _left->write(writer);
-        writer->write(binop_to_string(op()));
-        _right->write(writer);
-        writer->write(")");
-    }
-
     void BinaryExpression::accept(AstVisitor& visitor) {
-        if (visitor.precondition(*this)) {
-            return;
-        }
-
         _left->accept(visitor);
         _right->accept(visitor);
 
+        visitor.visit(*this);
+    }
+
+    void BinaryExpression::accept_visit_only(AstVisitor& visitor) {
         visitor.visit(*this);
     }
 }

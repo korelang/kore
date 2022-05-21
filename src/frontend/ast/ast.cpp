@@ -1,4 +1,5 @@
 #include "ast.hpp"
+#include "ast/ast_writer.hpp"
 
 namespace kore {
     Ast::Ast() {}
@@ -31,9 +32,9 @@ namespace kore {
         return _statements.cend();
     }
 
-    void Ast::write(AstWriter* const writer) const {
+    void Ast::write(AstWriter& writer) const {
         for (const auto& statement : _statements) {
-            statement->write(writer);
+            statement->accept_visit_only(writer);
         }
     }
 }
