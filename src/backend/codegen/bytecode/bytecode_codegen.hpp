@@ -4,9 +4,10 @@
 #include <memory>
 #include <vector>
 
+#include "frontend/ast/ast.hpp"
+#include "frontend/ast/ast_visitor.hpp"
 #include "codegen/bytecode/bytecode.hpp"
 #include "codegen/bytecode/bytecode_array_writer.hpp"
-#include "codegen/codegen.hpp"
 #include "codegen/compiled_object.hpp"
 #include "register.hpp"
 #include "types/scope.hpp"
@@ -36,12 +37,8 @@ namespace kore {
             void visit(VariableAssignment& assignment) override;
             void visit(IfStatement& ifstatement) override;
             void visit(class Call& call) override;
+            void visit(Function& func) override;
             void visit(Return& ret) override;
-
-            bool precondition(Branch& statement) override;
-            bool precondition(Function& statement) override;
-
-            bool postcondition(Function& statement) override;
 
         private:
             const static std::string _bytecode_version;
@@ -55,13 +52,12 @@ namespace kore {
         private:
             Reg get_register_operand();
             RegIterator get_register_operands(int count);
-            void free_registers(int count);
             Bytecode get_binop_instruction(
                 TypeCategory type_category,
                 BinOp binop
             );
             CompiledObject* current_object();
-            void start_function_compile(Function* func);
+            void start_function_compile(const Function& func);
             void end_function_compile();
 
             template<typename ...Args>

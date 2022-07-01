@@ -40,11 +40,9 @@ namespace kore {
             /* void visit(IfStatement& statement) override; */
             void visit(VariableAssignment& assignment) override;
             void visit(class Call& call) override;
-
-            bool precondition(Branch& branch) override;
-            bool postcondition(Branch& branch) override;
-            bool precondition(Function& func) override;
-            bool postcondition(Function& func) override;
+            void visit(Branch& branch) override;
+            void visit(Function& func) override;
+            void visit(Return& ret) override;
 
             /// Check if a variable shadows a variable in an outer scope
             bool shadows_outer_scope(const Identifier& identifier);

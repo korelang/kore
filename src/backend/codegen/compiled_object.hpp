@@ -21,7 +21,7 @@ namespace kore {
         public:
             CompiledObject();
             CompiledObject(const std::string& name);
-            CompiledObject(Function* func);
+            CompiledObject(const Function* func);
             virtual ~CompiledObject();
 
             std::string name() const;
@@ -29,6 +29,7 @@ namespace kore {
             int locals_count() const;
             int reg_count() const;
             Reg allocate_register();
+            void free_registers(int count);
             void add_instruction(bytecode_type instruction);
             int code_size() const;
             bool is_main_object() const;

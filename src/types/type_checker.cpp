@@ -15,7 +15,7 @@
     #include <iostream>
 
     #define KORE_DEBUG_TYPECHECKER_LOG(prefix, typename1, typename2) {\
-        std::cerr << prefix;\
+        std::cerr << "[type checker] " << prefix;\
         \
         if (!typename1.empty()) {\
             std::cerr << ": " << typename1;\
@@ -41,7 +41,7 @@ namespace kore {
         _errors.clear();
 
         for (auto const& statement : ast) {
-            statement->accept(*this);
+            statement->accept_visit_only(*this);
         }
 
         return _errors.size();
@@ -167,12 +167,6 @@ namespace kore {
         auto right = binexpr.right();
         auto op = binexpr.op();
 
-        KORE_DEBUG_TYPECHECKER_LOG(
-            "binop",
-            left->type()->name(),
-            right->type()->name()
-        )
-
         if (op == BinOp::Plus || op == BinOp::Minus || op == BinOp::Mult || op == BinOp::Div) {
             auto left_type = left->type();
             auto right_type = right->type();
@@ -189,26 +183,33 @@ namespace kore {
                 push_error(errors::typing::binop_numeric_operands(left_type, right_type, op, binexpr.location()));
             }
         }
+
+        KORE_DEBUG_TYPECHECKER_LOG(
+            "binop",
+            left->type()->name(),
+            right->type()->name()
+        )
     }
 
-    bool TypeChecker::precondition(Branch& branch) {
-        KORE_DEBUG_TYPECHECKER_LOG("pre branch", std::string(), std::string())
-
+    void TypeChecker::visit(Branch& branch) {
+        KORE_DEBUG_TYPECHECKER_LOG("branch", std::string(), std::string())
         UNUSED_PARAM(branch);
+
         _scope_stack.enter();
-        return false;
-    }
 
-    bool TypeChecker::postcondition(Branch& branch) {
-        KORE_DEBUG_TYPECHECKER_LOG("post branch", std::string(), std::string())
+        if (branch.condition()) {
+            branch.condition()->accept_visit_only(*this);
+        }
 
-        UNUSED_PARAM(branch);
+        for (auto& statement : branch) {
+            statement->accept_visit_only(*this);
+        }
+
         _scope_stack.leave();
-        return false;
     }
 
-    bool TypeChecker::precondition(Function& func) {
-        KORE_DEBUG_TYPECHECKER_LOG("pre function", std::string(), std::string())
+    void TypeChecker::visit(Function& func) {
+        KORE_DEBUG_TYPECHECKER_LOG("function", std::string(), std::string())
         UNUSED_PARAM(func);
 
         // Enter a new function scope and add all function
@@ -220,19 +221,24 @@ namespace kore {
             _scope_stack.insert(parameter);
         }
 
-        return false;
+        for (auto& statement : func) {
+            statement->accept_visit_only(*this);
+        }
+
+        _scope_stack.leave();
+
+        // After leaving the function scope, bind the function type
+        // to the function name (not necessarily in the top-level scope
+        // since we want to support nested functions)
+        _scope_stack.insert(func.identifier());
     }
 
-    bool TypeChecker::postcondition(Function& func) {
-        KORE_DEBUG_TYPECHECKER_LOG(
-            "post function",
-            std::string(),
-            std::string()
-        )
+    void TypeChecker::visit(Return& ret) {
+        KORE_DEBUG_TYPECHECKER_LOG("return", std::string(), std::string())
 
-        UNUSED_PARAM(func);
-        _scope_stack.leave();
-        return false;
+        if (ret.expr()) {
+            ret.expr()->accept_visit_only(*this);
+        }
     }
 
     bool TypeChecker::shadows_outer_scope(const Identifier& identifier) {

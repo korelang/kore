@@ -48,7 +48,7 @@ namespace kore {
         new_compiled_object("<main>");
 
         for (auto const& statement : ast) {
-            statement->accept(*this);
+            statement->accept_visit_only(*this);
         }
     }
 
@@ -61,9 +61,13 @@ namespace kore {
 
     void BytecodeGenerator::visit(BinaryExpression& expr) {
         auto obj = current_object();
+        int dest_reg = obj->allocate_register();
+
+        expr.left()->accept_visit_only(*this);
+        expr.right()->accept_visit_only(*this);
+
         int reg2 = get_register_operand();
         int reg1 = get_register_operand();
-        int dest_reg = obj->allocate_register();
 
         _writer.write_3address(
             get_binop_instruction(expr.type()->category(), expr.op()),
@@ -72,6 +76,8 @@ namespace kore {
             reg2,
             obj
         );
+
+        obj->free_registers(2);
 
         _register_stack.push_back(dest_reg);
     }
@@ -113,8 +119,9 @@ namespace kore {
         auto obj = current_object();
         auto entry = _scope_stack.find_inner(assignment.identifier()->name());
         Reg dest_reg;
-        Reg reg = get_register_operand();
 
+        // Allocate a new destination register or use the one in the
+        // current scope
         if (!entry) {
             dest_reg = obj->allocate_register();
             _scope_stack.insert(assignment.identifier(), dest_reg);
@@ -122,11 +129,17 @@ namespace kore {
             dest_reg = entry->reg;
         }
 
+        assignment.expression()->accept_visit_only(*this);
+        Reg reg = get_register_operand();
+
         if (dest_reg != reg) {
             // A little pre-optimisation: Do not emit moves from and to the
             // same register
             _writer.write_2address(Bytecode::Move, dest_reg, reg, obj);
         }
+
+        // Free the register used for the right-hand side expression
+        obj->free_registers(1);
     }
 
     void BytecodeGenerator::visit(IfStatement& ifstatement) {
@@ -141,13 +154,14 @@ namespace kore {
             Label label;
 
             if (condition) {
-                branch->condition()->accept(*this);
-                label = _writer.write_jump(Bytecode::JumpIfNot, get_register_operand(), obj);
+                branch->condition()->accept_visit_only(*this);
+                Reg reg = get_register_operand();
+                label = _writer.write_jump(Bytecode::JumpIfNot, reg, obj);
             }
 
             _scope_stack.enter();
             for (auto& statement : *branch) {
-                statement->accept(*this);
+                statement->accept_visit_only(*this);
             }
             _scope_stack.leave();
 
@@ -170,7 +184,7 @@ namespace kore {
         // Generate code in reverse order of arguments so we can
         // get the registers in the correct order for the call
         for (int i = call.arg_count() - 1; i >= 0; --i) {
-            call.arg(i)->accept(*this);
+            call.arg(i)->accept_visit_only(*this);
         }
 
         auto obj = current_object();
@@ -200,31 +214,27 @@ namespace kore {
         }
     }
 
-    bool BytecodeGenerator::precondition(Branch& branch) {
-        UNUSED_PARAM(branch);
-        return true;
-    }
-
-    bool BytecodeGenerator::precondition(Function& func) {
-        start_function_compile(&func);
+    void BytecodeGenerator::visit(Function& func) {
+        start_function_compile(func);
         auto obj = current_object();
 
         // Enter a new function scope and add all function
         // arguments to that scope
         _scope_stack.enter_function_scope();
 
+        // OR: func.add_parameters_to_scope(_scope_stack);
         for (int i = 0; i < func.arity(); ++i) {
             auto parameter = func.parameter(i);
             _scope_stack.insert(parameter, obj->allocate_register());
         }
 
-        return false;
-    }
+        // Compile the body of the function
+        for (auto& statement : func) {
+            statement->accept_visit_only(*this);
+        }
 
-    bool BytecodeGenerator::postcondition(Function& func) {
-        UNUSED_PARAM(func);
+        _scope_stack.leave();
         end_function_compile();
-        return false;
     }
 
     int BytecodeGenerator::get_register_operand() {
@@ -238,17 +248,12 @@ namespace kore {
         return _register_stack.begin() + (_register_stack.size() - count);
     }
 
-    void BytecodeGenerator::free_registers(int count) {
-        auto begin = _register_stack.begin();
-        _register_stack.erase(begin, begin + _register_stack.size() - count);
-    }
-
     CompiledObject* BytecodeGenerator::current_object() {
         return _current_object;
     }
 
-    void BytecodeGenerator::start_function_compile(Function* func) {
-        new_compiled_object(func);
+    void BytecodeGenerator::start_function_compile(const Function& func) {
+        new_compiled_object(&func);
         _current_object = _objects.back().get();
     }
 

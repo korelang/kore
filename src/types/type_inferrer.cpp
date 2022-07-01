@@ -1,6 +1,7 @@
 #include "type_inferrer.hpp"
 #include "ast/expressions/expression.hpp"
 #include "ast/expressions/binary_expression.hpp"
+#include "types/function_type.hpp"
 #include "types/unknown_type.hpp"
 #include "utils/unused_parameter.hpp"
 
@@ -29,18 +30,13 @@ namespace kore {
 
     void TypeInferrer::infer(Ast& ast) {
         for (auto& statement : ast) {
-            statement->accept(*this);
+            statement->accept_visit_only(*this);
         }
     }
 
-    bool TypeInferrer::precondition(VariableAssignment& statement) {
-        KORE_DEBUG_TYPEINFERRER_LOG("pre assignment")
-
-        // Do not infer types for a variable assignment with an explicit type
-        return statement.type()->category() != TypeCategory::Unknown;
-    }
-
     void TypeInferrer::visit(BinaryExpression& expr) {
+        expr.left()->accept_visit_only(*this);
+        expr.right()->accept_visit_only(*this);
         expr.set_type(expr.left()->type()->unify(expr.right()->type()));
 
         KORE_DEBUG_TYPEINFERRER_LOG_TYPE("binop", expr.type())
@@ -50,7 +46,17 @@ namespace kore {
         auto entry = _scope_stack.find(call.name());
 
         if (entry) {
-            call.set_type(entry->identifier->type());
+            auto type = entry->identifier->type();
+
+            if (type->is_function()) {
+                auto func_type = static_cast<const FunctionType*>(entry->identifier->type());
+
+                // The resulting type of calling a function is its return type
+                call.set_type(func_type->return_type());
+            } else {
+                // Otherwise, the type of the call is unknown
+                call.set_type(Type::unknown());
+            }
         } else {
             call.set_type(Type::unknown());
         }
@@ -76,12 +82,19 @@ namespace kore {
     }
 
     void TypeInferrer::visit(UnaryExpression& expr) {
+        expr.expr()->accept_visit_only(*this);
         expr.set_type(expr.expr()->type());
 
-        KORE_DEBUG_TYPEINFERRER_LOG_TYPE("identifier", expr.type())
+        KORE_DEBUG_TYPEINFERRER_LOG_TYPE("unary expression", expr.type())
     }
 
     void TypeInferrer::visit(VariableAssignment& statement) {
+        // Do not infer types for variable assignments with an explicit type
+        if (!statement.type()->is_unknown()) {
+            return;
+        }
+
+        statement.expression()->accept_visit_only(*this);
         auto expr_type = statement.expression()->type();
 
         // Set the type of the identifier/variable and save it
@@ -100,38 +113,54 @@ namespace kore {
     /*     } */
     /* } */
 
-    bool TypeInferrer::precondition(Function& func) {
+    void TypeInferrer::visit(Function& func) {
+        KORE_DEBUG_TYPEINFERRER_LOG("function")
         UNUSED_PARAM(func);
-        _scope_stack.enter_function_scope();
-        return false;
-    }
 
-    bool TypeInferrer::postcondition(Function& func) {
-        UNUSED_PARAM(func);
+        // Enter a new function scope and add all function
+        // arguments to that scope
+        _scope_stack.enter_function_scope();
+
+        for (int i = 0; i < func.arity(); ++i) {
+            auto parameter = func.parameter(i);
+            _scope_stack.insert(parameter);
+        }
+
+        for (auto& statement : func) {
+            statement->accept_visit_only(*this);
+        }
+
         _scope_stack.leave();
 
         // After leaving the function scope, bind the function type
         // to the function name (not necessarily in the top-level scope
         // since we want to support nested functions)
         _scope_stack.insert(func.identifier());
-
-        return false;
     }
 
-    bool TypeInferrer::precondition(Branch& branch) {
-        KORE_DEBUG_TYPEINFERRER_LOG("pre branch")
+    void TypeInferrer::visit(Return& ret) {
+        KORE_DEBUG_TYPEINFERRER_LOG("return")
 
+        if (ret.expr()) {
+            ret.expr()->accept_visit_only(*this);
+        }
+    }
+
+    void TypeInferrer::visit(Branch& branch) {
+        KORE_DEBUG_TYPEINFERRER_LOG("branch")
         UNUSED_PARAM(branch);
+
         _scope_stack.enter();
-        return false;
-    }
 
-    bool TypeInferrer::postcondition(Branch& branch) {
-        KORE_DEBUG_TYPEINFERRER_LOG("post branch")
+        if (branch.condition()) {
+            branch.condition()->accept_visit_only(*this);
+        }
 
-        UNUSED_PARAM(branch);
+        for (auto& statement : branch) {
+            statement->accept_visit_only(*this);
+        }
+
         _scope_stack.leave();
-        return false;
     }
 }
 

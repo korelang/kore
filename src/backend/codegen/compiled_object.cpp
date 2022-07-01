@@ -6,11 +6,9 @@ namespace kore {
 
     CompiledObject::CompiledObject(const std::string& name) : _name(name) {}
 
-    CompiledObject::CompiledObject(Function* func) {
-        if (func) {
-            _name = func->name();
-            _location = func->location();
-        }
+    CompiledObject::CompiledObject(const Function* func) {
+        _name = func->name();
+        _location = func->location();
     }
 
     CompiledObject::~CompiledObject() {}
@@ -37,6 +35,10 @@ namespace kore {
         }
 
         return _reg_count++;
+    }
+
+    void CompiledObject::free_registers(int count) {
+        _reg_count -= count;
     }
 
     void CompiledObject::add_instruction(bytecode_type instruction) {
