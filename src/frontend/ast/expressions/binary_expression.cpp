@@ -1,5 +1,4 @@
 #include "ast/ast_visitor.hpp"
-#include "ast/ast_writer.hpp"
 #include "ast/expressions/binary_expression.hpp"
 
 #include <iostream>
@@ -37,27 +36,27 @@ namespace kore {
 
     std::string binop_to_string(BinOp binop) {
         switch (binop) {
-            case BinOp::Plus: return "+";
-            case BinOp::Minus: return "-";
-            case BinOp::Mult: return "*";
-            case BinOp::Pow: return "**";
-            case BinOp::Div: return "/";
-            case BinOp::Mod:  return "%";
-            case BinOp::Remainder: return "rem";
-            case BinOp::Lt: return "<";
-            case BinOp::Le: return "<=";
-            case BinOp::Gt: return ">";
-            case BinOp::Ge: return ">=";
-            case BinOp::Equal: return "=";
-            case BinOp::NotEqual: return "!=";
-            case BinOp::Or: return "or";
-            case BinOp::And: return "and";
-            case BinOp::Not: return "!";
-            case BinOp::BinOr: return "|";
-            case BinOp::BinAnd: return "&";
-            case BinOp::BinXor: return "^";
-            case BinOp::BinLeftShift: return "<<";
-            case BinOp::BinRightShift: return ">>";
+            case BinOp::Plus:             return "+";
+            case BinOp::Minus:            return "-";
+            case BinOp::Mult:             return "*";
+            case BinOp::Pow:              return "**";
+            case BinOp::Div:              return "/";
+            case BinOp::Mod:              return "%";
+            case BinOp::Remainder:        return "rem";
+            case BinOp::Lt:               return "<";
+            case BinOp::Le:               return "<=";
+            case BinOp::Gt:               return ">";
+            case BinOp::Ge:               return ">=";
+            case BinOp::Equal:            return "=";
+            case BinOp::NotEqual:         return "!=";
+            case BinOp::Or:               return "or";
+            case BinOp::And:              return "and";
+            case BinOp::Not:              return "!";
+            case BinOp::BinOr:            return "|";
+            case BinOp::BinAnd:           return "&";
+            case BinOp::BinXor:           return "^";
+            case BinOp::BinLeftShift:     return "<<";
+            case BinOp::BinRightShift:    return ">>";
             case BinOp::OptionalCoalesce: return "??";
         }
     }
