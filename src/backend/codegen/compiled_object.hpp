@@ -13,6 +13,10 @@ namespace kore {
     /// A compiled object such as a function or a struct
     class CompiledObject final {
         public:
+            using pointer = std::unique_ptr<CompiledObject>;
+            using const_pointer = const pointer;
+
+        public:
             friend class BytecodeArrayWriter;
             friend class BytecodeFormatWriter;
 

@@ -12,6 +12,7 @@ set(INCLUDE_DIRS
 # add_compile_definitions(KORE_DEBUG_PARSER=1)
 add_compile_definitions(KORE_DEBUG_TYPECHECKER=1)
 add_compile_definitions(KORE_DEBUG_TYPEINFERRER=1)
+add_compile_definitions(KORE_DEBUG_BYTECODE_GENERATOR=1)
 
 set(BASE_SOURCES
     src/frontend/ast/ast.cpp
@@ -84,10 +85,15 @@ set(BASE_SOURCES
     src/utf8/utf8.cpp
     src/options.cpp
 
+    # Utils
+    src/utils/endian.cpp
+
     # Backend
+    src/backend/module.cpp
     src/backend/codegen/bytecode/bytecode.cpp
     src/backend/codegen/bytecode/bytecode_array_writer.cpp
     src/backend/codegen/bytecode/bytecode_codegen.cpp
+    src/backend/bytecode_format_writer.cpp
     src/backend/codegen/compiled_object.cpp
     src/backend/vm/value_type.cpp
     src/backend/vm/vm.cpp

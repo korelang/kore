@@ -1,6 +1,7 @@
 #ifndef KORE_BYTECODE_GENERATOR_HPP
 #define KORE_BYTECODE_GENERATOR_HPP
 
+#include <map>
 #include <memory>
 #include <vector>
 
@@ -9,20 +10,26 @@
 #include "codegen/bytecode/bytecode.hpp"
 #include "codegen/bytecode/bytecode_array_writer.hpp"
 #include "codegen/compiled_object.hpp"
+#include "module.hpp"
 #include "register.hpp"
 #include "types/scope.hpp"
 
 namespace kore {
+    class Module;
+
     class BytecodeGenerator final : public AstVisitor {
         public:
-            using CompiledObjectPtr = std::unique_ptr<CompiledObject>;
-            using RegIterator = std::vector<Reg>::iterator;
+            using reg_iterator = std::vector<const Reg>::iterator;
 
         public:
             BytecodeGenerator(ScopeStack& scope_stack);
             virtual ~BytecodeGenerator();
 
-            void compile(const Ast& ast);
+            // Compile a single statement e.g. for the REPL
+            CompiledObject::pointer&& compile(Statement& statement);
+
+            // Compile an AST into a module
+            Module::pointer&& compile(const Ast& ast);
 
             template<typename OutputIter>
             void acquire_compiled_code(OutputIter it) {
@@ -41,17 +48,33 @@ namespace kore {
             void visit(Return& ret) override;
 
         private:
-            const static std::string _bytecode_version;
+            static const std::string _bytecode_version;
+            static const std::string _MAIN_FUNC_NAME;
+
             std::vector<Reg> _register_stack;
             BytecodeArrayWriter _writer;
             ScopeStack& _scope_stack;
 
+            // Current object we are compiling code for
             CompiledObject* _current_object;
-            std::vector<CompiledObjectPtr> _objects;
+
+            // TODO: Move this into Module class as well
+            std::vector<CompiledObject::pointer> _objects;
+
+            // Function names are stored in a vector based on the order they
+            // are encountered so we can return to the previous function after
+            // generating code for one. This may be another function and not
+            // necessarily <main> since we want to support nested functions.
+            std::vector<std::string> _functions;
+
+            // Current module being compiled
+            Module::pointer _module;
 
         private:
+            void reset();
+            void push_register(Reg reg);
             Reg get_register_operand();
-            RegIterator get_register_operands(int count);
+            reg_iterator get_register_operands(int count);
             Bytecode get_binop_instruction(
                 TypeCategory type_category,
                 BinOp binop
@@ -61,15 +84,17 @@ namespace kore {
             void end_function_compile();
 
             template<typename ...Args>
-            void new_compiled_object(Args&&... args) {
-                _objects.push_back(std::make_unique<CompiledObject>(std::forward<Args>(args)...));
-                
+            void new_compiled_object(const std::vector<CompiledObject::pointer>& type, Args&&... args) {
+                type.push_back(std::make_unique<CompiledObject>(std::forward<Args>(args)...));
+
                 // If there is only one compiled object set it as the
                 // current one
-                if (_objects.size() == 1) {
-                    _current_object = _objects.front().get();
+                if (type.size() == 1) {
+                    _current_object = type.front().get();
                 }
             }
+
+            void new_function_from_name(const std::string& name);
     };
 }
 

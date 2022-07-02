@@ -2,8 +2,19 @@
 #include "backend/codegen/bytecode/bytecode_codegen.hpp"
 #include "utils/unused_parameter.hpp"
 
+#if defined(KORE_DEBUG_BYTECODE_GENERATOR) || defined(KORE_DEBUG)
+    #include <iostream>
+
+    #define KORE_DEBUG_BYTECODE_GENERATOR_LOG(prefix) {\
+        std::cerr << "[compiler] " << prefix << std::endl;\
+    }
+#else
+    #define KORE_DEBUG_BYTECODE_GENERATOR_LOG(prefix)
+#endif
+
 namespace kore {
     const std::string BytecodeGenerator::_bytecode_version = "1.0.0";
+    const std::string BytecodeGenerator::_MAIN_FUNC_NAME = "<main>";
 
     std::map<TypeCategory, std::map<BinOp, Bytecode>> _binop_map = {
         {
@@ -43,13 +54,23 @@ namespace kore {
 
     BytecodeGenerator::~BytecodeGenerator() {}
 
-    void BytecodeGenerator::compile(const Ast& ast) {
-        _objects.clear();
-        new_compiled_object("<main>");
+    CompiledObject::pointer&& BytecodeGenerator::compile(Statement& statement) {
+        reset();
+        statement.accept(*this);
+
+        return std::move(_objects.front());
+    }
+
+    Module::pointer&& BytecodeGenerator::compile(const Ast& ast) {
+        reset();
+        _module = std::make_unique<Module>();
+        new_function_from_name(_MAIN_FUNC_NAME);
 
         for (auto const& statement : ast) {
             statement->accept_visit_only(*this);
         }
+
+        return std::move(_module);
     }
 
     Bytecode BytecodeGenerator::get_binop_instruction(
@@ -60,6 +81,8 @@ namespace kore {
     }
 
     void BytecodeGenerator::visit(BinaryExpression& expr) {
+        KORE_DEBUG_BYTECODE_GENERATOR_LOG("binop")
+
         auto obj = current_object();
         int dest_reg = obj->allocate_register();
 
@@ -79,10 +102,12 @@ namespace kore {
 
         obj->free_registers(2);
 
-        _register_stack.push_back(dest_reg);
+        push_register(dest_reg);
     }
 
     void BytecodeGenerator::visit(BoolExpression& expr) {
+        KORE_DEBUG_BYTECODE_GENERATOR_LOG("bool")
+
         auto obj = current_object();
         auto reg = obj->allocate_register();
 
@@ -91,31 +116,41 @@ namespace kore {
             reg, expr.value() == "true" ? 1 : 0,
             obj
         );
-        _register_stack.push_back(reg);
+        push_register(reg);
     }
 
     void BytecodeGenerator::visit(IntegerExpression& expr) {
+        KORE_DEBUG_BYTECODE_GENERATOR_LOG("i32")
+
         auto obj = current_object();
         auto reg = obj->allocate_register();
+        auto index = _module->add_i32_constant(expr.value());
 
-        _writer.write_load(Bytecode::CloadI32, reg, expr.value(), obj);
-        _register_stack.push_back(reg);
+        _writer.write_load(Bytecode::CloadI32, reg, index, obj);
+        push_register(reg);
     }
 
     void BytecodeGenerator::visit(FloatExpression& expr) {
+        KORE_DEBUG_BYTECODE_GENERATOR_LOG("f32")
+
         auto obj = current_object();
         auto reg = obj->allocate_register();
+        auto index = _module->add_f32_constant(expr.value());
 
-        _writer.write_load(Bytecode::CloadF32, reg, expr.value(), obj);
-        _register_stack.push_back(reg);
+        _writer.write_load(Bytecode::CloadF32, reg, index, obj);
+        push_register(reg);
     }
 
     void BytecodeGenerator::visit(Identifier& identifier) {
+        KORE_DEBUG_BYTECODE_GENERATOR_LOG("identifier")
+
         auto entry = _scope_stack.find(identifier.name());
-        _register_stack.push_back(entry->reg);
+        push_register(entry->reg);
     }
 
     void BytecodeGenerator::visit(VariableAssignment& assignment) {
+        KORE_DEBUG_BYTECODE_GENERATOR_LOG("assignment")
+
         auto obj = current_object();
         auto entry = _scope_stack.find_inner(assignment.identifier()->name());
         Reg dest_reg;
@@ -143,6 +178,8 @@ namespace kore {
     }
 
     void BytecodeGenerator::visit(IfStatement& ifstatement) {
+        KORE_DEBUG_BYTECODE_GENERATOR_LOG("if")
+
         auto obj = current_object();
 
         // Labels for all unconditional jumps to the end of the conditional
@@ -180,26 +217,37 @@ namespace kore {
         }
     }
 
+    // TODO: What functions are we calling?
+    // TODO: How do we specify the return register(s)?
     void BytecodeGenerator::visit(class Call& call) {
+        KORE_DEBUG_BYTECODE_GENERATOR_LOG("call")
+
         // Generate code in reverse order of arguments so we can
         // get the registers in the correct order for the call
-        for (int i = call.arg_count() - 1; i >= 0; --i) {
+        /* for (int i = call.arg_count() - 1; i >= 0; --i) { */
+        for (int i = 0; i < call.arg_count(); ++i) {
             call.arg(i)->accept_visit_only(*this);
         }
 
         auto obj = current_object();
-        auto first = _register_stack.cbegin() + (_register_stack.size() - call.arg_count());
+        auto first = get_register_operands(call.arg_count());
+        Reg retreg = obj->allocate_register();
 
         _writer.write_variable_length(
             Bytecode::Call,
             call.arg_count(),
+            retreg,
             first,
             _register_stack.cend(),
             obj
         );
+
+        push_register(retreg);
     }
 
     void BytecodeGenerator::visit(Return& ret) {
+        KORE_DEBUG_BYTECODE_GENERATOR_LOG("return")
+
         UNUSED_PARAM(ret);
 
         auto obj = current_object();
@@ -207,6 +255,7 @@ namespace kore {
         // If the return statement returns an expression, get its register
         // and return it, otherwise just return
         if (ret.expr()) {
+            ret.expr()->accept_visit_only(*this);
             auto reg = get_register_operand();
             _writer.write_1address(Bytecode::RetReg, reg, obj);
         } else {
@@ -215,6 +264,8 @@ namespace kore {
     }
 
     void BytecodeGenerator::visit(Function& func) {
+        KORE_DEBUG_BYTECODE_GENERATOR_LOG("function")
+
         start_function_compile(func);
         auto obj = current_object();
 
@@ -237,6 +288,18 @@ namespace kore {
         end_function_compile();
     }
 
+    void BytecodeGenerator::reset() {
+        _register_stack.clear();
+        _functions.clear();
+        _objects.clear();
+
+        _current_object = nullptr;
+    }
+
+    void BytecodeGenerator::push_register(Reg reg) {
+        _register_stack.push_back(reg);
+    }
+
     int BytecodeGenerator::get_register_operand() {
         auto reg = _register_stack.back();
         _register_stack.pop_back();
@@ -244,8 +307,8 @@ namespace kore {
         return reg;
     }
 
-    BytecodeGenerator::RegIterator BytecodeGenerator::get_register_operands(int count) {
-        return _register_stack.begin() + (_register_stack.size() - count);
+    BytecodeGenerator::reg_iterator BytecodeGenerator::get_register_operands(int count) {
+        return _register_stack.cbegin() + (_register_stack.size() - count);
     }
 
     CompiledObject* BytecodeGenerator::current_object() {
@@ -253,11 +316,22 @@ namespace kore {
     }
 
     void BytecodeGenerator::start_function_compile(const Function& func) {
-        new_compiled_object(&func);
-        _current_object = _objects.back().get();
+        _current_object = _module->new_function(func);
+        _functions.push_back(func.name());
     }
 
     void BytecodeGenerator::end_function_compile() {
-        _current_object = _objects.front().get();
+        _functions.pop_back();
+
+        if (_functions.size() > 0) {
+            _current_object = _module->get_function(_functions.back());
+        }
+    }
+
+    void BytecodeGenerator::new_function_from_name(const std::string& name) {
+        _current_object = _module->new_function_from_name(name);
+        _functions.push_back(name);
     }
 }
+
+#undef KORE_DEBUG_BYTECODE_GENERATOR_LOG
