@@ -63,6 +63,17 @@ namespace kore {
         va_end(args);
     }
 
+    void success_group(int verbosity, int options_verbosity, const std::string& group, const char* const format, ...) {
+        if (options_verbosity < verbosity) {
+            return;
+        }
+
+        va_list args;
+        va_start(args, format);
+        output(0, "success", group, Color::Green, ColorAttribute::Bold, true, format, args);
+        va_end(args);
+    }
+
     void debug(const char* const format, ...) {
         va_list args;
         va_start(args, format);

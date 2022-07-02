@@ -130,7 +130,7 @@ namespace kore {
                 );
             }
         } else {
-            success(1, verbosity, "typecheck successful");
+            success_group(1, verbosity, "typecheck", "");
         }
 
         return error_count;
@@ -170,7 +170,7 @@ namespace kore {
             return result;
         }
 
-        success(1, args.verbosity, "parse successful");
+        success_group(1, args.verbosity, "parser", "");
 
         // 2. Check functions have a return statement
 
@@ -178,7 +178,7 @@ namespace kore {
         // 3. Infer types
         ScopeStack scope_stack;
         infer_types(ast, scope_stack);
-        success(1, args.verbosity, "type inference successful");
+        success_group(1, args.verbosity, "type inference", "");
 
         // 4. Check types
         int error_count = check_types(source_name, ast, scope_stack, args.verbosity);

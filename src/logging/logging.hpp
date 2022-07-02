@@ -10,6 +10,8 @@ namespace kore {
 
     void success_group(const std::string& group, const char* const format, ...);
 
+    void success_group(int verbosity, int options_verbosity, const std::string& group, const char* const format, ...);
+
     void debug(const char* const format, ...);
 
     void debug_group(const std::string& group, const char* const format, ...);
