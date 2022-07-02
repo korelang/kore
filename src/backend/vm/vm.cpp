@@ -1,5 +1,3 @@
-// const bool isCpuLittleEndian = 1 == *(char*)(&__one__); // CPU endianness
-
 #include <sstream>
 
 #include "backend/vm/vm.hpp"
@@ -94,11 +92,11 @@ namespace kore {
             auto opcode = decode_opcode(curr_instruction);
 
             switch (opcode) {
-                case Bytecode::LoadI32:
+                case Bytecode::CloadI32:
                     LOAD_OPCODE(i32)
                     break;
 
-                case Bytecode::LoadI64:
+                case Bytecode::CloadI64:
                     LOAD_OPCODE(i64)
                     break;
 
@@ -108,6 +106,9 @@ namespace kore {
                 BINARY_OP_CASES(f64, F64)
 
                 RELOP_CASES(i32, I32)
+                RELOP_CASES(i64, I64)
+                RELOP_CASES(f32, F32)
+                RELOP_CASES(f64, F64)
 
                 case Bytecode::Move: {
                     Reg dest_reg = (curr_instruction >> 16) & 0xff;
