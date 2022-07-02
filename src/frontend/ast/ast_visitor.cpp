@@ -138,6 +138,10 @@ namespace kore {
         UNUSED_PARAM(statement);
     }
 
+    void AstVisitor::visit(ExpressionStatement& exprstmt) {
+        UNUSED_PARAM(exprstmt);
+    }
+
     void AstVisitor::visit_only(Branch& statement) {
         UNUSED_PARAM(statement);
     }
@@ -172,5 +176,9 @@ namespace kore {
 
     void AstVisitor::visit_only(VariableDeclaration& statement) {
         UNUSED_PARAM(statement);
+    }
+
+    void AstVisitor::visit_only(ExpressionStatement& exprstmt) {
+        UNUSED_PARAM(exprstmt);
     }
 }

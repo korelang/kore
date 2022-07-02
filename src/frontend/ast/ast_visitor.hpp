@@ -47,6 +47,7 @@ namespace kore {
             virtual void visit(Return& statement);
             virtual void visit(VariableAssignment& statement);
             virtual void visit(VariableDeclaration& statement);
+            virtual void visit(ExpressionStatement& exprstmt);
 
             virtual void visit_only(Branch& statement);
             virtual void visit_only(Function& statement);
@@ -57,6 +58,7 @@ namespace kore {
             virtual void visit_only(Return& statement);
             virtual void visit_only(VariableAssignment& statement);
             virtual void visit_only(VariableDeclaration& statement);
+            virtual void visit_only(ExpressionStatement& exprstmt);
     };
 }
 

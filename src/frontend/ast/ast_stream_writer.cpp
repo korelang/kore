@@ -174,6 +174,14 @@ namespace kore {
         newline();
     }
 
+    void AstStreamWriter::visit(ExpressionStatement& exprstmt) {
+        auto expr = exprstmt.expression();
+
+        if (expr) {
+            expr->accept_visit_only(*this);
+        }
+    }
+
     void AstStreamWriter::write(const std::string& value) {
         if (_out) {
             *_out << value;
