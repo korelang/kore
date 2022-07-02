@@ -8,7 +8,7 @@
     Reg dest_reg;\
     Reg value;\
     decode_address2_opcode(curr_instruction, &dest_reg, &value);\
-    _registers[dest_reg] = from_##type(value);\
+    _registers[dest_reg] = Value::from_##type(value);\
 }
 
 #define BINARY_ARITH_OPCODE(type, op) {\
@@ -19,7 +19,7 @@
     auto value1 = _registers[op1_reg].as_##type();\
     auto value2 = _registers[op2_reg].as_##type();\
     \
-    _registers[dest_reg] = from_##type(value1 op value2);\
+    _registers[dest_reg] = Value::from_##type(value1 op value2);\
 }
 
 #define BINARY_OP_CASES(type, opcode_suffix) {\
@@ -48,7 +48,7 @@
     auto value1 = _registers[op1_reg].as_##type();\
     auto value2 = _registers[op2_reg].as_##type();\
     \
-    _registers[dest_reg] = from_bool(value1 op value2);\
+    _registers[dest_reg] = Value::from_bool(value1 op value2);\
 }
 
 #define RELOP_CASES(type, opcode_suffix) {\

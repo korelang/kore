@@ -7,7 +7,7 @@
 
 namespace kore {
     enum class ValueTag {
-        Bool,
+        Bool = 0,
         I32,
         I64,
         F32,
@@ -28,7 +28,7 @@ namespace kore {
             f64 _f64;
         } value;
 
-        inline bool as_bool() {
+        inline bool as_bool() const {
             #if KORE_VM_DEBUG
             if (tag != ValueTag::Bool) {
                 throw std::runtime_error("Not a boolean value");
@@ -38,7 +38,7 @@ namespace kore {
             return value._bool;
         }
 
-        inline i32 as_i32() {
+        inline i32 as_i32() const {
             #if KORE_VM_DEBUG
             if (tag != ValueTag::I32) {
                 throw std::runtime_error("Not an i32 value");
@@ -48,7 +48,7 @@ namespace kore {
             return value._i32;
         }
 
-        inline i64 as_i64() {
+        inline i64 as_i64() const {
             #if KORE_VM_DEBUG
             if (tag != ValueTag::I64) {
                 throw std::runtime_error("Not an i64 value");
@@ -58,7 +58,7 @@ namespace kore {
             return value._i64;
         }
 
-        inline f32 as_f32() {
+        inline f32 as_f32() const {
             #if KORE_VM_DEBUG
             if (tag != ValueTag::f32) {
                 throw std::runtime_error("Not an f32 value");
@@ -68,7 +68,7 @@ namespace kore {
             return value._f32;
         }
 
-        inline f64 as_f64() {
+        inline f64 as_f64() const {
             #if KORE_VM_DEBUG
             if (tag != ValueTag::f64) {
                 throw std::runtime_error("Not an f64 value");
@@ -77,13 +77,13 @@ namespace kore {
 
             return value._f64;
         }
-    };
 
-    Value from_bool(bool value);
-    Value from_i32(i32 value);
-    Value from_i64(i64 value);
-    Value from_f32(f32 value);
-    Value from_f64(f64 value);
+        static Value from_bool(bool value);
+        static Value from_i32(i32 value);
+        static Value from_i64(i64 value);
+        static Value from_f32(f32 value);
+        static Value from_f64(f64 value);
+    };
 
     std::ostream& operator<<(std::ostream& out, const Value& value);
 }
