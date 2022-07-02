@@ -3,16 +3,11 @@ cmake_minimum_required(VERSION 3.8)
 project(kore)
 set(CMAKE_CXX_STANDARD 14)
 
-set(INCLUDE_DIRS
+set(COMPILER_INCLUDE_DIRS
     "./src"
     "./src/frontend"
     "./src/backend"
 )
-
-# add_compile_definitions(KORE_DEBUG_PARSER=1)
-add_compile_definitions(KORE_DEBUG_TYPECHECKER=1)
-add_compile_definitions(KORE_DEBUG_TYPEINFERRER=1)
-add_compile_definitions(KORE_DEBUG_BYTECODE_GENERATOR=1)
 
 set(BASE_SOURCES
     src/frontend/ast/ast.cpp
@@ -100,7 +95,7 @@ set(BASE_SOURCES
     src/backend/decode_instruction.cpp
 )
 
-set(SOURCES
+set(COMPILER_SOURCES
     ${BASE_SOURCES}
     src/main.cpp
 )
@@ -110,15 +105,21 @@ set(COMPILER_NAME "korec")
 set(SHARED_COMPILE_FLAGS -Wall -Wextra -pedantic -Werror)
 
 # Main compiler executable
-add_executable(${COMPILER_NAME} ${SOURCES})
+add_executable(${COMPILER_NAME} ${COMPILER_SOURCES})
 
 add_definitions("-DNDEBUG -g3 -O1")
 
-include_directories(${COMPILER_NAME} ${INCLUDE_DIRS})
+include_directories(${COMPILER_NAME} ${COMPILER_INCLUDE_DIRS})
 
 target_compile_options(${COMPILER_NAME} PUBLIC ${SHARED_COMPILE_FLAGS})
 
-set_target_properties(${COMPILER_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin") 
+target_compile_definitions(${COMPILER_NAME} PRIVATE
+    KORE_DEBUG_TYPECHECKER=1
+    KORE_DEBUG_TYPEINFERRER=1
+    KORE_DEBUG_BYTECODE_GENERATOR=1
+)
+
+set_target_properties(${COMPILER_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
 # Test runner executable
 set(TEST_RUNNER_NAME "test_runner")
@@ -138,3 +139,5 @@ include_directories(${TEST_RUNNER_NAME} "./tests" ${INCLUDE_DIRS})
 target_compile_options(${TEST_RUNNER_NAME} PUBLIC ${SHARED_COMPILE_FLAGS})
 
 set_target_properties(${TEST_RUNNER_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin") 
+# Build kore disassembler (koredis)
+add_subdirectory("./src/koredis")
