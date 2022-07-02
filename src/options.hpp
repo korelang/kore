@@ -13,6 +13,7 @@ namespace kore {
         bool dump_scan;
         bool dump_parse;
         bool dump_codegen;
+        bool dump_registers;
         bool disassemble;
         bool backend;
         bool version;

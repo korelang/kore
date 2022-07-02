@@ -34,10 +34,11 @@ namespace kore {
 
         Debugging options:
 
-            --dump-scan     Only perform a scan of the input file for tokens and
-                            dump the tokens to stderr.
-            --dump-parse    Dump the parse tree to stderr.
-            --dump-codegen  Dump generated code to stderr.
+            --dump-scan       Only perform a scan of the input file for tokens and
+                              dump the tokens to stderr.
+            --dump-parse      Dump the parse tree to stderr.
+            --dump-codegen    Dump generated code to stderr.
+            --dump-registers  Dump all registers once the vm is done executing
     )";
 
     void validate_args(int argc, ParsedCommandLineArgs& args) {
