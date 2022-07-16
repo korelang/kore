@@ -8,7 +8,7 @@
 
 namespace kore {
     // TODO
-    FunctionType::FunctionType() {
+    FunctionType::FunctionType() : Type(TypeCategory::Function) {
     }
 
     FunctionType::~FunctionType() {
