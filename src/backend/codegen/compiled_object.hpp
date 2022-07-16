@@ -39,6 +39,7 @@ namespace kore {
             bool is_main_object() const;
 
             bytecode_type& operator[](int index);
+            const bytecode_type& operator[](int index) const;
 
             instruction_iterator begin() const;
             instruction_iterator end() const;
@@ -53,7 +54,7 @@ namespace kore {
             // a maximum of 256 registers that just bumps a register count
             int _reg_count = 0;
 
-            bytecode_type* instructions();
+            const bytecode_type* instructions() const;
     };
 }
 

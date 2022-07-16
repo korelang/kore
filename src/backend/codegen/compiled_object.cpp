@@ -57,6 +57,10 @@ namespace kore {
         return _instructions[index];
     }
 
+    const bytecode_type& CompiledObject::operator[](int index) const {
+        return _instructions[index];
+    }
+
     CompiledObject::instruction_iterator CompiledObject::begin() const {
         return _instructions.begin();
     }
@@ -65,7 +69,7 @@ namespace kore {
         return _instructions.end();
     }
 
-    bytecode_type* CompiledObject::instructions() {
+    const bytecode_type* CompiledObject::instructions() const {
         return _instructions.data();
     }
 }
