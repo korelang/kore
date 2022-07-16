@@ -6,3 +6,4 @@ bin/
 build.ninja
 cmake_install.cmake
 compile_commands.json
+notes/
