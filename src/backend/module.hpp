@@ -1,6 +1,7 @@
 #ifndef KORE_MODULE_HPP
 #define KORE_MODULE_HPP
 
+#include <array>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -8,6 +9,7 @@
 
 /* #include "codegen/bytecode/bytecode_codegen.hpp" */
 #include "codegen/compiled_object.hpp"
+#include "version.hpp"
 #include "vm/value_type.hpp"
 
 namespace kore {
@@ -30,8 +32,14 @@ namespace kore {
 
         public:
             Module();
+            Module(Module&& module) = default;
             /* Module(BytecodeGenerator::function_map&& funcs, std::vector<CompiledObject::pointer>&& objects); */
             virtual ~Module();
+
+            Version get_compiler_version();
+            Version get_bytecode_version();
+            void set_compiler_version(std::array<char, 3> version);
+            void set_bytecode_version(std::array<char, 3> version);
 
             std::string path() const noexcept;
             std::size_t objects_count() const;
@@ -53,6 +61,12 @@ namespace kore {
             CompiledObject* get_function(const std::string& name);
 
         private:
+            // The version of the compiler used to compile this module
+            Version _compiler_version;
+
+            // The version of the bytecode format in this module
+            Version _bytecode_version;
+
             std::string _path;
             std::vector<CompiledObject::pointer> _objects;
 

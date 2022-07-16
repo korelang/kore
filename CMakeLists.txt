@@ -79,6 +79,7 @@ set(BASE_SOURCES
     src/logging/logging.cpp
     src/utf8/utf8.cpp
     src/options.cpp
+    src/version.cpp
 
     # Utils
     src/utils/endian.cpp

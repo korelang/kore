@@ -1,20 +1,18 @@
 #include <iostream>
 #include <string>
-#include <fstream>
 
+#include "disassemble.hpp"
+#include "disassemble_error.hpp"
+#include "module.hpp"
+#include "output_module.hpp"
 #include "logging/logging.hpp"
 #include "options.hpp"
+#include "version.hpp"
 
 namespace koredis {
     const std::string PROGRAM_NAME = "koredis";
 
-    struct Version {
-        int major;
-        int minor;
-        int patch;
-    };
-
-    void print_version(const std::string& name, Version version, bool version_only) {
+    void print_version(const std::string& name, kore::Version version, bool version_only) {
         if (version_only) {
             std::cout << version.major << "."
                       << version.minor << "."
@@ -33,7 +31,7 @@ namespace koredis {
 
     int run(int argc, char** argv) {
         const std::string prog_name = "koredis";
-        const Version CURRENT_VERSION{ 0, 1, 0 };
+        const kore::Version CURRENT_VERSION{ 0, 1, 0 };
         auto args = parse_commandline(argc, argv);
 
         if (args.error_message.size() > 0) {
@@ -51,7 +49,17 @@ namespace koredis {
         }
 
         for (auto& path : args.paths) {
-            std::cout << path << std::endl;
+            if (args.paths.size() > 1 || args.verbosity > 0) {
+                kore::info("disassembling '%s'", path.c_str());
+            }
+
+            try {
+                kore::Module module = disassemble_module_from_path(path);
+
+                output_module(std::cout, module, args.colors, args.porcelain, args.verbosity);
+            } catch (DisassembleError& ex) {
+                kore::error("disassemble failed: %s", path.c_str(), ex.what());
+            }
         }
 
         return 0;

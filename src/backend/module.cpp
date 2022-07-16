@@ -3,11 +3,27 @@
 namespace kore {
     Module::Module() {}
 
-    /* Module::Module(BytecodeGenerator::function_map&& funcs, std::vector<CompiledObject::pointer>&& objects) { */
-
-    /* } */
-
     Module::~Module() {}
+
+    Version Module::get_compiler_version() {
+        return _compiler_version;
+    }
+
+    Version Module::get_bytecode_version() {
+        return _bytecode_version;
+    }
+
+    void Module::set_compiler_version(std::array<char, 3> version) {
+        _compiler_version.major = version[0];
+        _compiler_version.minor = version[1];
+        _compiler_version.patch = version[2];
+    }
+
+    void Module::set_bytecode_version(std::array<char, 3> version) {
+        _bytecode_version.major = version[0];
+        _bytecode_version.minor = version[1];
+        _bytecode_version.patch = version[2];
+    }
 
     std::string Module::path() const noexcept {
         return _path;

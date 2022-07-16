@@ -15,16 +15,10 @@
 #include "types/scope.hpp"
 #include "types/type_checker.hpp"
 #include "types/type_inferrer.hpp"
+#include "version.hpp"
 
 namespace kore {
     const std::string COMPILER_NAME = "korec";
-
-    struct Version {
-        int major;
-        int minor;
-        int patch;
-    };
-
     const Version CURRENT_VERSION{ 0, 1, 0 };
 
     void print_version(bool version_only) {
