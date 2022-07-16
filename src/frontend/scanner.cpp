@@ -128,6 +128,7 @@ namespace kore {
     }
 
     void Scanner::read_line() {
+        // TODO: Don't rely on eof (https://isocpp.org/wiki/faq/input-output#istream-and-eof)
         if (eof()) {
             return;
         }
