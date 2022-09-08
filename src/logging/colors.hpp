@@ -36,6 +36,8 @@ namespace kore {
 
             bool is_background() const noexcept;
 
+            static const Color None;
+
             static const Color Black;
             static const Color Red;
             static const Color Green;

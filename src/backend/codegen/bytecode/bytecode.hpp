@@ -136,6 +136,8 @@ namespace kore {
 
     std::string bytecode_to_string(Bytecode bytecode);
 
+    Bytecode int_to_bytecode(int opcode);
+
     std::ostream& operator<<(std::ostream& os, const Bytecode bytecode);
 }
 

@@ -1,8 +1,6 @@
 #include <cstdio>
 #include <iostream>
 
-#include "logging/color_attributes.hpp"
-#include "logging/colors.hpp"
 #include "logging/logging.hpp"
 
 namespace kore {
@@ -134,6 +132,13 @@ namespace kore {
         va_list args;
         va_start(args, format);
         output(0, "error", group, Color::Red, ColorAttribute::Bold, true, format, args);
+        va_end(args);
+    }
+
+    void section(const std::string& group, Color color, ColorAttribute attributes, const char* const format, ...) {
+        va_list args;
+        va_start(args, format);
+        output(0, group, "", color, attributes, true, format, args);
         va_end(args);
     }
 

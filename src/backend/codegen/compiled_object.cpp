@@ -11,6 +11,18 @@ namespace kore {
         _location = func->location();
     }
 
+    CompiledObject::CompiledObject(
+        const std::string& name,
+        const Location& location,
+        int locals_count,
+        int reg_count,
+        const std::vector<bytecode_type>& instructions
+    ) : _name(name),
+        _location(location),
+        _local_count(locals_count),
+        _instructions(instructions),
+        _reg_count(reg_count) {}
+
     CompiledObject::~CompiledObject() {}
 
     std::string CompiledObject::name() const {

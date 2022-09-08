@@ -12,6 +12,8 @@ namespace kore {
         return _is_background;
     }
 
+    const Color Color::None(AnsiColorCode::Reset);
+
     const Color Color::Black(AnsiColorCode::Black);
     const Color Color::Red(AnsiColorCode::Red);
     const Color Color::Green(AnsiColorCode::Green);

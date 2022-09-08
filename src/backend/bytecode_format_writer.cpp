@@ -46,6 +46,13 @@ namespace kore {
         const Module* const module,
         std::ofstream& ofs
     ) {
+        // TODO: Make sure this is not a size_t since platform-dependent sizes
+        // won't work if the code is compiled on a 32-bit platform and
+        // disassembled on a 64-bit platform or vice versa
+        //
+        // TODO: Ensure that the constant table cannot exceed unsigned 32-bit
+        //
+        // TODO: Check max table values for all tables
         write_big_endian(module->constants_count(), ofs);
 
         for (auto it = module->i32_constants_begin(); it != module->i32_constants_end(); ++it) {
@@ -82,14 +89,19 @@ namespace kore {
 
         write_big_endian(static_cast<short>(s.size()), ofs);
 
+        // TODO: Will this work for utf-8 strings?
         // Do not include the null-terminator
-        ofs.write(s.data(), sizeof(std::string::value_type) * s.size() - 1);
+        ofs.write(s.data(), sizeof(std::string::value_type) * s.size());
     }
 
     void BytecodeFormatWriter::write_functions(const Module* const module, std::ofstream& ofs) {
         write_big_endian(module->objects_count(), ofs);
 
         for (auto it = module->objects_begin(); it != module->objects_end(); ++it) {
+            if (it->get()->is_main_object()) {
+                continue;
+            }
+
             write_object(it->get(), ofs);
         }
     }
@@ -101,14 +113,14 @@ namespace kore {
     void BytecodeFormatWriter::write_object(const CompiledObject* const object, std::ofstream& ofs) {
         write_string(object->name(), ofs);
 
-        if (!object->is_main_object()) {
+        /* if (!object->is_main_object()) { */
             auto location = object->location();
 
             /* write_string(location.path(), ofs); */
             write_big_endian(location.lnum(), ofs);
             write_big_endian(location.start(), ofs);
             write_big_endian(location.end(), ofs);
-        }
+        /* } */
 
         write_big_endian(object->locals_count(), ofs);
         write_big_endian(object->reg_count(), ofs);

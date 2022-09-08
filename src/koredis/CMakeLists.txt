@@ -69,6 +69,8 @@ set(DISASSEMBLER_SOURCES
     # Files specific to koredis
     disassemble.cpp
     disassemble_error.cpp
+    decode_instruction.cpp
+    instruction.cpp
     options.cpp
     output_module.cpp
     main.cpp

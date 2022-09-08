@@ -11,6 +11,9 @@ namespace kore {
     #define GET_REG3(instruction) instruction & 0xff
     #define GET_REG(instruction, pos) (instruction >> ((3 - pos) * 8)) & 0xff
     #define GET_OFFSET(instruction) instruction & 0xffff
+    #define GET_ARG_COUNT(instruction) GET_REG1(instruction)
+    #define GET_RET_REG(instruction) GET_REG2(instruction)
+    #define GET_VALUE(instruction) GET_OFFSET(instruction)
 
     #define GET_VALUE32(instruction) instruction & 0xffff
 }

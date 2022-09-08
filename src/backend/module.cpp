@@ -29,11 +29,11 @@ namespace kore {
         return _path;
     }
 
-    std::size_t Module::objects_count() const {
+    int Module::objects_count() const {
         return _objects.size();
     }
 
-    std::size_t Module::constants_count() const {
+    int Module::constants_count() const {
         return _i32_constants.size() + _f32_constants.size();
     }
 
@@ -46,7 +46,7 @@ namespace kore {
 
         _i32_constants.push_back(constant);
 
-        return _i32_constant_table.insert({ constant, _i32_constant_table.size() - 1 }).second;
+        return _i32_constant_table.insert({ constant, _i32_constants.size() - 1 }).second;
     }
 
     int Module::add_f32_constant(f32 constant) {
@@ -86,26 +86,24 @@ namespace kore {
     }
 
     CompiledObject* Module::new_function(const Function& func) {
-        std::string name = func.name();
-        _function_map[name] = std::make_unique<CompiledObject>(&func);
+        _objects.emplace_back(std::make_unique<CompiledObject>(&func));
 
-        return _function_map[name].get();
+        std::string name = func.name();
+        _function_map[name] = _objects.back().get();
+
+        return _function_map[name];
     }
 
     CompiledObject* Module::new_function_from_name(const std::string& name) {
-        auto up = std::make_unique<CompiledObject>(name);
-        _function_map[name] = std::move(up);
+        _objects.emplace_back(std::make_unique<CompiledObject>(name));
+        _function_map[name] = _objects.back().get();
         /* _function_map[name] = std::make_unique<CompiledObject>(name); */
 
-        return _function_map[name].get();
+        return _function_map[name];
     }
 
     CompiledObject* Module::main_object() {
-        if (_function_map.empty()) {
-            return nullptr;
-        }
-
-        return _function_map["<main>"].get();
+        return get_function("<main>");
     }
 
     /* const CompiledObject* Module::main_object() const { */
@@ -119,6 +117,21 @@ namespace kore {
     CompiledObject* Module::get_function(const std::string& name) {
         auto it = _function_map.find(name);
 
-        return it != _function_map.end() ? it->second.get() : nullptr;
+        return it != _function_map.end() ? it->second : nullptr;
+    }
+
+    void Module::add_function(
+        const std::string& name,
+        int lnum,
+        int start,
+        int end,
+        int locals_count,
+        int reg_count,
+        const std::vector<bytecode_type>& instructions
+    ) {
+        auto location = Location(lnum, start, end);
+
+        _objects.emplace_back(std::make_unique<CompiledObject>(name, location, locals_count, reg_count, instructions));
+        _function_map[name] = _objects.back().get();
     }
 }

@@ -27,13 +27,15 @@ namespace kore {
             void write_variable_length(
                 Bytecode opcode,
                 int size,
+                Reg retreg,
                 InputIterator first,
                 InputIterator last,
                 CompiledObject* target
             ) {
                 std::vector<std::uint8_t> bytes{
                     static_cast<std::uint8_t>(opcode),
-                    static_cast<std::uint8_t>(size)
+                    static_cast<std::uint8_t>(size),
+                    static_cast<std::uint8_t>(retreg)
                 };
                 bytes.insert(bytes.end(), first, last);
                 std::size_t i = 0;
@@ -43,10 +45,10 @@ namespace kore {
                     int idx = i * 4;
 
                     bytecode_type instruction =
-                          ((bytes[idx + 0] << 24) & 0xff)
-                        | ((bytes[idx + 1] << 16) & 0xff)
-                        | ((bytes[idx + 2] << 8)  & 0xff)
-                        | ((bytes[idx + 3] << 0)  & 0xff);
+                          (bytes[idx + 0] << 24)
+                        | (bytes[idx + 1] << 16)
+                        | (bytes[idx + 2] << 8)
+                        | (bytes[idx + 3] << 0);
 
                     target->add_instruction(instruction);
                 }
@@ -59,14 +61,14 @@ namespace kore {
                     int idx = i * 4;
 
                     bytecode_type instruction = 0;
-                    instruction |= (bytes[idx] << 24) & 0xff;
+                    instruction |= bytes[idx] << 24;
 
                     if (remaining_bytes > 1) {
-                        instruction |= (bytes[idx + 1] << 16) & 0xff;
+                        instruction |= bytes[idx + 1] << 16;
                     }
 
                     if (remaining_bytes > 2) {
-                        instruction |= (bytes[idx + 2] << 8) & 0xff;
+                        instruction |= bytes[idx + 2] << 8;
                     }
 
                     target->add_instruction(instruction);

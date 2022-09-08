@@ -26,6 +26,13 @@ namespace kore {
             CompiledObject();
             CompiledObject(const std::string& name);
             CompiledObject(const Function* func);
+            CompiledObject(
+                const std::string& name,
+                const Location& location,
+                int locals_count,
+                int reg_count,
+                const std::vector<bytecode_type>& instructions
+            );
             virtual ~CompiledObject();
 
             std::string name() const;

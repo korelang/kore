@@ -2,6 +2,8 @@
 #define KORE_LOGGING_HPP
 
 #include "location.hpp"
+#include "logging/color_attributes.hpp"
+#include "logging/colors.hpp"
 
 namespace kore {
     void success(const char* const format, ...);
@@ -29,6 +31,8 @@ namespace kore {
     void error_indent(const char* const format, ...);
 
     void error_group(const std::string& group, const char* const format, ...);
+
+    void section(const std::string& group, Color color, ColorAttribute attributes, const char* const format, ...);
 
     void parser_error(const Location& location, const char* const format, ...);
 }

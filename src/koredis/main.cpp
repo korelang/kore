@@ -50,7 +50,7 @@ namespace koredis {
 
         for (auto& path : args.paths) {
             if (args.paths.size() > 1 || args.verbosity > 0) {
-                kore::info("disassembling '%s'", path.c_str());
+                kore::info("disassembling '%s'\n", path.c_str());
             }
 
             try {

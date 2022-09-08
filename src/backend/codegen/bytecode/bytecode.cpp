@@ -72,6 +72,10 @@ namespace kore {
         }
     }
 
+    Bytecode int_to_bytecode(int opcode) {
+        return static_cast<kore::Bytecode>(opcode);
+    }
+
     std::ostream& operator<<(std::ostream& os, const Bytecode bytecode) {
         return os << static_cast<bytecode_type>(bytecode);
     }

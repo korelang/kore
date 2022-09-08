@@ -23,6 +23,9 @@ namespace kore {
             os.write((char*)&value, size);
         }
     }
+
+    std::uint16_t read_be16(std::istream& is);
+    std::uint32_t read_be32(std::istream& is);
 }
 
 #endif // KORE_ENDIAN_HPP

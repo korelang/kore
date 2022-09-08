@@ -15,7 +15,7 @@
 namespace kore {
     /* class BytecodeGenerator; */
 
-    using function_map = std::unordered_map<std::string, CompiledObject::pointer>;
+    using function_map = std::unordered_map<std::string, CompiledObject*>;
 
     template<typename T>
     using constant_table = std::unordered_map<T, int>;
@@ -42,8 +42,8 @@ namespace kore {
             void set_bytecode_version(std::array<char, 3> version);
 
             std::string path() const noexcept;
-            std::size_t objects_count() const;
-            std::size_t constants_count() const;
+            int objects_count() const;
+            int constants_count() const;
 
             int add_i32_constant(i32 constant);
             int add_f32_constant(f32 constant);
@@ -59,6 +59,15 @@ namespace kore {
             CompiledObject* main_object();
             /* const CompiledObject* main_object() const; */
             CompiledObject* get_function(const std::string& name);
+            void add_function(
+                const std::string& name,
+                int lnum,
+                int start,
+                int end,
+                int locals_count,
+                int reg_count,
+                const std::vector<bytecode_type>& instructions
+            );
 
         private:
             // The version of the compiler used to compile this module
