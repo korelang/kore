@@ -345,10 +345,22 @@ namespace kore {
             return;
         }
 
+        bool is_mutable = token->value() == "var";
+
+        if (is_mutable) {
+            token = next_token();
+        }
+
+        KORE_DEBUG_PARSER_LOG_TOKEN("identifier")
         auto identifier_token = *token;
         token = next_token();
 
         if (expect_token_type(TokenType::lparen, false)) {
+            if (is_mutable) {
+                emit_parser_error("Function calls cannot be declared variable");
+                return;
+            }
+
             auto identifier = new Identifier(identifier_token);
 
             add_statement(
@@ -374,6 +386,7 @@ namespace kore {
         add_statement(
             parent,
             Statement::make_variable_assignment(
+                is_mutable,
                 identifier_token,
                 decl_type,
                 expr

@@ -55,8 +55,8 @@ namespace kore {
         return new VariableDeclaration(identifier, type);
     }
 
-    Statement* Statement::make_variable_assignment(const Token& identifier, Type* type, Expression* expr) {
-        return new VariableAssignment(identifier, type, expr);
+    Statement* Statement::make_variable_assignment(bool is_mutable, const Token& identifier, Type* type, Expression* expr) {
+        return new VariableAssignment(is_mutable, identifier, type, expr);
     }
 
     Statement* Statement::make_function_call(Expression* expression) {

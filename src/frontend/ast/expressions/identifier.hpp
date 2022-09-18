@@ -9,6 +9,7 @@ namespace kore {
     class Identifier : public Expression {
         public:
             Identifier(const Token& token);
+            Identifier(const Token& token, bool is_mutable);
             Identifier(const std::string& value);
             Identifier(const std::string& value, const Location& location);
             Identifier(const std::vector<std::string>& value, const Location& location);
@@ -19,6 +20,7 @@ namespace kore {
             bool is_qualified() const noexcept;
             std::size_t size() const noexcept;
             const Type* type() const override;
+            bool is_mutable() const;
 
             void accept(AstVisitor& visitor) override;
             void accept_visit_only(AstVisitor& visitor) override;
@@ -30,6 +32,7 @@ namespace kore {
 
         private:
             std::string _value;
+            bool _is_mutable = false;
             std::vector<std::string> _parts;
     };
 }

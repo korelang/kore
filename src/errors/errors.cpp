@@ -52,10 +52,18 @@ namespace kore {
                 return Error(ErrorType::Typing, message, location);
             }
 
-            Error variables_shadows(const Identifier* identifier, const Location& location) {
+            Error variable_shadows(const Identifier* identifier, const Location& location) {
                 auto message = "variable '" + identifier->name() + "' shadows variable in outer scope";
 
                 return Error(ErrorType::Typing, message, location);
+            }
+
+            Error redeclaration_constant_variable(const Identifier& identifier, const Location& location, const Identifier& prev_declared) {
+                std::ostringstream oss;
+
+                oss << "redeclaration of constant variable '" << identifier.name() << "', previously declared here: " << prev_declared.location();
+
+                return Error(ErrorType::Typing, oss.str(), location);
             }
 
             Error undefined_variable(const Identifier& identifier) {

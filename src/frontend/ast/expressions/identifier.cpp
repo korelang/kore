@@ -10,6 +10,13 @@ namespace kore {
         split_on(token.value(), '.', _parts);
     }
 
+    Identifier::Identifier(const Token& token, bool is_mutable)
+        : Expression(ExpressionType::Identifier, token.location()),
+        _value(token.value()),
+        _is_mutable(is_mutable) {
+        split_on(token.value(), '.', _parts);
+    }
+
     Identifier::Identifier(const std::string& value)
         : Expression(ExpressionType::Identifier, Location::unknown),
         _value(value) {
@@ -54,6 +61,10 @@ namespace kore {
 
     const Type* Identifier::type() const {
         return _type;
+    }
+
+    bool Identifier::is_mutable() const {
+        return _is_mutable;
     }
 
     void Identifier::accept(AstVisitor& visitor) {

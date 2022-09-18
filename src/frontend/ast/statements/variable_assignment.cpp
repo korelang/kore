@@ -6,12 +6,13 @@
 
 namespace kore {
     VariableAssignment::VariableAssignment(
+        bool is_mutable,
         const Token& identifier,
         Type* type,
         Expression* expr
     )
         : Statement(identifier.location(), StatementType::VariableAssignment),
-        _identifier(identifier),
+        _identifier(identifier, is_mutable),
         _type(std::move(type)),
         _expr(std::move(expr))
     {

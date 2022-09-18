@@ -101,12 +101,14 @@ namespace kore {
             // This variable did not already exist in the inner scope, check
             // that it does not shadow a variable in an outer scope
             if (shadows_outer_scope(*identifier)) {
-                push_error(errors::typing::variables_shadows(identifier, assignment.location()));
+                push_error(errors::typing::variable_shadows(identifier, assignment.location()));
             }
         } else {
-            // TODO
             // Variable already exists in this scope, check that we are not
             // redeclaring a constant variable
+            if (!entry->identifier->is_mutable()) {
+                push_error(errors::typing::redeclaration_constant_variable(*identifier, assignment.location(), *entry->identifier));
+            }
         }
     }
 
