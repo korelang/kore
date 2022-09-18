@@ -230,36 +230,48 @@ namespace kore {
         }
 
         auto obj = current_object();
-        auto first = get_register_operands(call.arg_count());
+        std::uint8_t func_index = 0;
         Reg retreg = obj->allocate_register();
 
-        _writer.write_variable_length(
+        // TODO: We also need to specify what function to call here (probably
+        // via a register)
+        std::vector<std::uint8_t> bytes{
             Bytecode::Call,
-            call.arg_count(),
-            retreg,
-            first,
-            _register_stack.cend(),
-            obj
+            func_index,
+            1, // So far only one return register
+            static_cast<std::uint8_t>(call.arg_count())
+        };
+
+        bytes.push_back(retreg);
+
+        bytes.insert(
+            bytes.end(),
+            get_register_operands(call.arg_count()),
+            _register_stack.cend()
         );
 
+        _writer.write_bytes(bytes, obj);
         push_register(retreg);
     }
 
     void BytecodeGenerator::visit(Return& ret) {
         KORE_DEBUG_BYTECODE_GENERATOR_LOG("return")
-
         UNUSED_PARAM(ret);
 
         auto obj = current_object();
 
-        // If the return statement returns an expression, get its register
-        // and return it, otherwise just return
+        // If the return statement returns an expression, generate code
+        // for it, then get its register
         if (ret.expr()) {
             ret.expr()->accept_visit_only(*this);
-            auto reg = get_register_operand();
-            _writer.write_1address(Bytecode::RetReg, reg, obj);
+            _writer.write_1address(
+                Bytecode::Ret,
+                get_register_operand(),
+                obj
+            );
         } else {
-            _writer.write_opcode(Bytecode::Ret, obj);
+            // Otherwise return zero registers
+            _writer.write_1address(Bytecode::Ret, 0, obj);
         }
     }
 

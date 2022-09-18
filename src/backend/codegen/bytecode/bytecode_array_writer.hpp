@@ -22,6 +22,7 @@ namespace kore {
             void write_1address(Bytecode opcode, Reg reg, CompiledObject* target);
             void write_2address(Bytecode opcode, Reg destination_reg, Reg reg_operand, CompiledObject* target);
             void write_3address(Bytecode opcode, Reg destination_reg, Reg reg_operand1, Reg reg_operand2, CompiledObject* target);
+            void write_bytes(const std::vector<std::uint8_t>& bytes, CompiledObject* target);
 
             template<typename InputIterator>
             void write_variable_length(

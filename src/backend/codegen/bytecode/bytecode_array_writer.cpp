@@ -47,6 +47,44 @@ namespace kore {
         );
     }
 
+    void BytecodeArrayWriter::write_bytes(const std::vector<std::uint8_t>& bytes, CompiledObject* target) {
+        std::size_t i = 0;
+
+        // Pack every four bytes into a 32-bit integer
+        for (; i < bytes.size() / 4; ++i) {
+            int idx = i * 4;
+
+            bytecode_type int32 =
+                (bytes[idx + 0] << 24)
+                | (bytes[idx + 1] << 16)
+                | (bytes[idx + 2] << 8)
+                | (bytes[idx + 3] << 0);
+
+            target->add_instruction(int32);
+        }
+
+        int remaining_bytes = bytes.size() % 4;
+
+        // Pack any remaining (<4) bytes into a 32-bit big-endian integer
+        // padded with zeroes
+        if (remaining_bytes > 0) {
+            int idx = i * 4;
+
+            bytecode_type int32 = 0;
+            int32 |= bytes[idx] << 24;
+
+            if (remaining_bytes > 1) {
+                int32 |= bytes[idx + 1] << 16;
+            }
+
+            if (remaining_bytes > 2) {
+                int32 |= bytes[idx + 2] << 8;
+            }
+
+            target->add_instruction(int32);
+        }
+    }
+
     void BytecodeArrayWriter::save_patch_location(CompiledObject* target) {
         _patch_locations[_label_count] = target->code_size() - 1;
     }

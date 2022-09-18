@@ -5,28 +5,25 @@
 #include "decode_instruction.hpp"
 #include "instruction.hpp"
 #include "register.hpp"
+#include "utils/unused_parameter.hpp"
 
 namespace koredis {
-    std::vector<kore::Reg> decode_call_registers(int arg_count, const kore::CompiledObject& obj, int& pos) {
-        // We start on the second register position since the three first are
-        // the opcode, the arg count, and the return register
-        int arg = 2;
-        std::vector<kore::Reg> call_registers;
+    // TODO: Check byte_offset range
+    std::vector<kore::Reg> decode_registers(int& pos, int& byte_offset, int count, const kore::CompiledObject& obj) {
+        int i = 0;
+        std::vector<kore::Reg> registers;
         kore::bytecode_type ins = obj[pos];
 
-        while (arg <= arg_count) {
-            int reg_pos = arg % 4;
-            kore::Reg reg = GET_REG(ins, reg_pos);
-            call_registers.push_back(reg);
+        while (i++ < count) {
+            registers.push_back((ins >> (24 - 8 * byte_offset++)) & 0xff);
 
-            if (reg == 3) {
-                ins = obj[pos++];
+            if (byte_offset == 4) {
+                ins = obj[++pos];
+                byte_offset = 0;
             }
-
-            ++arg;
         }
 
-        return call_registers;
+        return registers;
     }
 
     Instruction decode_instruction(int& pos, const kore::CompiledObject& obj) {
@@ -45,7 +42,7 @@ namespace koredis {
                 return Instruction::load(opcode, pos++, GET_REG1(instruction), GET_VALUE(instruction));
 
             case kore::Bytecode::Move:
-            case kore::Bytecode::StoreI32Global:
+            case kore::Bytecode::GstoreI32:
                 return Instruction(
                     opcode,
                     pos++,
@@ -109,15 +106,25 @@ namespace koredis {
                 return Instruction(opcode, pos++, GET_REG1(instruction));
 
             case kore::Bytecode::Call: {
-                int arg_count = GET_ARG_COUNT(instruction);
+                int func_index = GET_REG1(instruction);
+                UNUSED_PARAM(func_index); // TODO
+                int return_count = GET_REG2(instruction);
+                int arg_count = GET_REG3(instruction);
                 int start_pos = pos;
-                pos += 1 + arg_count;
+                ++pos;
+                int byte_offset = 0;
+                auto ret_regs = decode_registers(pos, byte_offset, return_count, obj);
+                auto arg_regs = decode_registers(pos, byte_offset, arg_count, obj);
+                ++pos;
 
                 return Instruction::call(
                     opcode,
                     start_pos,
-                    GET_RET_REG(instruction),
-                    decode_call_registers(arg_count, obj, start_pos)
+                    func_index,
+                    return_count,
+                    arg_count,
+                    ret_regs,
+                    arg_regs
                 );
             }
 
@@ -130,11 +137,13 @@ namespace koredis {
                     GET_OFFSET(instruction)
                 );
 
-            case kore::Bytecode::Ret:
-                return Instruction(opcode, pos++);
+            case kore::Bytecode::Ret: {
+                int regs = GET_REG1(instruction);
+                int byte_offset = 0;
+                auto ret_regs = decode_registers(pos, byte_offset, regs, obj);
 
-            case kore::Bytecode::RetReg:
-                return Instruction(opcode, pos++, GET_REG1(instruction));
+                return Instruction::ret(opcode, pos++, regs, ret_regs);
+            }
 
             default:
                 return Instruction(kore::Bytecode::Noop, pos++);

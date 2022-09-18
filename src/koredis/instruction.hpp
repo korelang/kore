@@ -22,8 +22,17 @@ namespace koredis {
             static Instruction call(
                 kore::Bytecode opcode,
                 int pos,
-                int ret_reg,
-                const std::vector<kore::Reg>& call_registers
+                int func_index,
+                int return_count,
+                int arg_count,
+                const std::vector<kore::Reg>& return_registers,
+                const std::vector<kore::Reg>& arg_registers
+            );
+            static Instruction ret(
+                kore::Bytecode opcode,
+                int pos,
+                int return_count,
+                const std::vector<kore::Reg>& return_registers
             );
 
             int position() const;
@@ -33,6 +42,7 @@ namespace koredis {
             kore::Reg reg2() const;
             kore::Reg reg3() const;
             int value() const;
+            std::vector<kore::Reg> return_registers() const;
             std::vector<kore::Reg> call_registers() const;
 
         private:
@@ -45,7 +55,8 @@ namespace koredis {
             // Offset for jump instructions or constant table indices for loads
             int _value;
 
-            std::vector<kore::Reg> _call_registers;
+            std::vector<kore::Reg> _return_registers;
+            std::vector<kore::Reg> _arg_registers;
     };
 
     std::ostream& operator<<(std::ostream& os, const Instruction instruction);

@@ -9,7 +9,7 @@ namespace kore {
             case GloadI64:       return "gloadi64";
             case GloadF32:       return "gloadf32";
             case GloadF64:       return "gloadf64";
-            case StoreI32Global: return "gstorei32";
+            case GstoreI32:      return "gstorei32";
             case LoadBool:       return "loadbool";
             case CloadI32:       return "cloadi32";
             case CloadI64:       return "cloadi64";
@@ -68,7 +68,6 @@ namespace kore {
             case JumpIfNot:      return "jumpifnot";
             case Call:           return "call";
             case Ret:            return "return";
-            case RetReg:         return "retreg";
         }
     }
 

@@ -36,11 +36,27 @@ namespace koredis {
     Instruction Instruction::call(
         kore::Bytecode opcode,
         int pos,
-        int ret_reg,
-        const std::vector<kore::Reg>& call_registers
+        int func_index,
+        int return_count,
+        int arg_count,
+        const std::vector<kore::Reg>& return_registers,
+        const std::vector<kore::Reg>& arg_registers
     ) {
-        auto instruction = Instruction(opcode, pos, ret_reg);
-        instruction._call_registers = call_registers;
+        auto instruction = Instruction(opcode, pos, func_index, return_count, arg_count);
+        instruction._return_registers = return_registers;
+        instruction._arg_registers = arg_registers;
+
+        return instruction;
+    }
+
+    Instruction Instruction::ret(
+        kore::Bytecode opcode,
+        int pos,
+        int return_count,
+        const std::vector<kore::Reg>& return_registers
+    ) {
+        auto instruction = Instruction(opcode, pos, return_count);
+        instruction._return_registers = return_registers;
 
         return instruction;
     }
@@ -69,8 +85,12 @@ namespace koredis {
         return _value;
     }
 
+    std::vector<kore::Reg> Instruction::return_registers() const {
+        return _return_registers;
+    }
+
     std::vector<kore::Reg> Instruction::call_registers() const {
-        return _call_registers;
+        return _arg_registers;
     }
 
     std::ostream& operator<<(std::ostream& os, const Instruction instruction) {
@@ -85,7 +105,11 @@ namespace koredis {
                 return os;
 
             case kore::Bytecode::Call:
-                os << " @" << instruction.reg1();
+                os << " " << instruction.reg1() << " " << instruction.reg2() << " " << instruction.reg3();
+
+                for (auto ret_register : instruction.return_registers()) {
+                    os << " @" << ret_register;
+                }
 
                 for (auto call_register : instruction.call_registers()) {
                     os << " @" << call_register;

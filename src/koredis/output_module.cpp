@@ -11,13 +11,13 @@
 
 namespace koredis {
     void output_constant_table(std::ostream& os, kore::Color color, kore::Module& module) {
-        kore::section("constant table:i32", kore::Color::Magenta, kore::ColorAttribute::None, "");
+        kore::section("constant table", kore::Color::Magenta, kore::ColorAttribute::Bold, "i32");
 
         int table_index = 0;
 
         for (auto it = module.i32_constants_begin(); it != module.i32_constants_end(); ++it) {
             os << color << "| " << kore::ColorAttribute::Reset
-               << table_index++ << " => " << *it << std::endl;
+               << "#" << table_index++ << " => " << *it << std::endl;
         }
     }
 

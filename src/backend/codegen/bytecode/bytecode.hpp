@@ -73,7 +73,7 @@ namespace kore {
         LloadI64,
         LloadF32,
         LloadF64,
-        StoreI32Global,
+        GstoreI32,
 
         // Arithmetic opcodes
         AddI32,
@@ -130,8 +130,7 @@ namespace kore {
 
         // Function calls
         Call,
-        Ret,
-        RetReg,
+        Ret
     };
 
     std::string bytecode_to_string(Bytecode bytecode);
