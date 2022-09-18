@@ -46,7 +46,7 @@ namespace kore {
 
         _i32_constants.push_back(constant);
 
-        return _i32_constant_table.insert({ constant, _i32_constants.size() - 1 }).second;
+        return _i32_constant_table.insert({ constant, _i32_constants.size() - 1 }).first->second;
     }
 
     int Module::add_f32_constant(f32 constant) {
