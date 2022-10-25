@@ -39,6 +39,7 @@ namespace kore {
             Location location() const;
             int locals_count() const;
             int reg_count() const;
+            int max_regs_used() const;
             Reg allocate_register();
             void free_registers(int count);
             void add_instruction(bytecode_type instruction);
@@ -61,6 +62,7 @@ namespace kore {
             // a maximum of 256 registers that just bumps a register count
             int _reg_count = 0;
 
+            int _max_regs_used = 0;
             const bytecode_type* instructions() const;
     };
 }

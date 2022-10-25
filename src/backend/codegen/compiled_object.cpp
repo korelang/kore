@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "compiled_object.hpp"
 #include "vm/vm.hpp"
 
@@ -21,7 +23,8 @@ namespace kore {
         _location(location),
         _local_count(locals_count),
         _instructions(instructions),
-        _reg_count(reg_count) {}
+        _reg_count(reg_count),
+        _max_regs_used(0) {}
 
     CompiledObject::~CompiledObject() {}
 
@@ -41,10 +44,16 @@ namespace kore {
         return _reg_count;
     }
 
+    int CompiledObject::max_regs_used() const {
+        return _max_regs_used;
+    }
+
     Reg CompiledObject::allocate_register() {
         if (_reg_count >= KORE_VM_MAX_REGISTERS) {
-            throw std::runtime_error("No more registers");
+            throw std::runtime_error("register overflow");
         }
+
+        _max_regs_used = std::max(_max_regs_used, _reg_count + 1);
 
         return _reg_count++;
     }

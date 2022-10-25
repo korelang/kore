@@ -113,17 +113,15 @@ namespace kore {
     void BytecodeFormatWriter::write_object(const CompiledObject* const object, std::ofstream& ofs) {
         write_string(object->name(), ofs);
 
-        /* if (!object->is_main_object()) { */
-            auto location = object->location();
+        auto location = object->location();
 
-            /* write_string(location.path(), ofs); */
-            write_big_endian(location.lnum(), ofs);
-            write_big_endian(location.start(), ofs);
-            write_big_endian(location.end(), ofs);
-        /* } */
+        /* write_string(location.path(), ofs); */
+        write_big_endian(location.lnum(), ofs);
+        write_big_endian(location.start(), ofs);
+        write_big_endian(location.end(), ofs);
 
         write_big_endian(object->locals_count(), ofs);
-        write_big_endian(object->reg_count(), ofs);
+        write_big_endian(object->max_regs_used(), ofs);
 
         write_big_endian(object->code_size(), ofs);
 
