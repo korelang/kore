@@ -52,8 +52,14 @@ namespace kore {
                 return Error(ErrorType::Typing, message, location);
             }
 
-            Error variable_shadows(const Identifier* identifier, const Location& location) {
-                auto message = "variable '" + identifier->name() + "' shadows variable in outer scope";
+            Error variable_shadows(const Identifier* identifier, const Identifier* shadowed, const Location& location) {
+                std::string message = "variable '" + identifier->name() + "' shadows variable ";
+
+                if (shadowed) {
+                    message += "'" + shadowed->name() + "' (at " + location.colon_format() + ")";
+                } else {
+                    message += "in outer scope";
+                }
 
                 return Error(ErrorType::Typing, message, location);
             }
@@ -64,6 +70,12 @@ namespace kore {
                 oss << "redeclaration of constant variable '" << identifier.name() << "', previously declared here: " << prev_declared.location();
 
                 return Error(ErrorType::Typing, oss.str(), location);
+            }
+
+            Error cannot_declare_mutable_global(const Identifier& identifier, const Location& location) {
+                auto message = "cannot declare global mutable variables ('" + identifier.name() + "')";
+
+                return Error(ErrorType::Typing, message, location);
             }
 
             Error undefined_variable(const Identifier& identifier) {

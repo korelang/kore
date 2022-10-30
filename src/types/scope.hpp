@@ -44,6 +44,7 @@ namespace kore {
             ScopeEntry* find_enclosing(const std::string& name);
             void insert(const Identifier* identifier);
             void insert(const Identifier* identifier, Reg reg);
+            bool is_global_scope() const;
             void clear();
 
         private:

@@ -96,12 +96,16 @@ namespace kore {
         auto entry = _scope_stack.find_inner(identifier->name());
 
         if (!entry) {
-            _scope_stack.insert(identifier);
+            if (_scope_stack.is_global_scope() && identifier->is_mutable()) {
+                push_error(errors::typing::cannot_declare_mutable_global(*identifier, assignment.location()));
+            } else {
+                auto shadowed_identifier = shadows_outer_scope(*identifier);
 
-            // This variable did not already exist in the inner scope, check
-            // that it does not shadow a variable in an outer scope
-            if (shadows_outer_scope(*identifier)) {
-                push_error(errors::typing::variable_shadows(identifier, assignment.location()));
+                if (shadowed_identifier) {
+                    push_error(errors::typing::variable_shadows(identifier, shadowed_identifier, assignment.location()));
+                }
+
+                _scope_stack.insert(identifier);
             }
         } else {
             // Variable already exists in this scope, check that we are not
@@ -143,23 +147,29 @@ namespace kore {
         KORE_DEBUG_TYPECHECKER_LOG("call", func_type->name(), std::string())
 
         // TODO: Move into Call class
-        for (int i = 0; i < call.arg_count(); ++i) {
-            auto arg = call.arg(i);
-            auto arg_type = arg->type();
-            auto param = func_type->parameter(i);
-            auto param_type = param->type();
-            auto unified_type = arg_type->unify(param_type);
+        /* for (int i = 0; i < call.arg_count(); ++i) { */
+        /*     auto arg = call.arg(i); */
+        /*     std::cout << "1" << std::endl; */
+        /*     auto arg_type = arg->type(); */
+        /*     std::cout << "2" << std::endl; */
+        /*     auto param = func_type->parameter(i); */
+        /*     std::cout << "3" << std::endl; */
+        /*     auto param_type = param->type(); */
+        /*     std::cout << arg_type->name() << std::endl; */
+        /*     std::cout << param_type->name() << std::endl; */
+        /*     auto unified_type = arg_type->unify(param_type); */
+        /*     std::cout << "5" << std::endl; */
 
-            if (unified_type->is_unknown()) {
-                push_error(errors::typing::incorrect_parameter_type(
-                    arg,
-                    arg_type,
-                    param_type,
-                    call,
-                    i
-                ));
-            }
-        }
+        /*     if (unified_type->is_unknown()) { */
+        /*         push_error(errors::typing::incorrect_parameter_type( */
+        /*             arg, */
+        /*             arg_type, */
+        /*             param_type, */
+        /*             call, */
+        /*             i */
+        /*         )); */
+        /*     } */
+        /* } */
 
         call.set_type(func_type->return_type());
     }
@@ -243,8 +253,14 @@ namespace kore {
         }
     }
 
-    bool TypeChecker::shadows_outer_scope(const Identifier& identifier) {
-        return _scope_stack.find_enclosing(identifier.name()) != nullptr;
+    const Identifier* TypeChecker::shadows_outer_scope(const Identifier& identifier) {
+        auto entry = _scope_stack.find(identifier.name());
+
+        if (entry) {
+            return entry->identifier;
+        }
+
+        return nullptr;
     }
 }
 

@@ -45,7 +45,7 @@ namespace kore {
     }
 
     void ScopeStack::insert(const Identifier* identifier) {
-        insert(identifier, 0);
+        insert(identifier, -1);
     }
 
     void ScopeStack::insert(const Identifier* identifier, Reg reg) {
@@ -59,6 +59,10 @@ namespace kore {
                 .identifier = identifier,
             }
         );
+    }
+
+    bool ScopeStack::is_global_scope() const {
+        return levels() == 1;
     }
 
     void ScopeStack::clear() {
