@@ -23,7 +23,7 @@ IncDecStmt     = ( "++" | "--" ) Expression .
 Assignment     = ExpressionList assign_op ExpressionList .
 assign_op      = [ add_op | mul_op ] "=" .
 IfStmt         = "if" [ SimpleStmt ] Block [ "else" ( IfStmt | Block ) ] .
-TypeAlias      = "type" Identifier "=" Type .
+TypeAlias      = [ "export" ] "type" Identifier "=" Type .
 VarDecl        = Identifier [ Type ] '=' Expression .
 Declaration    = TypeAlias | TypeDecl | VarDecl .
 
