@@ -484,10 +484,10 @@ namespace kore {
             return;
         }
 
+        KORE_DEBUG_PARSER_LOG_TOKEN("function name")
         const Token func_name(*token);
         next_token();
 
-        KORE_DEBUG_PARSER_LOG_TOKEN("function name")
         Function* func = Statement::make_function(exported, func_name);
 
         if (!func) {
@@ -910,6 +910,9 @@ namespace kore {
         KORE_DEBUG_PARSER_LOG_TOKEN("exprlist")
 
         if (!expect_token_type(TokenType::lparen)) {
+            return nullptr;
+        } else if (expect_token_type(TokenType::rparen)) {
+            next_token();
             return nullptr;
         }
 
