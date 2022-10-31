@@ -135,10 +135,10 @@ namespace kore {
         va_end(args);
     }
 
-    void section(const std::string& group, Color color, ColorAttribute attributes, const char* const format, ...) {
+    void section(const std::string& group, Color color, ColorAttribute attributes, int indent, const char* const format, ...) {
         va_list args;
         va_start(args, format);
-        output(0, group, "", color, attributes, true, format, args);
+        output(indent, group, "", color, attributes, true, format, args);
         va_end(args);
     }
 

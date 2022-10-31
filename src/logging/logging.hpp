@@ -32,7 +32,7 @@ namespace kore {
 
     void error_group(const std::string& group, const char* const format, ...);
 
-    void section(const std::string& group, Color color, ColorAttribute attributes, const char* const format, ...);
+    void section(const std::string& group, Color color, ColorAttribute attributes, int indent, const char* const format, ...);
 
     void parser_error(const Location& location, const char* const format, ...);
 }

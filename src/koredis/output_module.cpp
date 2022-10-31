@@ -11,7 +11,7 @@
 
 namespace koredis {
     void output_constant_table(std::ostream& os, kore::Color color, kore::Module& module) {
-        kore::section("constant table", kore::Color::Magenta, kore::ColorAttribute::Bold, "i32");
+        kore::section("constant table", kore::Color::Magenta, kore::ColorAttribute::Bold, 0, "i32");
 
         int table_index = 0;
 
@@ -26,7 +26,7 @@ namespace koredis {
     }
 
     void output_function(std::ostream& os, kore::Color color, kore::CompiledObject& obj) {
-        kore::section("function", kore::Color::Magenta, kore::ColorAttribute::Bold, obj.name().c_str());
+        kore::section("function", kore::Color::Magenta, kore::ColorAttribute::Bold, 0, obj.name().c_str());
 
         os << color << "| " << kore::ColorAttribute::Reset << "locals   : " << obj.locals_count() << std::endl;
         os << color << "| " << kore::ColorAttribute::Reset << "registers: " << obj.reg_count() << std::endl;
