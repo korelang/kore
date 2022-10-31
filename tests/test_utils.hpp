@@ -8,9 +8,9 @@ namespace kore {
         Token token,
         TokenType type,
         const std::string& value,
-        std::size_t lnum,
-        std::size_t start,
-        std::size_t end
+        int lnum,
+        int start,
+        int end
     );
 }
 

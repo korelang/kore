@@ -122,23 +122,8 @@ target_compile_definitions(${COMPILER_NAME} PRIVATE
 
 set_target_properties(${COMPILER_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
-# Test runner executable
-set(TEST_RUNNER_NAME "test_runner")
-
-set(TEST_SOURCES
-    ${BASE_SOURCES}
-    tests/main.cpp
-    tests/test_utils.cpp
-    tests/scanner/test_literals.cpp
-    tests/scanner/test_arith.cpp
-)
-
-add_executable(${TEST_RUNNER_NAME} ${TEST_SOURCES})
-
-include_directories(${TEST_RUNNER_NAME} "./tests" ${INCLUDE_DIRS})
-
-target_compile_options(${TEST_RUNNER_NAME} PUBLIC ${SHARED_COMPILE_FLAGS})
-
-set_target_properties(${TEST_RUNNER_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin") 
 # Build kore disassembler (koredis)
 add_subdirectory("./src/koredis")
+
+# Build tests
+add_subdirectory("./tests")
