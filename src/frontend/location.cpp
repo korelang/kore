@@ -19,22 +19,22 @@ namespace kore {
         _end_col(end.end()) {
     }
 
-    Location::Location(std::size_t lnum, std::size_t start_col, std::size_t end_col)
+    Location::Location(int lnum, int start_col, int end_col)
         : _lnum(lnum), _start_col(start_col), _end_col(end_col) {
     }
 
     Location::~Location() {
     }
 
-    std::size_t Location::lnum() const noexcept {
+    int Location::lnum() const noexcept {
         return this->_lnum;
     }
 
-    std::size_t Location::start() const noexcept {
+    int Location::start() const noexcept {
         return this->_start_col;
     }
 
-    std::size_t Location::end() const noexcept {
+    int Location::end() const noexcept {
         return this->_end_col;
     }
 
@@ -44,6 +44,17 @@ namespace kore {
 
         if (start() < end()) {
             oss << end();
+        }
+
+        return oss.str();
+    }
+
+    std::string Location::colon_format() const {
+        std::ostringstream oss;
+        oss << lnum() << ':' << (start() + 1);
+
+        if (start() < end()) {
+            oss << '-' << (end() + 1);
         }
 
         return oss.str();
