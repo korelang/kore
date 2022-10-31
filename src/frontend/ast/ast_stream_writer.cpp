@@ -98,11 +98,16 @@ namespace kore {
 
         write("func " + func.name() + "(");
 
+        // TODO: parameters
+
         write(") {");
         newline();
         indent();
 
-        // parameters
+        // Function body
+        for (auto it = func.begin(); it != func.end(); ++it) {
+            (*it)->accept_visit_only(*this);
+        }
 
         dedent();
         write("}");
@@ -156,6 +161,10 @@ namespace kore {
     }
 
     void AstStreamWriter::visit(VariableAssignment& assignment) {
+        if (assignment.identifier()->is_mutable()) {
+            write("var ");
+        }
+
         write(assignment.identifier()->name());
         write(" ");
         write(assignment.declared_type()->name());
