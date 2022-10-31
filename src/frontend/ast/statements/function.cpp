@@ -9,7 +9,7 @@
 
 namespace kore {
     Function::Function()
-        : Statement(Location::unknown, StatementType::Function),
+        : Statement(SourceLocation::unknown, StatementType::Function),
         _name("<missing>"),
         _exported(false),
         _type(std::make_unique<FunctionType>()) {
@@ -23,7 +23,7 @@ namespace kore {
     }
 
     Function::Function(bool exported)
-        : Statement(Location::unknown, StatementType::Function),
+        : Statement(SourceLocation::unknown, StatementType::Function),
         _name("<missing>"),
         _exported(exported),
         _type(std::make_unique<FunctionType>()) {

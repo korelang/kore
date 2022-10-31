@@ -2,13 +2,13 @@
 #define KORE_PARSER_ERROR_NODE_HPP
 
 #include "ast/expressions/expression.hpp"
-#include "location.hpp"
+#include "source_location.hpp"
 
 namespace kore {
     /// AST node to denote syntax errors
     class ParserErrorNode final : public Expression {
         public:
-            ParserErrorNode(const std::string& msg, Location location);
+            ParserErrorNode(const std::string& msg, SourceLocation location);
             virtual ~ParserErrorNode();
 
             bool is_error() const noexcept override;

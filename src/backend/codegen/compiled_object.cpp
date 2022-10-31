@@ -15,7 +15,7 @@ namespace kore {
 
     CompiledObject::CompiledObject(
         const std::string& name,
-        const Location& location,
+        const SourceLocation& location,
         int locals_count,
         int reg_count,
         const std::vector<bytecode_type>& instructions
@@ -32,7 +32,7 @@ namespace kore {
         return _name;
     }
 
-    Location CompiledObject::location() const {
+    SourceLocation CompiledObject::location() const {
         return _location;
     }
 

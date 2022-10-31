@@ -69,7 +69,7 @@ namespace kore {
         const std::string& op,
         Expression* left,
         Expression* right,
-        Location location
+        SourceLocation location
     ) : Expression(ExpressionType::Binary, location),
         _op(string_to_binop(op)),
         _left(left),

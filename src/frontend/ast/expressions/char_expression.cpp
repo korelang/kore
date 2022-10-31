@@ -5,7 +5,7 @@
 #include "ast/expressions/char_expression.hpp"
 
 namespace kore {
-    CharExpression::CharExpression(i32 value, Location location)
+    CharExpression::CharExpression(i32 value, SourceLocation location)
         : Expression(ExpressionType::Literal, location),
         _value(value) {
     }

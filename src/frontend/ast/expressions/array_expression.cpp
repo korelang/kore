@@ -4,25 +4,25 @@
 
 namespace kore {
     ArrayExpression::ArrayExpression()
-        : Expression(ExpressionType::Array, Location::unknown),
-        _start(Location::unknown),
-        _end(Location::unknown),
+        : Expression(ExpressionType::Array, SourceLocation::unknown),
+        _start(SourceLocation::unknown),
+        _end(SourceLocation::unknown),
         _type(new ArrayType()) {
     }
 
-    ArrayExpression::ArrayExpression(const Location& location)
+    ArrayExpression::ArrayExpression(const SourceLocation& location)
         : Expression(ExpressionType::Array, location),
         _start(location),
-        _end(Location::unknown) {
+        _end(SourceLocation::unknown) {
     }
 
     ArrayExpression::~ArrayExpression() {}
 
-    void ArrayExpression::set_start_location(const Location& location) {
+    void ArrayExpression::set_start_location(const SourceLocation& location) {
         _start = location;
     }
 
-    void ArrayExpression::set_end_location(const Location& location) {
+    void ArrayExpression::set_end_location(const SourceLocation& location) {
         _end = location;
     }
 

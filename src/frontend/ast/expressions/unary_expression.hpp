@@ -6,7 +6,7 @@
 namespace kore {
     class UnaryExpression : public Expression {
         public:
-            UnaryExpression(const std::string& op, Expression* expr, Location location);
+            UnaryExpression(const std::string& op, Expression* expr, SourceLocation location);
             virtual ~UnaryExpression();
 
             std::string op() const;

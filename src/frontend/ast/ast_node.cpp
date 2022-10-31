@@ -3,13 +3,13 @@
 #include "utils/unused_parameter.hpp"
 
 namespace kore {
-    AstNode::AstNode() : _location(Location::unknown) {}
+    AstNode::AstNode() : _location(SourceLocation::unknown) {}
 
-    AstNode::AstNode(const Location& location) : _location(location) {}
+    AstNode::AstNode(const SourceLocation& location) : _location(location) {}
 
     AstNode::~AstNode() {}
 
-    Location AstNode::location() const {
+    SourceLocation AstNode::location() const {
         return _location;
     }
 

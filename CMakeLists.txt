@@ -47,7 +47,7 @@ set(BASE_SOURCES
     src/frontend/ast/statements/expression_statement.cpp
 
     src/frontend/keywords.cpp
-    src/frontend/location.cpp
+    src/frontend/source_location.cpp
     src/frontend/operator.cpp
     src/frontend/parser.cpp
     src/frontend/scanner.cpp

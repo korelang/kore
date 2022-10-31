@@ -3,7 +3,7 @@
 #include "ast/expressions/integer_expression.hpp"
 
 namespace kore {
-    IntegerExpression::IntegerExpression(i32 value, Location location)
+    IntegerExpression::IntegerExpression(i32 value, SourceLocation location)
         : Expression(ExpressionType::Literal, location),
         _value(value),
         _type(32) {

@@ -1,7 +1,7 @@
 #ifndef KORE_AST_NODE_HPP
 #define KORE_AST_NODE_HPP
 
-#include "location.hpp"
+#include "source_location.hpp"
 
 namespace kore {
     class AstWriter;
@@ -11,16 +11,16 @@ namespace kore {
     class AstNode {
         public:
             AstNode();
-            AstNode(const Location& location);
+            AstNode(const SourceLocation& location);
             virtual ~AstNode();
 
-            Location location() const;
+            SourceLocation location() const;
 
             virtual void accept(AstVisitor& visitor);
             virtual void accept_visit_only(AstVisitor& visitor);
 
         protected:
-            Location _location;
+            SourceLocation _location;
     };
 }
 

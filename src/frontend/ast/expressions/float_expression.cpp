@@ -2,7 +2,7 @@
 #include "ast/expressions/float_expression.hpp"
 
 namespace kore {
-    FloatExpression::FloatExpression(f32 value, Location location)
+    FloatExpression::FloatExpression(f32 value, SourceLocation location)
         : Expression(ExpressionType::Literal, location),
         _value(value) {
     }

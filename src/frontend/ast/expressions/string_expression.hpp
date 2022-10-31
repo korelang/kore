@@ -9,7 +9,7 @@ namespace kore {
     /// A string literal
     class StringExpression : public Expression {
         public:
-            StringExpression(const std::string& value, Location location);
+            StringExpression(const std::string& value, SourceLocation location);
             virtual ~StringExpression();
 
             std::string value() const noexcept;

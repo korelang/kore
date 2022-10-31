@@ -2,7 +2,7 @@
 
 #include "test_utils.hpp"
 #include "scanner.hpp"
-#include "location.hpp"
+#include "source_location.hpp"
 
 namespace kore {
     TEST_CASE("Can scan literals", "[literals]") {

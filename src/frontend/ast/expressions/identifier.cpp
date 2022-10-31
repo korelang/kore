@@ -18,18 +18,18 @@ namespace kore {
     }
 
     Identifier::Identifier(const std::string& value)
-        : Expression(ExpressionType::Identifier, Location::unknown),
+        : Expression(ExpressionType::Identifier, SourceLocation::unknown),
         _value(value) {
         split_on(value, '.', _parts);
     }
 
-    Identifier::Identifier(const std::string& value, const Location& location)
+    Identifier::Identifier(const std::string& value, const SourceLocation& location)
         : Expression(ExpressionType::Identifier, location),
         _value(value) {
         split_on(value, '.', _parts);
     }
 
-    Identifier::Identifier(const std::vector<std::string>& parts, const Location& location)
+    Identifier::Identifier(const std::vector<std::string>& parts, const SourceLocation& location)
         : Expression(ExpressionType::Identifier, location),
         _value(""),
         _parts(parts) {

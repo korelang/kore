@@ -3,7 +3,7 @@
 #include "ast/expressions/bool_expression.hpp"
 
 namespace kore {
-    BoolExpression::BoolExpression(const std::string& value, const Location& location)
+    BoolExpression::BoolExpression(const std::string& value, const SourceLocation& location)
         : Expression(ExpressionType::Literal, location),
         _value(value) {
     }

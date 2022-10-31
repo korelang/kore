@@ -4,7 +4,7 @@
 
 namespace kore {
     ImportStatement::ImportStatement(Identifier* import_spec)
-        : Statement(Location::unknown, StatementType::ImportDecl),
+        : Statement(SourceLocation::unknown, StatementType::ImportDecl),
         _spec(std::move(import_spec)) {
     }
 

@@ -6,7 +6,7 @@
 namespace kore {
     class ArrayRangeExpression : public Expression {
         public:
-            ArrayRangeExpression(Expression* start_expr, Expression* end_expr, const Location& location);
+            ArrayRangeExpression(Expression* start_expr, Expression* end_expr, const SourceLocation& location);
             virtual ~ArrayRangeExpression();
 
             bool uses_constants_only() const;

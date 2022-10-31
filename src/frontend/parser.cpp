@@ -130,7 +130,7 @@ namespace kore {
         _failed = true;
         ++_error_count;
 
-        Location loc = current_token()->location();
+        SourceLocation loc = current_token()->location();
 
         std::cerr << ColorAttribute::Bold << Color::Red
                 << "[error:parser("
@@ -564,7 +564,7 @@ namespace kore {
         KORE_DEBUG_PARSER_LOG_TOKEN("parameter list")
 
         auto token = current_token();
-        Location loc = token->location();
+        SourceLocation loc = token->location();
 
         while (!_scanner.eof() && parse_parameter_decl(func));
 
@@ -587,7 +587,7 @@ namespace kore {
     IdentifierList Parser::parse_identifier_list() {
         IdentifierList identifiers;
         const Token* token = current_token();
-        Location loc = token->location();
+        SourceLocation loc = token->location();
 
         do {
             if (token->is_identifier()) {
@@ -786,7 +786,7 @@ namespace kore {
 
         std::vector<std::string> identifier;
         auto token = current_token();
-        Location loc = token->location();
+        SourceLocation loc = token->location();
 
         do {
             if (token->is_identifier()) {
@@ -843,7 +843,7 @@ namespace kore {
         /* auto value = token->value(); */
 
         /* if (token->is_op()) { */
-        /*     Location location = token->location(); */
+        /*     SourceLocation location = token->location(); */
         /*     auto op = token->op(); */
         /*     this->next_token(); */
 
@@ -967,7 +967,7 @@ namespace kore {
                 return left;
             }
 
-            Location binop_location = token->location();
+            SourceLocation binop_location = token->location();
             std::string op = token->op();
             next_token();
 
@@ -976,7 +976,7 @@ namespace kore {
             if (op == "..") {
                 left = Expression::make_array_range(left, right, binop_location);
             } else {
-                left = Expression::make_binary(op, left, right, Location(left->location(), right->location()));
+                left = Expression::make_binary(op, left, right, SourceLocation(left->location(), right->location()));
             }
         }
 

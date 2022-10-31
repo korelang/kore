@@ -9,7 +9,7 @@ namespace kore {
     /// An char literal
     class CharExpression : public Expression {
         public:
-            CharExpression(i32 value, Location location);
+            CharExpression(i32 value, SourceLocation location);
             virtual ~CharExpression();
 
             i32 value() const noexcept;

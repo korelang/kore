@@ -27,7 +27,7 @@ namespace kore {
         // remain the same
         return new IntegerExpression(
             result,
-            Location(left->location(), right->location())
+            SourceLocation(left->location(), right->location())
         );
     }
 

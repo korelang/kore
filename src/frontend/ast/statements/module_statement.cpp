@@ -5,7 +5,7 @@ namespace kore {
     ModuleStatement::ModuleStatement(const Token& token)
         : ModuleStatement(token.value(), token.location()) {}
 
-    ModuleStatement::ModuleStatement(const std::string& module_name, const Location& location)
+    ModuleStatement::ModuleStatement(const std::string& module_name, const SourceLocation& location)
         : Statement(location, StatementType::ModuleDecl),
         _name(module_name) {
     }

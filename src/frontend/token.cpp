@@ -3,7 +3,7 @@
 #include "token.hpp"
 
 namespace kore {
-    Token::Token() : Token(TokenType::invalid, Location::unknown) {
+    Token::Token() : Token(TokenType::invalid, SourceLocation::unknown) {
     }
 
     Token::Token(const Token& token)
@@ -25,11 +25,11 @@ namespace kore {
         }
     }
 
-    Token::Token(TokenType type, const Location& location)
+    Token::Token(TokenType type, const SourceLocation& location)
         : Token(type, location, "") {
     }
 
-    Token::Token(TokenType type, const Location& location, const std::string& value)
+    Token::Token(TokenType type, const SourceLocation& location, const std::string& value)
         : _type(type),
         _location(location),
         _value(value) {
@@ -64,7 +64,7 @@ namespace kore {
         return _type;
     }
 
-    Location Token::location() const {
+    SourceLocation Token::location() const {
         return _location;
     }
 
@@ -149,14 +149,14 @@ namespace kore {
     }
 
     Token Token::make_invalid_token() {
-        return Token(TokenType::invalid, Location::unknown);
+        return Token(TokenType::invalid, SourceLocation::unknown);
     }
 
     Token Token::make_eof(std::size_t lnum, std::size_t start, std::size_t end) {
-        return Token(TokenType::eof, Location(lnum, start, end));
+        return Token(TokenType::eof, SourceLocation(lnum, start, end));
     }
 
-    Token Token::make_token(TokenType type, const Location& location, const std::string& value) {
+    Token Token::make_token(TokenType type, const SourceLocation& location, const std::string& value) {
         return Token(type, location, value);
     }
 
@@ -167,7 +167,7 @@ namespace kore {
         std::size_t end,
         const std::string& value
     ) {
-        auto token = Token::make_token(TokenType::integer, Location(lnum, start, end), value);
+        auto token = Token::make_token(TokenType::integer, SourceLocation(lnum, start, end), value);
 
         switch (format) {
             case IntegerFormat::dec:
@@ -197,7 +197,7 @@ namespace kore {
         std::size_t end,
         const std::string& value
     ) {
-        auto token = Token::make_token(TokenType::character, Location(lnum, start, end), value);
+        auto token = Token::make_token(TokenType::character, SourceLocation(lnum, start, end), value);
         token._internal_value.integer = cp;
 
         return token;
@@ -210,7 +210,7 @@ namespace kore {
         std::size_t end,
         const std::string& value
     ) {
-        auto token = Token::make_token(type, Location(lnum, start, end), value);
+        auto token = Token::make_token(type, SourceLocation(lnum, start, end), value);
 
         if (type == TokenType::floatp) {
             token._internal_value.float32 = std::stof(value);

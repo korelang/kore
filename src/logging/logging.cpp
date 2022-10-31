@@ -142,7 +142,7 @@ namespace kore {
         va_end(args);
     }
 
-    void parser_error(const Location& location, const char* const format, ...) {
+    void parser_error(const SourceLocation& location, const char* const format, ...) {
         va_list args;
         va_start(args, format);
         output(0, "error", "parser", Color::Red, ColorAttribute::Bold, false, format, args);

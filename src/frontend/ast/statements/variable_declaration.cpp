@@ -7,7 +7,7 @@ namespace kore {
         _identifier(identifier.value()),
         _type(type.value())
     {
-        _location = Location(
+        _location = SourceLocation(
             identifier.location().lnum(),
             identifier.location().start(),
             type.location().end()

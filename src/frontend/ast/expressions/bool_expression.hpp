@@ -7,7 +7,7 @@
 namespace kore {
     class BoolExpression : public Expression {
         public:
-            BoolExpression(const std::string& value, const Location& location);
+            BoolExpression(const std::string& value, const SourceLocation& location);
             virtual ~BoolExpression();
 
             std::string value() const;

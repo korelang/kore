@@ -1,44 +1,52 @@
 #include <sstream>
 
-#include "location.hpp"
+#include "source_location.hpp"
 
 namespace kore {
-    Location::Location() : Location(-1, -1, -1) {
+    SourceLocation::SourceLocation() : SourceLocation(-1, -1, -1) {
     }
 
-    Location::Location(const Location& location)
+    SourceLocation::SourceLocation(const SourceLocation& location)
         : _lnum(location.lnum()),
         _start_col(location.start()),
         _end_col(location.end()) {
     }
 
     // TODO: Support multi-line locations (due to e.g. arbitrary line breaks)
-    Location::Location(const Location& start, const Location& end)
+    SourceLocation::SourceLocation(const SourceLocation& start, const SourceLocation& end)
         : _lnum(start.lnum()),
         _start_col(start.start()),
         _end_col(end.end()) {
     }
 
-    Location::Location(int lnum, int start_col, int end_col)
+    SourceLocation::SourceLocation(int lnum, int start_col, int end_col)
         : _lnum(lnum), _start_col(start_col), _end_col(end_col) {
     }
 
-    Location::~Location() {
+    SourceLocation::~SourceLocation() {
     }
 
-    int Location::lnum() const noexcept {
+    int SourceLocation::lnum() const noexcept {
         return this->_lnum;
     }
 
-    int Location::start() const noexcept {
+    int SourceLocation::start() const noexcept {
         return this->_start_col;
     }
 
-    int Location::end() const noexcept {
+    int SourceLocation::end() const noexcept {
         return this->_end_col;
     }
 
-    std::string Location::format_columns() const {
+    bool SourceLocation::is_single_pos() const noexcept {
+        return _start_col == _end_col;
+    }
+
+    bool SourceLocation::is_unknown() const noexcept {
+        return _lnum == -1 && _start_col == -1 && _end_col == -1;
+    }
+
+    std::string SourceLocation::format_columns() const {
         std::ostringstream oss;
         oss << (start() + 1);
 
@@ -49,7 +57,7 @@ namespace kore {
         return oss.str();
     }
 
-    std::string Location::colon_format() const {
+    std::string SourceLocation::colon_format() const {
         std::ostringstream oss;
         oss << lnum() << ':' << (start() + 1);
 
@@ -60,9 +68,9 @@ namespace kore {
         return oss.str();
     }
 
-    const Location Location::unknown = Location();
+    const SourceLocation SourceLocation::unknown = SourceLocation();
 
-    std::ostream& operator<<(std::ostream& os, const Location& location) {
+    std::ostream& operator<<(std::ostream& os, const SourceLocation& location) {
         os << "line " << location.lnum();
 
         if (location.start() != location.end()) {

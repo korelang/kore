@@ -8,7 +8,7 @@ namespace kore {
     class ModuleStatement : public Statement {
         public:
             ModuleStatement(const Token& token);
-            ModuleStatement(const std::string& module_name, const Location& location);
+            ModuleStatement(const std::string& module_name, const SourceLocation& location);
             virtual ~ModuleStatement();
 
             std::string name() const;

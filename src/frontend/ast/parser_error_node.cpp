@@ -4,7 +4,7 @@
 #include "utils/unused_parameter.hpp"
 
 namespace kore {
-    ParserErrorNode::ParserErrorNode(const std::string& msg, Location location)
+    ParserErrorNode::ParserErrorNode(const std::string& msg, SourceLocation location)
         : Expression(ExpressionType::Error, location),
         _message(msg) {
     }

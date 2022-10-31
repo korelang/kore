@@ -7,7 +7,7 @@
 #include "integer_format.hpp"
 #include "internal_value_types.hpp"
 #include "keywords.hpp"
-#include "location.hpp"
+#include "source_location.hpp"
 #include "operator.hpp"
 #include "token_type.hpp"
 #include "token_category.hpp"
@@ -18,14 +18,14 @@ namespace kore {
         public:
             Token();
             Token(const Token& token);
-            Token(TokenType type, const Location& location);
-            Token(TokenType type, const Location& location, const std::string& value);
+            Token(TokenType type, const SourceLocation& location);
+            Token(TokenType type, const SourceLocation& location, const std::string& value);
             virtual ~Token();
 
             Token& operator=(const Token& token);
 
             TokenType type() const;
-            Location location() const;
+            SourceLocation location() const;
             std::string value() const;
             TokenCategory category() const;
 
@@ -65,7 +65,7 @@ namespace kore {
             );
             static Token make_token(
                 TokenType type,
-                const Location& location,
+                const SourceLocation& location,
                 const std::string& value
             );
             static Token make_token(
@@ -78,7 +78,7 @@ namespace kore {
 
         private:
             TokenType _type;
-            Location _location;
+            SourceLocation _location;
             std::string _value;
             TokenCategory _category;
 

@@ -16,7 +16,7 @@ namespace kore {
         _type(std::move(type)),
         _expr(std::move(expr))
     {
-        _location = Location(
+        _location = SourceLocation(
             identifier.location().lnum(),
             identifier.location().start(),
             expr->location().end()

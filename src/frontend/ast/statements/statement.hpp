@@ -27,7 +27,7 @@ namespace kore {
 
         public:
             Statement();
-            Statement(Location location, StatementType statement_type);
+            Statement(SourceLocation location, StatementType statement_type);
             virtual ~Statement();
 
             virtual void add_statement(Statement* statement);
@@ -36,7 +36,7 @@ namespace kore {
 
             static Function* make_function(bool exported, const Token&);
             static Return* make_return(Expression* expr);
-            static Statement* make_module_decl(const std::string& module_name, const Location& location);
+            static Statement* make_module_decl(const std::string& module_name, const SourceLocation& location);
             static Statement* make_module_decl(const Token& token);
             static Statement* make_import_decl(Identifier*);
             static Statement* make_variable_decl(const Token& identifier, const Token& type);

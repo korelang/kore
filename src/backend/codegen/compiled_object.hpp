@@ -6,7 +6,7 @@
 
 #include "ast/statements/function.hpp"
 #include "codegen/bytecode/bytecode.hpp"
-#include "location.hpp"
+#include "source_location.hpp"
 #include "register.hpp"
 
 namespace kore {
@@ -28,7 +28,7 @@ namespace kore {
             CompiledObject(const Function* func);
             CompiledObject(
                 const std::string& name,
-                const Location& location,
+                const SourceLocation& location,
                 int locals_count,
                 int reg_count,
                 const std::vector<bytecode_type>& instructions
@@ -36,7 +36,7 @@ namespace kore {
             virtual ~CompiledObject();
 
             std::string name() const;
-            Location location() const;
+            SourceLocation location() const;
             int locals_count() const;
             int reg_count() const;
             int max_regs_used() const;
@@ -54,7 +54,7 @@ namespace kore {
 
         private:
             std::string _name;
-            Location _location;
+            SourceLocation _location;
             int _local_count = 0;
             std::vector<bytecode_type> _instructions;
 

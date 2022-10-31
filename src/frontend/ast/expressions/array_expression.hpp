@@ -11,11 +11,11 @@ namespace kore {
     class ArrayExpression : public Expression {
         public:
             ArrayExpression();
-            ArrayExpression(const Location& location);
+            ArrayExpression(const SourceLocation& location);
             virtual ~ArrayExpression();
 
-            void set_start_location(const Location& location);
-            void set_end_location(const Location& location);
+            void set_start_location(const SourceLocation& location);
+            void set_end_location(const SourceLocation& location);
             void add_element(Expression* expr);
             bool uses_constants_only() const;
             int size() const;
@@ -26,7 +26,7 @@ namespace kore {
             void accept_visit_only(AstVisitor& visitor) override;
 
         private:
-            Location _start, _end;
+            SourceLocation _start, _end;
             std::vector<pointer> _elements;
             ArrayType* _type;
     };

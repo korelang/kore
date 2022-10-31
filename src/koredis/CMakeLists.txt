@@ -33,7 +33,7 @@ set(DISASSEMBLER_SOURCES
     ${PROJECT_SOURCE_DIR}/src/frontend/ast/statements/variable_assignment.cpp
     ${PROJECT_SOURCE_DIR}/src/frontend/ast/statements/variable_declaration.cpp
     ${PROJECT_SOURCE_DIR}/src/frontend/keywords.cpp
-    ${PROJECT_SOURCE_DIR}/src/frontend/location.cpp
+    ${PROJECT_SOURCE_DIR}/src/frontend/source_location.cpp
     ${PROJECT_SOURCE_DIR}/src/frontend/operator.cpp
     ${PROJECT_SOURCE_DIR}/src/frontend/string-utils.cpp
     ${PROJECT_SOURCE_DIR}/src/frontend/token.cpp

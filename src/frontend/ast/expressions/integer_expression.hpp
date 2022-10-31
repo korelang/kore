@@ -9,7 +9,7 @@ namespace kore {
     /// An integer literal
     class IntegerExpression : public Expression {
         public:
-            IntegerExpression(i32 value, Location location);
+            IntegerExpression(i32 value, SourceLocation location);
             virtual ~IntegerExpression();
 
             i32 value() const noexcept;

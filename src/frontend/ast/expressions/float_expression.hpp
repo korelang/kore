@@ -9,7 +9,7 @@ namespace kore {
     /// A float literal
     class FloatExpression : public Expression {
         public:
-            FloatExpression(f32 value, Location location);
+            FloatExpression(f32 value, SourceLocation location);
             virtual ~FloatExpression();
 
             const Type* type() const override;

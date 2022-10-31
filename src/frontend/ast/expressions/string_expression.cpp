@@ -2,7 +2,7 @@
 #include "ast/expressions/string_expression.hpp"
 
 namespace kore {
-    StringExpression::StringExpression(const std::string& value, Location location)
+    StringExpression::StringExpression(const std::string& value, SourceLocation location)
         : Expression(ExpressionType::Literal, location),
         _value(value) {
     }

@@ -14,9 +14,9 @@
 #include "utils/unused_parameter.hpp"
 
 namespace kore {
-    Statement::Statement() : AstNode(Location::unknown) {}
+    Statement::Statement() : AstNode(SourceLocation::unknown) {}
 
-    Statement::Statement(Location location, StatementType statement_type)
+    Statement::Statement(SourceLocation location, StatementType statement_type)
         : AstNode(location), _statement_type(statement_type) {}
 
     Statement::~Statement() {}
@@ -39,7 +39,7 @@ namespace kore {
         return new Return(expr);
     }
 
-    Statement* Statement::make_module_decl(const std::string& module_name, const Location& location) {
+    Statement* Statement::make_module_decl(const std::string& module_name, const SourceLocation& location) {
         return new ModuleStatement(module_name, location);
     }
 

@@ -1,7 +1,7 @@
 #ifndef KORE_ERROR_HPP
 #define KORE_ERROR_HPP
 
-#include "location.hpp"
+#include "source_location.hpp"
 
 namespace kore {
     namespace errors {
@@ -14,17 +14,17 @@ namespace kore {
         };
 
         struct Error {
-            Error(ErrorType error_type, const std::string& message, const Location& location, const Location& end = Location::unknown);
-            Error(const std::string& message, const Location& location, const Location& end = Location::unknown);
+            Error(ErrorType error_type, const std::string& message, const SourceLocation& location, const SourceLocation& end = SourceLocation::unknown);
+            Error(const std::string& message, const SourceLocation& location, const SourceLocation& end = SourceLocation::unknown);
 
             ErrorType type;
             std::string message;
 
-            Location location;
+            SourceLocation location;
 
             // Used for e.g. multiple declaration errors to point to the
             // previous declaration
-            Location end;
+            SourceLocation end;
         };
 
         namespace scan {

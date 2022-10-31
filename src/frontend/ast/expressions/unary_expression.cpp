@@ -5,7 +5,7 @@ namespace kore {
     UnaryExpression::UnaryExpression(
         const std::string& op,
         Expression* expr,
-        Location location
+        SourceLocation location
     ) : Expression(ExpressionType::Unary, location),
         _op(op),
         _expr(expr)

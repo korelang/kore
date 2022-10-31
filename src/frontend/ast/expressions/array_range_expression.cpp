@@ -5,7 +5,7 @@ namespace kore {
     ArrayRangeExpression::ArrayRangeExpression(
         Expression* start_expr,
         Expression* end_expr,
-        const Location& location
+        const SourceLocation& location
     ) : Expression(ExpressionType::Array, location),
         _start_expr(std::move(start_expr)),
         _end_expr(std::move(end_expr)) {

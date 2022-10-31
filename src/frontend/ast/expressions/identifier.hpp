@@ -11,8 +11,8 @@ namespace kore {
             Identifier(const Token& token);
             Identifier(const Token& token, bool is_mutable);
             Identifier(const std::string& value);
-            Identifier(const std::string& value, const Location& location);
-            Identifier(const std::vector<std::string>& value, const Location& location);
+            Identifier(const std::string& value, const SourceLocation& location);
+            Identifier(const std::vector<std::string>& value, const SourceLocation& location);
             virtual ~Identifier();
 
             std::string name() const;

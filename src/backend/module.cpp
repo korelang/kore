@@ -129,7 +129,7 @@ namespace kore {
         int reg_count,
         const std::vector<bytecode_type>& instructions
     ) {
-        auto location = Location(lnum, start, end);
+        auto location = SourceLocation(lnum, start, end);
 
         _objects.emplace_back(std::make_unique<CompiledObject>(name, location, locals_count, reg_count, instructions));
         _function_map[name] = _objects.back().get();

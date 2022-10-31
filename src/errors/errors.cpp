@@ -14,12 +14,12 @@ namespace kore {
         /*     Error character_should_be_string(std::size_t col, std::size_t lnum) { */
         /*         auto message = "Character contains more than one character, should be a string?"; */
 
-        /*         return Error(ErrorType::Scan, message, Location(lnum, col, col)); */
+        /*         return Error(ErrorType::Scan, message, SourceLocation(lnum, col, col)); */
         /*     } */
         /* } */
 
         namespace typing {
-            Error cannot_assign(const Type* lhs, const Type* rhs, const Location& location) {
+            Error cannot_assign(const Type* lhs, const Type* rhs, const SourceLocation& location) {
                 auto message = "cannot assign expression of type "
                     + lhs->name()
                     + " to variable of type "
@@ -29,7 +29,7 @@ namespace kore {
                 return Error(ErrorType::Typing, message, location);
             }
 
-            Error incompatible_binop(const Type* left, const Type* right, BinOp op, const Location& location) {
+            Error incompatible_binop(const Type* left, const Type* right, BinOp op, const SourceLocation& location) {
                 auto message = "cannot use binary operation '"
                     + binop_to_string(op) + "'"
                     + " with numeric types "
@@ -41,7 +41,7 @@ namespace kore {
                 return Error(ErrorType::Typing, message, location);
             }
 
-            Error binop_numeric_operands(const Type* left, const Type* right, BinOp op, const Location& location) {
+            Error binop_numeric_operands(const Type* left, const Type* right, BinOp op, const SourceLocation& location) {
                 auto message = "binary expression '"
                     + binop_to_string(op)
                     + "' must have numeric operands but got "
@@ -52,7 +52,7 @@ namespace kore {
                 return Error(ErrorType::Typing, message, location);
             }
 
-            Error variable_shadows(const Identifier* identifier, const Identifier* shadowed, const Location& location) {
+            Error variable_shadows(const Identifier* identifier, const Identifier* shadowed, const SourceLocation& location) {
                 std::string message = "variable '" + identifier->name() + "' shadows variable ";
 
                 if (shadowed) {
@@ -64,7 +64,7 @@ namespace kore {
                 return Error(ErrorType::Typing, message, location);
             }
 
-            Error redeclaration_constant_variable(const Identifier& identifier, const Location& location, const Identifier& prev_declared) {
+            Error redeclaration_constant_variable(const Identifier& identifier, const SourceLocation& location, const Identifier& prev_declared) {
                 std::ostringstream oss;
 
                 oss << "redeclaration of constant variable '" << identifier.name() << "', previously declared here: " << prev_declared.location();
@@ -72,7 +72,7 @@ namespace kore {
                 return Error(ErrorType::Typing, oss.str(), location);
             }
 
-            Error cannot_declare_mutable_global(const Identifier& identifier, const Location& location) {
+            Error cannot_declare_mutable_global(const Identifier& identifier, const SourceLocation& location) {
                 auto message = "cannot declare global mutable variables ('" + identifier.name() + "')";
 
                 return Error(ErrorType::Typing, message, location);
@@ -117,7 +117,7 @@ namespace kore {
         }
     }
 
-    std::string format_locations(const Location& start) {
+    std::string format_locations(const SourceLocation& start) {
         std::ostringstream oss;
         oss << start.lnum() << ":" << start.start();
 
@@ -165,7 +165,7 @@ namespace kore {
         return oss.str();
     }
 
-    std::string format_error_at_line(const std::string& line, const Location& location) {
+    std::string format_error_at_line(const std::string& line, const SourceLocation& location) {
         return format_error_at_line(line, location.start(), location.end());
     }
 
@@ -195,7 +195,7 @@ namespace kore {
     std::string format_error(
         const std::string& msg,
         const std::string& line,
-        const Location& location
+        const SourceLocation& location
     ) {
         return format_error(msg, line, location.lnum(), location.start(), location.end());
     }
