@@ -39,9 +39,11 @@ namespace kore {
 
             void write(const std::string& value) override;
             void write(const Ast& ast) override;
-            void newline() override;
+            void write_indent();
+            void newline(int count = 1) override;
 
         private:
+            static int indent_in_spaces;
             std::ostream* _out;
     };
 }

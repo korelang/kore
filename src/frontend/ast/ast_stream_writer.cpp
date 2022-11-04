@@ -1,6 +1,8 @@
 #include "ast/ast_stream_writer.hpp"
 
 namespace kore {
+    int AstStreamWriter::indent_in_spaces = 4;
+
     AstStreamWriter::AstStreamWriter() : _out(nullptr) {}
 
     AstStreamWriter::AstStreamWriter(std::ostream& out) {
@@ -8,6 +10,7 @@ namespace kore {
     }
 
     AstStreamWriter::~AstStreamWriter() {
+        // The class does not own the output stream
         _out = nullptr;
     }
 
@@ -106,16 +109,29 @@ namespace kore {
 
         // Function body
         for (auto it = func.begin(); it != func.end(); ++it) {
+            write_indent();
             (*it)->accept_visit_only(*this);
         }
 
         dedent();
         write("}");
-        newline();
+        newline(2);
     }
 
     void AstStreamWriter::visit(class Call& call) {
-        write(call.name());
+        write(call.name() + "(");
+
+        int arg_count = call.arg_count();
+
+        for (int i = 0; i < arg_count; ++i) {
+            call.arg(i)->accept_visit_only(*this);
+
+            if (i < arg_count - 1) {
+                write(", ");
+            }
+        }
+
+        write(")");
     }
 
     void AstStreamWriter::visit(IfStatement& ifstatement) {
@@ -144,9 +160,8 @@ namespace kore {
     }
 
     void AstStreamWriter::visit(ModuleStatement& module) {
-        write("module ");
-        write(module.name());
-        newline();
+        write("module " + module.name());
+        newline(2);
     }
 
     void AstStreamWriter::visit(Return& ret) {
@@ -204,9 +219,17 @@ namespace kore {
         }
     }
 
-    void AstStreamWriter::newline() {
+    void AstStreamWriter::write_indent() {
         if (_out) {
-            *_out << std::endl;
+            *_out << std::string(_indent * indent_in_spaces, ' ');
+        }
+    }
+
+    void AstStreamWriter::newline(int count) {
+        if (_out) {
+            for (int i = 0; i < count; ++i) {
+                *_out << std::endl;
+            }
         }
     }
 }

@@ -18,12 +18,11 @@ namespace kore {
             virtual void write(const Ast& ast) = 0;
 
         protected:
+            int _indent;
+
             void indent();
             void dedent();
-            virtual void newline() = 0;
-
-        private:
-            int _indent;
+            virtual void newline(int count = 1) = 0;
     };
 }
 
