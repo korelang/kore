@@ -32,8 +32,7 @@
 #endif
 
 namespace kore {
-    TypeChecker::TypeChecker(ScopeStack& scope_stack)
-        : _scope_stack(scope_stack) {}
+    TypeChecker::TypeChecker() {}
 
     TypeChecker::~TypeChecker() {}
 

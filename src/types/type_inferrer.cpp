@@ -23,8 +23,7 @@
 #endif
 
 namespace kore {
-    TypeInferrer::TypeInferrer(ScopeStack& scope_stack)
-        : _scope_stack(scope_stack) {}
+    TypeInferrer::TypeInferrer() {}
 
     TypeInferrer::~TypeInferrer() {}
 

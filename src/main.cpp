@@ -97,14 +97,14 @@ namespace kore {
         return 0;
     }
 
-    void infer_types(Ast& ast, ScopeStack& scope_stack) {
-        TypeInferrer type_inferrer{scope_stack};
+    void infer_types(Ast& ast) {
+        TypeInferrer type_inferrer;
 
         type_inferrer.infer(ast);
     }
 
-    int check_types(const std::string& source_name, const Ast& ast, ScopeStack& scope_stack, int verbosity) {
-        TypeChecker type_checker{scope_stack};
+    int check_types(const std::string& source_name, const Ast& ast, int verbosity) {
+        TypeChecker type_checker;
 
         int error_count = type_checker.check(ast);
 
@@ -170,12 +170,11 @@ namespace kore {
 
 
         // 3. Infer types
-        ScopeStack scope_stack;
-        infer_types(ast, scope_stack);
+        infer_types(ast);
         success_group(1, args.verbosity, "type inference", "");
 
         // 4. Check types
-        int error_count = check_types(source_name, ast, scope_stack, args.verbosity);
+        int error_count = check_types(source_name, ast, args.verbosity);
 
         if (args.typecheck_only || error_count > 0) {
             return error_count > 0 ? 1 : 0;
@@ -199,19 +198,9 @@ namespace kore {
         // 6. Add explicit type conversions
 
         // 7. Compilation
-        scope_stack.clear();
-        BytecodeGenerator code_generator{scope_stack};
-        code_generator.compile(ast);
-        success(1, args.verbosity, "compilation successful");
-
-        if (args.dump_codegen) {
-            std::vector<std::unique_ptr<CompiledObject>> compiled_objects;
-            code_generator.acquire_compiled_code(std::back_inserter(compiled_objects));
-            debug_group("compilation", "dumping generated code for %d objects", compiled_objects.size());
-
-            for (auto& compiled_object : compiled_objects) {
-                decode_instructions(compiled_object.get());
-            }
+        BytecodeGenerator code_generator;
+        auto module = code_generator.compile(ast);
+        success_group(1, args.verbosity, "compilation", "");
 
             return 0;
         }

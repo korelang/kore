@@ -15,7 +15,7 @@ namespace kore {
 
     class TypeChecker final : public AstVisitor {
         public:
-            TypeChecker(ScopeStack& scope_stack);
+            TypeChecker();
             virtual ~TypeChecker();
 
             /// Typecheck an AST
@@ -26,7 +26,7 @@ namespace kore {
         private:
             static constexpr int _NO_ERROR_THRESHOLD = -1;
 
-            ScopeStack& _scope_stack;
+            ScopeStack _scope_stack;
 
             // How many errors to tolerate before bailing out
             int _error_threshold = _NO_ERROR_THRESHOLD;

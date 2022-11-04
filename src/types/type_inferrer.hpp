@@ -10,14 +10,14 @@ namespace kore {
     /// Class that tries to infer the types of nodes in an AST
     class TypeInferrer final : public AstVisitor {
         public:
-            TypeInferrer(ScopeStack& scope_stack);
+            TypeInferrer();
             virtual ~TypeInferrer();
 
             void infer(Ast& ast);
 
         private:
             // We need a symbol table for inference of the types of variables
-            ScopeStack& _scope_stack;
+            ScopeStack _scope_stack;
 
             void visit(BinaryExpression& expr) override;
             void visit(class Call& call) override;

@@ -49,8 +49,7 @@ namespace kore {
         },
     };
 
-    BytecodeGenerator::BytecodeGenerator(ScopeStack& scope_stack)
-        : _scope_stack(scope_stack) {}
+    BytecodeGenerator::BytecodeGenerator() {}
 
     BytecodeGenerator::~BytecodeGenerator() {}
 

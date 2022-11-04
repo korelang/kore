@@ -22,7 +22,7 @@ namespace kore {
             using reg_iterator = std::vector<const Reg>::iterator;
 
         public:
-            BytecodeGenerator(ScopeStack& scope_stack);
+            BytecodeGenerator();
             virtual ~BytecodeGenerator();
 
             // Compile a single statement e.g. for the REPL
@@ -53,7 +53,7 @@ namespace kore {
 
             std::vector<Reg> _register_stack;
             BytecodeArrayWriter _writer;
-            ScopeStack& _scope_stack;
+            ScopeStack _scope_stack;
 
             // Current object we are compiling code for
             CompiledObject* _current_object;
