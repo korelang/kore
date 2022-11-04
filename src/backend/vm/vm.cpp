@@ -76,107 +76,113 @@
 }
 
 namespace kore {
-    Vm::Vm() {}
+    namespace vm {
+        Vm::Vm() {}
 
-    Vm::~Vm() {}
+        Vm::~Vm() {}
 
-    void Vm::run(const bytecode_type* code, std::size_t size) {
-        if (!code || size < 1) {
-        }
+        void Vm::run(const bytecode_type* code, std::size_t size) {
+            if (!code || size < 1) {
+                return;
+            }
 
-        _pc = 0;
+            _sp = 0;
+            _fp = 0;
 
-        // Main interpreter dispatch loop
-        while (_pc < size) {
-            auto curr_instruction = code[_pc++];
-            auto opcode = decode_opcode(curr_instruction);
+            // Main interpreter dispatch loop
+            while (_pc < size) {
+                auto curr_instruction = code[_pc++];
+                auto opcode = decode_opcode(curr_instruction);
 
-            switch (opcode) {
-                case Bytecode::CloadI32:
-                    LOAD_OPCODE(i32)
-                    break;
+                switch (opcode) {
+                    case Bytecode::CloadI32:
+                        LOAD_OPCODE(i32);
+                        break;
 
-                case Bytecode::CloadI64:
-                    LOAD_OPCODE(i64)
-                    break;
+                    case Bytecode::CloadI64:
+                        LOAD_OPCODE(i64);
+                        break;
 
-                BINARY_OP_CASES(i32, I32)
-                BINARY_OP_CASES(i64, I64)
-                BINARY_OP_CASES(f32, F32)
-                BINARY_OP_CASES(f64, F64)
+                    BINARY_OP_CASES(i32, I32)
+                    BINARY_OP_CASES(i64, I64)
+                    BINARY_OP_CASES(f32, F32)
+                    BINARY_OP_CASES(f64, F64)
 
-                RELOP_CASES(i32, I32)
-                RELOP_CASES(i64, I64)
-                RELOP_CASES(f32, F32)
-                RELOP_CASES(f64, F64)
+                    RELOP_CASES(i32, I32)
+                    RELOP_CASES(i64, I64)
+                    RELOP_CASES(f32, F32)
+                    RELOP_CASES(f64, F64)
 
-                case Bytecode::Move: {
-                    Reg dest_reg = (curr_instruction >> 16) & 0xff;
-                    Reg src_reg = (curr_instruction >> 8) & 0xff;
-                    _registers[dest_reg] = _registers[src_reg];
-                    break;
-                }
-
-                case Bytecode::Jump: {
-                    int offset = curr_instruction & 0xffff;
-                    _pc += offset;
-                    break;
-                }
-
-                case Bytecode::JumpIf: {
-                    Reg reg = (curr_instruction >> 16) & 0xff;
-
-                    if (_registers[reg].as_bool()) {
-                        int offset = curr_instruction & 0xffff;
-                        // Adjust since we already incremented the pc
-                        _pc += offset - 1;
+                    case Bytecode::Move: {
+                        _registers[GET_REG1(curr_instruction)] = _registers[GET_REG2(curr_instruction)];
+                        break;
                     }
-                    break;
-                }
 
-                case Bytecode::JumpIfNot: {
-                    Reg reg = (curr_instruction >> 16) & 0xff;
-
-                    if (!_registers[reg].as_bool()) {
-                        int offset = curr_instruction & 0xffff;
-                        // Adjust since we already incremented the pc
-                        _pc += offset - 1;
+                    case Bytecode::Jump: {
+                        _pc += GET_OFFSET(curr_instruction);
+                        break;
                     }
-                    break;
+
+                    case Bytecode::JumpIf: {
+                        if (_registers[GET_REG1(curr_instruction)].as_bool()) {
+                            // Adjust since we already incremented the pc
+                            _pc += GET_OFFSET(curr_instruction) - 1;
+                        }
+                        break;
+                    }
+
+                    case Bytecode::JumpIfNot: {
+                        if (!_registers[GET_REG1(curr_instruction)].as_bool()) {
+                            // Adjust since we already incremented the pc
+                            _pc += GET_OFFSET(curr_instruction) - 1;
+                        }
+                        break;
+                    }
+
+                    case Bytecode::GstoreI32:
+                        break;
+
+                    /* case Bytecode::Call: { */
+                    /*     push(_context.fp); */
+                    /*     push(_context.pc); */
+                    /* } */
+                    /* break; */
+
+                    default:
+                        throw_unknown_opcode(opcode);
                 }
-
-                case Bytecode::StoreI32Global:
-                    break;
-
-                default:
-                    throw_unknown_opcode(opcode);
             }
         }
-    }
 
-    void Vm::run(const std::vector<bytecode_type>& code) {
-        run(code.data(), code.size());
-    }
+        void Vm::run(const std::vector<bytecode_type>& code) {
+            run(code.data(), code.size());
+        }
 
-    inline Bytecode Vm::decode_opcode(bytecode_type instruction) {
-        return static_cast<Bytecode>(instruction >> 24);
-    }
+        /* void Vm::run_module(const Module& module) { */
+        /*     add_module(module); */
+        /*     context.set_from_module(module); */
+        /* } */
 
-    void inline Vm::decode_address2_opcode(bytecode_type opcode, Reg* dest_reg, Reg* value) {
-        *dest_reg = (opcode >> 16) & 0xff;
-        *value = opcode & 0xffff;
-    }
+        inline Bytecode Vm::decode_opcode(bytecode_type instruction) {
+            return static_cast<Bytecode>(instruction >> 24);
+        }
 
-    void inline Vm::decode_address3_opcode(bytecode_type opcode, Reg* dest_reg, Reg* op1, Reg* op2) {
-        *dest_reg = (opcode >> 16) & 0xff;
-        *op1 = (opcode >> 8) & 0xff;
-        *op2 = opcode & 0xff;
-    }
+        void inline Vm::decode_address2_opcode(bytecode_type opcode, Reg* dest_reg, Reg* value) {
+            *dest_reg = (opcode >> 16) & 0xff;
+            *value = opcode & 0xffff;
+        }
 
-    void Vm::throw_unknown_opcode(Bytecode opcode) {
-        std::ostringstream oss;
-        oss << "Unsupported bytecode at " << _pc << ": " << opcode;
-        throw std::runtime_error(oss.str());
+        void inline Vm::decode_address3_opcode(bytecode_type opcode, Reg* dest_reg, Reg* op1, Reg* op2) {
+            *dest_reg = (opcode >> 16) & 0xff;
+            *op1 = (opcode >> 8) & 0xff;
+            *op2 = opcode & 0xff;
+        }
+
+        void Vm::throw_unknown_opcode(Bytecode opcode) {
+            std::ostringstream oss;
+            oss << "Unsupported bytecode at " << _pc << ": " << opcode;
+            throw std::runtime_error(oss.str());
+        }
     }
 }
 
