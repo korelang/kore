@@ -21,21 +21,17 @@ namespace kore {
     const std::string COMPILER_NAME = "korec";
     const Version CURRENT_VERSION{ 0, 1, 0 };
 
-    void print_version(bool version_only) {
+    void print_version(Version version, bool version_only) {
         if (version_only) {
+            std::cout << version << std::endl;
+        } else {
             info(
                 "%s v%d.%d.%d",
                 COMPILER_NAME.c_str(),
-                CURRENT_VERSION.major,
-                CURRENT_VERSION.minor,
-                CURRENT_VERSION.patch
+                version.major,
+                version.minor,
+                version.patch
             );
-        } else {
-            std::cout
-                << CURRENT_VERSION.major << "."
-                << CURRENT_VERSION.minor << "."
-                << CURRENT_VERSION.patch
-                << std::endl;
         }
     }
 
@@ -139,10 +135,10 @@ namespace kore {
         }
 
         if (args.version) {
-            print_version(false);
+            print_version(CURRENT_VERSION, false);
             return 0;
         } else if (args.version_only) {
-            print_version(true);
+            print_version(CURRENT_VERSION, true);
             return 0;
         } else if (args.help) {
             print_help_message();
