@@ -20,6 +20,8 @@ namespace kore {
     }
 
     void ExpressionStatement::accept_visit_only(AstVisitor& visitor) {
-        visitor.visit(*this);
+        if (_expression) {
+            _expression->accept_visit_only(visitor);
+        }
     }
 }
