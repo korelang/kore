@@ -64,13 +64,9 @@ namespace koredis {
     void disassemble_function(std::ifstream& ifs, kore::Module& module) {
         std::string name = read_string(ifs);
 
-        // TODO: Why do we do this?
-        /* if (name != "main") { */
-            auto lnum = kore::read_be32(ifs);
-            auto start = kore::read_be32(ifs);
-            auto end = kore::read_be32(ifs);
-        /* } */
-
+        auto lnum = kore::read_be32(ifs);
+        auto start = kore::read_be32(ifs);
+        auto end = kore::read_be32(ifs);
         auto locals_count = kore::read_be32(ifs);
         auto reg_count = kore::read_be32(ifs);
         auto code_size = kore::read_be32(ifs);

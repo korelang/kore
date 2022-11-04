@@ -58,7 +58,7 @@ namespace koredis {
 
                 output_module(std::cout, module, args.colors, args.porcelain, args.verbosity);
             } catch (DisassembleError& ex) {
-                kore::error("disassemble failed: %s", path.c_str(), ex.what());
+                kore::error("disassemble failed: %s: %s", path.c_str(), ex.what());
             }
         }
 

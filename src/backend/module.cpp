@@ -97,7 +97,6 @@ namespace kore {
     CompiledObject* Module::new_function_from_name(const std::string& name) {
         _objects.emplace_back(std::make_unique<CompiledObject>(name));
         _function_map[name] = _objects.back().get();
-        /* _function_map[name] = std::make_unique<CompiledObject>(name); */
 
         return _function_map[name];
     }
@@ -105,14 +104,6 @@ namespace kore {
     CompiledObject* Module::main_object() {
         return get_function("<main>");
     }
-
-    /* const CompiledObject* Module::main_object() const { */
-    /*     if (_function_map.empty()) { */
-    /*         return nullptr; */
-    /*     } */
-
-    /*     return _function_map["<main>"].get(); */
-    /* } */
 
     CompiledObject* Module::get_function(const std::string& name) {
         auto it = _function_map.find(name);
