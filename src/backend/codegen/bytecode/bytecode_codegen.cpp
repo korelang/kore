@@ -5,8 +5,14 @@
 #if defined(KORE_DEBUG_BYTECODE_GENERATOR) || defined(KORE_DEBUG)
     #include <iostream>
 
-    #define KORE_DEBUG_BYTECODE_GENERATOR_LOG(prefix) {\
-        std::cerr << "[compiler] " << prefix << std::endl;\
+    #define KORE_DEBUG_BYTECODE_GENERATOR_LOG(prefix, msg) {\
+        std::cerr << "[compiler] " << prefix;\
+        \
+        if (msg.length() > 0) {\
+            std::cerr << " (" << msg << ")";\
+        }\
+        \
+        std::cerr << std::endl;\
     }
 #else
     #define KORE_DEBUG_BYTECODE_GENERATOR_LOG(prefix)
@@ -80,7 +86,7 @@ namespace kore {
     }
 
     void BytecodeGenerator::visit(BinaryExpression& expr) {
-        KORE_DEBUG_BYTECODE_GENERATOR_LOG("binop")
+        KORE_DEBUG_BYTECODE_GENERATOR_LOG("binop", expr.op_string())
 
         auto obj = current_object();
         int dest_reg = obj->allocate_register();
@@ -105,7 +111,7 @@ namespace kore {
     }
 
     void BytecodeGenerator::visit(BoolExpression& expr) {
-        KORE_DEBUG_BYTECODE_GENERATOR_LOG("bool")
+        KORE_DEBUG_BYTECODE_GENERATOR_LOG("bool", std::string())
 
         auto obj = current_object();
         auto reg = obj->allocate_register();
@@ -119,7 +125,7 @@ namespace kore {
     }
 
     void BytecodeGenerator::visit(IntegerExpression& expr) {
-        KORE_DEBUG_BYTECODE_GENERATOR_LOG("i32")
+        KORE_DEBUG_BYTECODE_GENERATOR_LOG("i32", std::string())
 
         auto obj = current_object();
         auto reg = obj->allocate_register();
@@ -130,7 +136,7 @@ namespace kore {
     }
 
     void BytecodeGenerator::visit(FloatExpression& expr) {
-        KORE_DEBUG_BYTECODE_GENERATOR_LOG("f32")
+        KORE_DEBUG_BYTECODE_GENERATOR_LOG("f32", std::string())
 
         auto obj = current_object();
         auto reg = obj->allocate_register();
@@ -141,14 +147,14 @@ namespace kore {
     }
 
     void BytecodeGenerator::visit(Identifier& identifier) {
-        KORE_DEBUG_BYTECODE_GENERATOR_LOG("identifier")
+        KORE_DEBUG_BYTECODE_GENERATOR_LOG("identifier", identifier.name())
 
         auto entry = _scope_stack.find(identifier.name());
         push_register(entry->reg);
     }
 
     void BytecodeGenerator::visit(VariableAssignment& assignment) {
-        KORE_DEBUG_BYTECODE_GENERATOR_LOG("assignment")
+        KORE_DEBUG_BYTECODE_GENERATOR_LOG("assignment", assignment.identifier()->name())
 
         auto obj = current_object();
         auto entry = _scope_stack.find_inner(assignment.identifier()->name());
@@ -177,7 +183,7 @@ namespace kore {
     }
 
     void BytecodeGenerator::visit(IfStatement& ifstatement) {
-        KORE_DEBUG_BYTECODE_GENERATOR_LOG("if")
+        KORE_DEBUG_BYTECODE_GENERATOR_LOG("if", std::string())
 
         auto obj = current_object();
 
@@ -219,7 +225,7 @@ namespace kore {
     // TODO: What functions are we calling?
     // TODO: How do we specify the return register(s)?
     void BytecodeGenerator::visit(class Call& call) {
-        KORE_DEBUG_BYTECODE_GENERATOR_LOG("call")
+        KORE_DEBUG_BYTECODE_GENERATOR_LOG("call", call.name())
 
         // Generate code in reverse order of arguments so we can
         // get the registers in the correct order for the call
@@ -254,7 +260,7 @@ namespace kore {
     }
 
     void BytecodeGenerator::visit(Return& ret) {
-        KORE_DEBUG_BYTECODE_GENERATOR_LOG("return")
+        KORE_DEBUG_BYTECODE_GENERATOR_LOG("return", std::string())
         UNUSED_PARAM(ret);
 
         auto obj = current_object();
@@ -275,7 +281,7 @@ namespace kore {
     }
 
     void BytecodeGenerator::visit(Function& func) {
-        KORE_DEBUG_BYTECODE_GENERATOR_LOG("function")
+        KORE_DEBUG_BYTECODE_GENERATOR_LOG("function", func.name())
 
         start_function_compile(func);
         auto obj = current_object();
