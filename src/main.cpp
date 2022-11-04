@@ -3,6 +3,7 @@
 #include <sstream>
 
 #include "frontend/ast/ast_stream_writer.hpp"
+#include "backend/bytecode_format_writer.hpp"
 #include "backend/codegen/bytecode/bytecode_codegen.hpp"
 #include "backend/vm/vm.hpp"
 #include "decode_instruction.hpp"
@@ -112,10 +113,13 @@ namespace kore {
 
                 oss << type_error.location.colon_format();
 
-                error_indent(
-                    "[%s:%s]: %s",
-                    source_name.c_str(),
-                    oss.str().c_str(),
+                // TODO: Make a specialised function for just this
+                section(
+                    source_name + ":" + oss.str(),
+                    Color::Red,
+                    ColorAttribute::Bold,
+                    1,
+                    "%s",
                     type_error.message.c_str()
                 );
             }
@@ -198,13 +202,12 @@ namespace kore {
         auto module = code_generator.compile(ast);
         success_group(1, args.verbosity, "compilation", "");
 
-            return 0;
-        }
+        // 8. Write compiled bytecode to file
+        BytecodeFormatWriter formatWriter;
 
-        // 8. Run code
-        /* Vm vm; */
-        /* std::vector<bytecode_type> code{code_generator.begin(), code_generator.end()}; */
-        /* vm.run(code); */
+        formatWriter.write(module.get(), "./tests/arith.kc");
+
+        // 9. Run code
 
         return 0;
     }
