@@ -34,7 +34,7 @@ namespace kore {
         private:
             void write_header(const Module* const module, std::ofstream& ofs);
             void write_constant_table(const Module* const module, std::ofstream& ofs);
-            void write_value(const Value& value, std::ofstream& ofs);
+            void write_value(const vm::Value& value, std::ofstream& ofs);
             void write_string(const std::string& s, std::ofstream& ofs);
             void write_functions(const Module* const module, std::ofstream& ofs);
             void write_main_code(Module* const module, std::ofstream& ofs);

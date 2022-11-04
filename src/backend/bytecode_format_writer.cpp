@@ -60,15 +60,15 @@ namespace kore {
         }
     }
 
-    void BytecodeFormatWriter::write_value(const Value& value, std::ofstream& ofs) {
+    void BytecodeFormatWriter::write_value(const vm::Value& value, std::ofstream& ofs) {
         write_big_endian(value.tag, ofs);
 
         switch (value.tag) {
-            case ValueTag::Bool:
+            case vm::ValueTag::Bool:
                 write_big_endian(value.as_bool() ? 1 : 0, ofs);
                 break;
 
-            case ValueTag::I32:
+            case vm::ValueTag::I32:
                 write_big_endian(value.as_i32(), ofs);
                 break;
 

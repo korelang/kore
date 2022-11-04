@@ -49,7 +49,7 @@ namespace kore {
     }
 
     Reg CompiledObject::allocate_register() {
-        if (_reg_count >= KORE_VM_MAX_REGISTERS) {
+        if (_reg_count >= vm::KORE_VM_MAX_REGISTERS) {
             throw std::runtime_error("register overflow");
         }
 
