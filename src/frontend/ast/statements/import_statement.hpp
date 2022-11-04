@@ -3,6 +3,7 @@
 
 #include "ast/statements/statement.hpp"
 #include "token.hpp"
+#include "pointer_types.hpp"
 
 namespace kore {
     class AstWriter;
@@ -22,7 +23,7 @@ namespace kore {
             void accept_visit_only(AstVisitor& visitor) override;
 
         private:
-            std::unique_ptr<Identifier> _spec;
+            Owned<Identifier> _spec;
     };
 }
 

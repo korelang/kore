@@ -6,9 +6,10 @@
 #include "ast/statements/statement.hpp"
 #include "ast/statements/statement_list.hpp"
 #include "ast/expressions/expression.hpp"
+#include "pointer_types.hpp"
 
 namespace kore {
-    using branch_ptr = std::unique_ptr<Branch>;
+    using branch_ptr = Owned<Branch>;
     using branch_iterator = std::vector<branch_ptr>::const_iterator;
 
     class IfStatement : public Statement {

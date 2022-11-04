@@ -2,6 +2,7 @@
 #define KORE_STATEMENT_HPP
 
 #include "ast/ast_node.hpp"
+#include "pointer_types.hpp"
 #include "token.hpp"
 
 namespace kore {
@@ -23,7 +24,7 @@ namespace kore {
     /// Base class for all statements
     class Statement : public AstNode {
         public:
-            using pointer = std::unique_ptr<Statement>;
+            using pointer = Owned<Statement>;
 
         public:
             Statement();

@@ -1,14 +1,16 @@
 #ifndef KORE_FUNCTION_TYPE_HPP
 #define KORE_FUNCTION_TYPE_HPP
 
-#include <memory>
 #include <vector>
 
 #include "ast/expressions/expression.hpp"
+#include "pointer_types.hpp"
 #include "types/type.hpp"
 
 namespace kore {
     class Parameter;
+
+    using ParameterList = std::vector<Owned<Identifier>>;
 
     class FunctionType : public Type {
         public:
@@ -32,7 +34,7 @@ namespace kore {
 
         private:
             Type::pointer _return_type;
-            std::vector<std::unique_ptr<Identifier>> _parameters;
+            ParameterList _parameters;
 
             std::string create_name(bool with_arg_names) const;
     };

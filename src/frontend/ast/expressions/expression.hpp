@@ -9,6 +9,7 @@
 #include "internal_value_types.hpp"
 #include "operator.hpp"
 #include "token.hpp"
+#include "pointer_types.hpp"
 
 namespace kore {
     class IntegerExpression;
@@ -30,8 +31,8 @@ namespace kore {
     /// Base class for all expressions
     class Expression : public AstNode {
         public:
-            using pointer = std::unique_ptr<Expression>;
-            using reference = std::unique_ptr<Expression>&;
+            using pointer = Owned<Expression>;
+            using reference = Owned<Expression>&;
 
         public:
             Expression(ExpressionType type, const SourceLocation& location);

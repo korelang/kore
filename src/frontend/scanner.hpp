@@ -3,6 +3,7 @@
 
 #include <fstream>
 
+#include "pointer_types.hpp"
 #include "token.hpp"
 
 namespace kore {
@@ -24,7 +25,7 @@ namespace kore {
             std::size_t last_col;
             std::size_t col;
             std::string _source_name;
-            std::unique_ptr<std::istream> stream;
+            Owned<std::istream> stream;
             std::string line;
 
             // True if we are at the top-level where scanning starts

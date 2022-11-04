@@ -6,12 +6,11 @@
 #include "ast/expressions/parameter.hpp"
 #include "ast/statements/statement.hpp"
 #include "ast/statements/statement_list.hpp"
+#include "pointer_types.hpp"
 
 namespace kore {
     class Identifier;
     class Type;
-
-    using ParameterList = std::vector<Parameter*>;
 
     class Function : public Statement {
         public:
@@ -44,7 +43,7 @@ namespace kore {
         private:
             Identifier _name;
             bool _exported;
-            std::unique_ptr<FunctionType> _type;
+            Owned<FunctionType> _type;
             StatementList _body;
             StatementList _returns;
     };

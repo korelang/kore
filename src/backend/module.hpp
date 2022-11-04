@@ -9,6 +9,7 @@
 
 /* #include "codegen/bytecode/bytecode_codegen.hpp" */
 #include "codegen/compiled_object.hpp"
+#include "pointer_types.hpp"
 #include "version.hpp"
 #include "vm/value_type.hpp"
 
@@ -24,7 +25,7 @@ namespace kore {
     /// compiled code
     class Module final {
         public:
-            using pointer = std::unique_ptr<Module>;
+            using pointer = Owned<Module>;
             using object_iterator = std::vector<CompiledObject::const_pointer>::const_iterator;
 
             template<typename T>

@@ -1,6 +1,7 @@
 #ifndef KORE_TYPE_HPP
 #define KORE_TYPE_HPP
 
+#include "pointer_types.hpp"
 #include "token.hpp"
 
 namespace kore {
@@ -36,7 +37,7 @@ namespace kore {
     /// Represents the different types
     class Type {
         public:
-            using pointer = std::unique_ptr<const Type, TypeDeleter>;
+            using pointer = Owned<const Type, TypeDeleter>;
 
         public:
             Type();
