@@ -309,8 +309,10 @@ namespace kore {
         _register_stack.clear();
         _functions.clear();
         _objects.clear();
+        _scope_stack.clear();
 
         _current_object = nullptr;
+        _module.reset(nullptr);
     }
 
     void BytecodeGenerator::push_register(Reg reg) {
