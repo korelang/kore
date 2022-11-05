@@ -45,7 +45,7 @@ namespace kore {
             bool is_op() const noexcept;
 
             std::ostream& ostream_value(std::ostream& os) const;
-            std::ostream& column_format(std::ostream& os) const;
+            std::ostream& column_format(std::ostream& os, int spacing = 20) const;
 
             static Token make_invalid_token();
             static Token make_eof(std::size_t lnum, std::size_t start, std::size_t end);

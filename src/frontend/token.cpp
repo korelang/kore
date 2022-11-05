@@ -1,3 +1,4 @@
+#include <iomanip>
 #include <string>
 
 #include "token.hpp"
@@ -233,8 +234,12 @@ namespace kore {
         return os;
     }
 
-    std::ostream& Token::column_format(std::ostream& os) const {
-        return os << type() << "\t" << value() << "\t" << location();
+    std::ostream& Token::column_format(std::ostream& os, int spacing) const {
+        // TODO: Move this to a templated utility function
+        return os
+            << std::setw(spacing) << std::left << type()
+            << std::setw(spacing) << std::left << value()
+            << location().colon_format();
     }
 
     std::ostream& operator<<(std::ostream& os, const Token& token) {
