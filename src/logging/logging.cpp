@@ -142,6 +142,20 @@ namespace kore {
         va_end(args);
     }
 
+    void section_error(const std::string& group, errors::Error error, int indent) {
+        va_list args;
+        output(
+            indent,
+            group,
+            "",
+            Color::Red,
+            ColorAttribute::Bold,
+            true,
+            error.message.c_str(),
+            args
+        );
+    }
+
     void parser_error(const SourceLocation& location, const char* const format, ...) {
         va_list args;
         va_start(args, format);

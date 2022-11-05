@@ -72,14 +72,22 @@ set(BASE_SOURCES
     src/types/scope.cpp
     src/types/symbol_table.cpp
 
+    # Errors
     src/errors/error.cpp
     src/errors/errors.cpp
+
+    # Logging
     src/logging/color_attributes.cpp
     src/logging/colors.cpp
     src/logging/logging.cpp
+
+    # Compiler passes
+    src/passes/passes.cpp
+
     src/utf8/utf8.cpp
     src/options.cpp
     src/version.cpp
+    src/compiler.cpp
 
     # Utils
     src/utils/endian.cpp
