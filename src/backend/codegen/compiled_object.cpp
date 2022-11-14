@@ -1,7 +1,7 @@
 #include <algorithm>
 
 #include "compiled_object.hpp"
-#include "vm/vm.hpp"
+#include "vm/config.hpp"
 
 namespace kore {
     CompiledObject::CompiledObject() {}

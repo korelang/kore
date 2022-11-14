@@ -1,6 +1,6 @@
 #include <sstream>
 
-#include "backend/vm/vm.hpp"
+#include "vm/vm.hpp"
 
 #define LOAD_OPCODE(type) {\
     Reg dest_reg;\

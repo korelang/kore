@@ -3,23 +3,14 @@
 
 #include <vector>
 
-#include "backend/codegen/bytecode/bytecode.hpp"
-#include "backend/vm/value_type.hpp"
-#include "backend/register.hpp"
-#include "backend/module.hpp"
+#include "codegen/bytecode/bytecode.hpp"
+#include "vm/value_type.hpp"
+#include "vm/config.hpp"
+#include "register.hpp"
+#include "module.hpp"
 
 namespace kore {
     namespace vm {
-        #ifndef KORE_VM_MAX_REGISTERS
-        constexpr int KORE_VM_MAX_REGISTERS = 256;
-        #else
-        constexpr int KORE_VM_MAX_REGISTERS = KORE_VM_MAX_REGISTERS;
-        #endif
-
-        /* #ifndef KORE_VM_CALLSTACK_SIZE */
-        /*     constexpr int KORE_VM_CALLSTACK_SIZE = 256; */
-        /* #endif */
-
         struct VmContext {
             std::size_t pc = 0; // Program counter
             std::size_t sp = 0; // Stack pointer
