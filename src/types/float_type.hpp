@@ -13,7 +13,7 @@ namespace kore {
             std::string name() const override;
             int num_bits() const noexcept;
             const Type* unify(const Type* other_type) const override;
-            /* const Type* unify(const FloatType* float_type) const override; */
+            const Type* unify(const FloatType* float_type) const override;
             void write(AstWriter* const writer) const override;
 
         private:

@@ -24,7 +24,7 @@ namespace kore {
 
     std::map<TypeCategory, std::map<BinOp, Bytecode>> _binop_map = {
         {
-            TypeCategory::Integer, {
+            TypeCategory::Integer32, {
                 {BinOp::Plus,     Bytecode::AddI32},
                 {BinOp::Minus,    Bytecode::SubI32},
                 {BinOp::Mult,     Bytecode::MultI32},
@@ -39,7 +39,22 @@ namespace kore {
             },
         },
         {
-            TypeCategory::Float, {
+            TypeCategory::Integer64, {
+                {BinOp::Plus,     Bytecode::AddI64},
+                {BinOp::Minus,    Bytecode::SubI64},
+                {BinOp::Mult,     Bytecode::MultI64},
+                {BinOp::Pow,      Bytecode::PowI64},
+                {BinOp::Div,      Bytecode::DivI64},
+                {BinOp::Lt,       Bytecode::LtI64},
+                {BinOp::Gt,       Bytecode::GtI64},
+                {BinOp::Le,       Bytecode::LeI64},
+                {BinOp::Ge,       Bytecode::GeI64},
+                {BinOp::Equal,    Bytecode::EqI64},
+                {BinOp::NotEqual, Bytecode::NeqI64},
+            },
+        },
+        {
+            TypeCategory::Float32, {
                 {BinOp::Plus,     Bytecode::AddF32},
                 {BinOp::Minus,    Bytecode::SubF32},
                 {BinOp::Mult,     Bytecode::MultF32},
@@ -51,6 +66,21 @@ namespace kore {
                 {BinOp::Ge,       Bytecode::GeF32},
                 {BinOp::Equal,    Bytecode::EqF32},
                 {BinOp::NotEqual, Bytecode::NeqF32},
+            },
+        },
+        {
+            TypeCategory::Float64, {
+                {BinOp::Plus,     Bytecode::AddF64},
+                {BinOp::Minus,    Bytecode::SubF64},
+                {BinOp::Mult,     Bytecode::MultF64},
+                {BinOp::Pow,      Bytecode::PowF64},
+                {BinOp::Div,      Bytecode::DivF64},
+                {BinOp::Lt,       Bytecode::LtF64},
+                {BinOp::Gt,       Bytecode::GtF64},
+                {BinOp::Le,       Bytecode::LeF64},
+                {BinOp::Ge,       Bytecode::GeF64},
+                {BinOp::Equal,    Bytecode::EqF64},
+                {BinOp::NotEqual, Bytecode::NeqF64},
             },
         },
     };
@@ -125,24 +155,44 @@ namespace kore {
     }
 
     void BytecodeGenerator::visit(IntegerExpression& expr) {
-        KORE_DEBUG_BYTECODE_GENERATOR_LOG("i32", std::string())
+        int num_bits = expr.type()->category() == TypeCategory::Integer32 ? 32 : 64;
+        KORE_DEBUG_BYTECODE_GENERATOR_LOG("i" + std::to_string(num_bits), std::string())
 
         auto obj = current_object();
         auto reg = obj->allocate_register();
-        auto index = _module->add_i32_constant(expr.value());
+        int index;
+        Bytecode opcode;
 
-        _writer.write_load(Bytecode::CloadI32, reg, index, obj);
+        if (num_bits == 32) {
+            index =_module->add_i32_constant(expr.value());
+            opcode = Bytecode::CloadI32;
+        } else {
+            index =_module->add_i64_constant(expr.value());
+            opcode = Bytecode::CloadI64;
+        }
+
+        _writer.write_load(opcode, reg, index, obj);
         push_register(reg);
     }
 
     void BytecodeGenerator::visit(FloatExpression& expr) {
-        KORE_DEBUG_BYTECODE_GENERATOR_LOG("f32", std::string())
+        int num_bits = expr.type()->category() == TypeCategory::Float32 ? 32 : 64;
+        KORE_DEBUG_BYTECODE_GENERATOR_LOG("f" + std::to_string(num_bits), std::string())
 
         auto obj = current_object();
         auto reg = obj->allocate_register();
-        auto index = _module->add_f32_constant(expr.value());
+        int index;
+        Bytecode opcode;
 
-        _writer.write_load(Bytecode::CloadF32, reg, index, obj);
+        if (num_bits == 32) {
+            index = _module->add_f32_constant(expr.value());
+            opcode = Bytecode::CloadF32;
+        } else {
+            index = _module->add_f64_constant(expr.value());
+            opcode = Bytecode::CloadF64;
+        }
+
+        _writer.write_load(opcode, reg, index, obj);
         push_register(reg);
     }
 

@@ -1,13 +1,10 @@
 #include "ast/ast_writer.hpp"
 #include "types/integer_type.hpp"
 #include "types/unknown_type.hpp"
-#include "utils/unused_parameter.hpp"
-
-#include <sstream>
 
 namespace kore {
     IntegerType::IntegerType(int num_bits)
-        : Type(TypeCategory::Integer),
+        : Type(num_bits == 32 ? TypeCategory::Integer32 : TypeCategory::Integer64),
         _num_bits(num_bits) {
     }
 
@@ -18,10 +15,7 @@ namespace kore {
             return "byte";
         }
 
-        std::ostringstream oss;
-        oss << "i" << _num_bits;
-
-        return oss.str();
+        return "i" + std::to_string(_num_bits);
     }
 
     int IntegerType::num_bits() const noexcept {
@@ -29,16 +23,19 @@ namespace kore {
     }
 
     const Type* IntegerType::unify(const Type* other_type) const {
-        if (other_type->category() == category()) {
-            return other_type->unify(this);
+        switch (other_type->category()) {
+            case TypeCategory::Integer32:
+            case TypeCategory::Integer64:
+                return other_type->unify(this);
+
+            default:
+                return Type::unknown();
         }
-        
-        return Type::unknown();
     }
 
     const Type* IntegerType::unify(const IntegerType* int_type) const {
         // Return the type of the integer with the most bits
-        return int_type->num_bits() > this->num_bits() ? int_type : this;
+        return int_type->num_bits() > num_bits() ? int_type : this;
     }
 
     void IntegerType::write(AstWriter* const writer) const {

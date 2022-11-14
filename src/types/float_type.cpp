@@ -1,21 +1,17 @@
 #include "ast/ast_writer.hpp"
 #include "types/float_type.hpp"
 #include "types/unknown_type.hpp"
-#include "utils/unused_parameter.hpp"
-
-#include <sstream>
 
 namespace kore {
     FloatType::FloatType(int num_bits)
-        : Type(TypeCategory::Float),
+        : Type(num_bits == 32 ? TypeCategory::Float32 : TypeCategory::Float64),
         _num_bits(num_bits) {
     }
 
     FloatType::~FloatType() {}
 
     std::string FloatType::name() const {
-        // TODO: Support both float32 and float64
-        return "float";
+        return "f" + std::to_string(_num_bits);
     }
 
     int FloatType::num_bits() const noexcept {
@@ -24,7 +20,8 @@ namespace kore {
 
     const Type* FloatType::unify(const Type* other_type) const {
         switch (other_type->category()) {
-            case TypeCategory::Float:
+            case TypeCategory::Float32:
+            case TypeCategory::Float64:
                 return other_type->unify(this);
 
             default:
@@ -32,10 +29,10 @@ namespace kore {
         }
     }
 
-    /* const Type* FloatType::unify(const FloatType* int_type) const { */
-    /*     // Return the type of the float with the most bits */
-    /*     return int_type->num_bits() > this->num_bits() ? int_type : this; */
-    /* } */
+    const Type* FloatType::unify(const FloatType* float_type) const {
+        // Return the type of the float with the most bits
+        return float_type->num_bits() > num_bits() ? float_type : this;
+    }
 
     void FloatType::write(AstWriter* const writer) const {
         writer->write(name());

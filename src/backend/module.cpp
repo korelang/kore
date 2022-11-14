@@ -1,7 +1,12 @@
 #include "module.hpp"
 
 namespace kore {
-    Module::Module() {}
+    Module::Module()
+        : _i32_constants(ConstantTableTag::I32),
+          _i64_constants(ConstantTableTag::I64),
+          _f32_constants(ConstantTableTag::I32),
+          _f64_constants(ConstantTableTag::I64),
+          _str_constants(ConstantTableTag::Str) {}
 
     Module::~Module() {}
 
@@ -34,31 +39,23 @@ namespace kore {
     }
 
     int Module::constants_count() const {
-        return _i32_constants.size() + _f32_constants.size();
+        return _i32_constants.size() + _f32_constants.size() + _i64_constants.size() + _f64_constants.size();
     }
 
     int Module::add_i32_constant(i32 constant) {
-        auto it = _i32_constant_table.find(constant);
+        return _i32_constants.add(constant);
+    }
 
-        if (it != _i32_constant_table.end()) {
-            return it->second;
-        }
-
-        _i32_constants.push_back(constant);
-
-        return _i32_constant_table.insert({ constant, _i32_constants.size() - 1 }).first->second;
+    int Module::add_i64_constant(i64 constant) {
+        return _i64_constants.add(constant);
     }
 
     int Module::add_f32_constant(f32 constant) {
-        auto it = _f32_constant_table.find(constant);
+        return _f32_constants.add(constant);
+    }
 
-        if (it != _f32_constant_table.end()) {
-            return it->second;
-        }
-
-        _f32_constants.push_back(constant);
-
-        return _f32_constant_table.insert({ constant, _f32_constant_table.size() - 1 }).second;
+    int Module::add_f64_constant(f64 constant) {
+        return _f64_constants.add(constant);
     }
 
     Module::object_iterator Module::objects_begin() const {
@@ -71,12 +68,20 @@ namespace kore {
         return _objects.end();
     }
 
-    Module::value_iterator<i32> Module::i32_constants_begin() const {
-        return _i32_constants.cbegin();
+    const ConstantTable<i32> Module::i32_constant_table() const {
+        return _i32_constants;
     }
 
-    Module::value_iterator<i32> Module::i32_constants_end() const {
-        return _i32_constants.cend();
+    const ConstantTable<i64> Module::i64_constant_table() const {
+        return _i64_constants;
+    }
+
+    const ConstantTable<f32> Module::f32_constant_table() const {
+        return _f32_constants;
+    }
+
+    const ConstantTable<f64> Module::f64_constant_table() const {
+        return _f64_constants;
     }
 
     CompiledObject* Module::new_compiled_object() {

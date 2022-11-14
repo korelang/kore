@@ -3,18 +3,13 @@
 
 #include <fstream>
 
-#include "module.hpp"
+#include "codegen/compiled_object.hpp"
+#include "constant_table.hpp"
+#include "utils/endian.hpp"
+#include "vm/value_type.hpp"
 
 namespace kore {
-    // Tags to identify entries in the constant table
-    enum class ConstantTableTag {
-        Bool = 0,
-        I32,
-        I64,
-        F32,
-        F64,
-        Str,
-    };
+    class Module;
 
     // Tags to identify objects
     enum class ObjectTag {

@@ -3,6 +3,7 @@
 #include "integer_type.hpp"
 #include "str_type.hpp"
 #include "type.hpp"
+#include "float_type.hpp"
 #include "unknown_type.hpp"
 #include "utils/unused_parameter.hpp"
 
@@ -23,8 +24,10 @@ namespace kore {
 
     bool Type::is_numeric() const noexcept {
         switch (_category) {
-            case TypeCategory::Float:
-            case TypeCategory::Integer:
+            case TypeCategory::Float32:
+            case TypeCategory::Float64:
+            case TypeCategory::Integer32:
+            case TypeCategory::Integer64:
                 return true;
 
             default:
@@ -42,8 +45,10 @@ namespace kore {
         switch (_category) {
             case TypeCategory::Bool:
             case TypeCategory::Char:
-            case TypeCategory::Float:
-            case TypeCategory::Integer:
+            case TypeCategory::Float32:
+            case TypeCategory::Float64:
+            case TypeCategory::Integer32:
+            case TypeCategory::Integer64:
             case TypeCategory::Str:
             case TypeCategory::Unknown:
             case TypeCategory::Void:
@@ -76,6 +81,12 @@ namespace kore {
 
     const Type* Type::unify(const IntegerType* int_type) const {
         UNUSED_PARAM(int_type);
+
+        return Type::unknown();
+    }
+
+    const Type* Type::unify(const FloatType* float_type) const {
+        UNUSED_PARAM(float_type);
 
         return Type::unknown();
     }
@@ -123,6 +134,12 @@ namespace kore {
 
         if (token.value() == "i32") {
             return new IntegerType(32);
+        } else if (token.value() == "i64") {
+            return new IntegerType(64);
+        } else if (token.value() == "f32") {
+            return new FloatType(32);
+        } else if (token.value() == "f64") {
+            return new FloatType(64);
         } else if (token.value() == "byte") {
             return new IntegerType(8);
         } else if (token.value() == "char") {

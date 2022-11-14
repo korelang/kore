@@ -9,8 +9,8 @@ namespace kore {
     class ArrayType;
     class BoolType;
     class CharType;
+    class FloatType;
     class FunctionType;
-    class Integer32Type;
     class IntegerType;
     class Optional;
     class StrType;
@@ -21,9 +21,11 @@ namespace kore {
         Array,
         Bool,
         Char,
-        Float,
+        Float32,
+        Float64,
         Function,
-        Integer,
+        Integer32,
+        Integer64,
         Map,
         Optional,
         Str,
@@ -53,6 +55,7 @@ namespace kore {
             TypeCategory category() const noexcept;
             virtual const Type* unify(const Type* other_type) const;
             virtual const Type* unify(const IntegerType* int_type) const;
+            virtual const Type* unify(const FloatType* int_type) const;
             virtual const Type* unify(const CharType* str_type) const;
             virtual const Type* unify(const StrType* str_type) const;
             virtual const Type* unify(const BoolType* bool_type) const;

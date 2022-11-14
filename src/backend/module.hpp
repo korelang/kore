@@ -2,24 +2,17 @@
 #define KORE_MODULE_HPP
 
 #include <array>
-#include <memory>
-#include <string>
 #include <unordered_map>
 #include <vector>
 
-/* #include "codegen/bytecode/bytecode_codegen.hpp" */
 #include "codegen/compiled_object.hpp"
+#include "constant_table.hpp"
 #include "pointer_types.hpp"
 #include "version.hpp"
 #include "vm/value_type.hpp"
 
 namespace kore {
-    /* class BytecodeGenerator; */
-
     using function_map = std::unordered_map<std::string, CompiledObject*>;
-
-    template<typename T>
-    using constant_table = std::unordered_map<T, int>;
 
     /// A module represents a kore module and is a collection of constants and
     /// compiled code
@@ -28,13 +21,9 @@ namespace kore {
             using pointer = Owned<Module>;
             using object_iterator = std::vector<CompiledObject::const_pointer>::const_iterator;
 
-            template<typename T>
-            using value_iterator = typename std::vector<T>::const_iterator;
-
         public:
             Module();
             Module(Module&& module) = default;
-            /* Module(BytecodeGenerator::function_map&& funcs, std::vector<CompiledObject::pointer>&& objects); */
             virtual ~Module();
 
             Version get_compiler_version();
@@ -48,11 +37,16 @@ namespace kore {
 
             int add_i32_constant(i32 constant);
             int add_f32_constant(f32 constant);
+            int add_i64_constant(i64 constant);
+            int add_f64_constant(f64 constant);
 
             object_iterator objects_begin() const;
             object_iterator objects_end() const;
-            value_iterator<i32> i32_constants_begin() const;
-            value_iterator<i32> i32_constants_end() const;
+
+            const ConstantTable<i32> i32_constant_table() const;
+            const ConstantTable<i64> i64_constant_table() const;
+            const ConstantTable<f32> f32_constant_table() const;
+            const ConstantTable<f64> f64_constant_table() const;
 
             CompiledObject* new_compiled_object();
             CompiledObject* new_function(const Function& func);
@@ -83,12 +77,12 @@ namespace kore {
             // Map a function name to its compiled code
             function_map _function_map;
 
-            std::vector<i32> _i32_constants;
-            std::vector<f32> _f32_constants;
-
-            // A mapping from values to their index in the constant table
-            constant_table<i32> _i32_constant_table;
-            constant_table<f32> _f32_constant_table;
+            // Constant tables
+            ConstantTable<i32> _i32_constants;
+            ConstantTable<i64> _i64_constants;
+            ConstantTable<f32> _f32_constants;
+            ConstantTable<f64> _f64_constants;
+            ConstantTable<std::string> _str_constants;
     };
 }
 
