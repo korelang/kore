@@ -101,7 +101,6 @@ set(BASE_SOURCES
     src/backend/codegen/compiled_object.cpp
     src/backend/vm/value_type.cpp
     src/backend/vm/vm.cpp
-    src/backend/decode_instruction.cpp
 )
 
 set(COMPILER_SOURCES
