@@ -82,8 +82,9 @@ namespace kore {
             debug_time("parse", [&filename, &ast, &parser](){ parser.parse_file(filename, &ast); });
         }
 
+        debug_group("parse", "dumping ast");
+
         if (!parser.failed()) {
-            debug_group("parse", "dumping ast");
             AstStreamWriter stream_writer{std::cerr};
             stream_writer.write(ast);
         } else {
@@ -115,6 +116,8 @@ int main(int argc, char** argv) {
     } else if (args.dump_scan) {
         // Dump all scanned tokens to stderr
         return kore::dump_tokens(args.execute, args.expr, args.filename);
+    } else if (args.dump_parse) {
+        return kore::dump_parse(args.execute, args.expr, args.filename);
     }
 
     try {
