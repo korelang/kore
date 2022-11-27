@@ -1,8 +1,11 @@
 #ifndef KOREDIS_OPTIONS_HPP
 #define KOREDIS_OPTIONS_HPP
 
+#include <filesystem>
 #include <string>
 #include <vector>
+
+namespace fs = std::filesystem;
 
 namespace koredis {
     struct ParsedCommandLineArgs {
@@ -15,7 +18,7 @@ namespace koredis {
         bool help;
         int verbosity;
 
-        std::vector<std::string> paths;
+        std::vector<fs::path> paths;
     };
 
     ParsedCommandLineArgs parse_commandline(int argc, char** args);

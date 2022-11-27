@@ -72,7 +72,7 @@ namespace koredis {
                 }
             } else {
                 if (i != 0) {
-                    parsed_args.paths.push_back(arg);
+                    parsed_args.paths.push_back(fs::path(arg));
                 }
             }
         }

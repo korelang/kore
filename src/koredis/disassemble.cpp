@@ -87,7 +87,7 @@ namespace koredis {
         }
     }
 
-    kore::Module disassemble_module_from_path(const std::string& path) {
+    kore::Module disassemble_module_from_path(const fs::path& path) {
         std::ifstream ifs{path};
 
         if (!ifs.is_open()) {

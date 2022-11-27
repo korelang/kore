@@ -44,6 +44,8 @@ namespace kore {
     void validate_args(int argc, ParsedCommandLineArgs& args) {
         if (argc < 2) {
             args.error_message = "At least one argument is required";
+        } else if (!args.path.has_filename()) {
+            args.error_message = "Source file must be a file";
         }
 
         return;
@@ -97,8 +99,8 @@ namespace kore {
                 }
             } else {
                 if (i != 0) {
-                    if (parsed_args.filename.size() == 0) {
-                        parsed_args.filename = arg;
+                    if (parsed_args.path.empty()) {
+                        parsed_args.path = arg;
                     } else {
                         parsed_args.error_message = "Only one filename can be supplied";
                     }

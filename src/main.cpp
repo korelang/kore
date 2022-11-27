@@ -1,4 +1,5 @@
 #include <array>
+#include <filesystem>
 #include <iostream>
 #include <sstream>
 
@@ -22,6 +23,8 @@
 #include "types/type_inferrer.hpp"
 #include "version.hpp"
 
+namespace fs = std::filesystem;
+
 namespace kore {
     const std::string COMPILER_NAME = "korec";
     const Version CURRENT_VERSION{ 0, 1, 0 };
@@ -43,7 +46,7 @@ namespace kore {
     int dump_tokens(
         bool execute,
         const std::string& expr,
-        const std::string& filename
+        const fs::path& path
     ) {
         // Dump all scanned tokens to stderr
         Scanner scanner{};
@@ -54,8 +57,8 @@ namespace kore {
         if (execute) {
             scanner.scan_string(expr);
         } else {
-            if (!scanner.open_file(filename)) {
-                error_group("scan", "failed to open file: '%s'", filename.c_str());
+            if (!scanner.open_file(path)) {
+                error_group("scan", "failed to open file: '%s'", path.c_str());
                 return 1;
             }
         }
@@ -71,7 +74,7 @@ namespace kore {
     int dump_parse(
         bool execute,
         const std::string& expr,
-        const std::string& filename
+        fs::path& path
     ) {
         Ast ast;
         Parser parser;
@@ -79,7 +82,7 @@ namespace kore {
         if (execute) {
             debug_time("parse", [&expr, &ast, &parser](){ parser.parse_non_module(expr, &ast); });
         } else {
-            debug_time("parse", [&filename, &ast, &parser](){ parser.parse_file(filename, &ast); });
+            debug_time("parse", [&path, &ast, &parser](){ parser.parse_file(path, &ast); });
         }
 
         debug_group("parse", "dumping ast");
@@ -115,9 +118,9 @@ int main(int argc, char** argv) {
         return 0;
     } else if (args.dump_scan) {
         // Dump all scanned tokens to stderr
-        return kore::dump_tokens(args.execute, args.expr, args.filename);
+        return kore::dump_tokens(args.execute, args.expr, args.path);
     } else if (args.dump_parse) {
-        return kore::dump_parse(args.execute, args.expr, args.filename);
+        return kore::dump_parse(args.execute, args.expr, args.path);
     }
 
     try {

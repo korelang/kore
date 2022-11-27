@@ -1,6 +1,7 @@
 #ifndef KORE_OPTIONS_HPP
 #define KORE_OPTIONS_HPP
 
+#include <filesystem>
 #include <string>
 
 namespace kore {
@@ -27,7 +28,7 @@ namespace kore {
         bool mem_stats;
 
         std::string expr;
-        std::string filename;
+        std::filesystem::path path;
     };
 
     ParsedCommandLineArgs parse_commandline(int argc, char** args);

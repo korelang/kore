@@ -1,3 +1,4 @@
+#include "config.hpp"
 #include "passes/passes.hpp"
 #include "bytecode_format_writer.hpp"
 #include "codegen/bytecode/bytecode_codegen.hpp"
@@ -11,7 +12,7 @@ namespace kore {
             "parser",
             [](PassContext& context) {
                 Parser parser;
-                parser.parse_file(context.cmdline_args.filename, &context.ast); 
+                parser.parse_file(context.cmdline_args.path, &context.ast); 
 
                 return PassResult{ !parser.failed(), {} };
             }
@@ -59,7 +60,12 @@ namespace kore {
             "bytecode write",
             [](PassContext& context) {
                 BytecodeFormatWriter writer;
-                writer.write(context.module.get(), "./tests/arith.kc");
+                writer.write(
+                    context.module.get(),
+                    context.cmdline_args.path.replace_extension(
+                        config::KORE_COMPILED_EXTENSION
+                    )
+                );
 
                 return PassResult{ true, {} };
             }

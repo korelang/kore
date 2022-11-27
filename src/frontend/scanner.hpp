@@ -1,10 +1,13 @@
 #ifndef KORE_SCANNER_HPP
 #define KORE_SCANNER_HPP
 
+#include <filesystem>
 #include <fstream>
 
 #include "pointer_types.hpp"
 #include "token.hpp"
+
+namespace fs = std::filesystem;
 
 namespace kore {
     /// Scanner (or lexer) class that groups up an input stream into tokens
@@ -13,7 +16,7 @@ namespace kore {
             Scanner();
             virtual ~Scanner();
 
-            bool open_file(const std::string& path);
+            bool open_file(const fs::path& path);
             void scan_string(const std::string& string);
             std::string source_name() const;
             bool eof() const;

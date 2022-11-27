@@ -102,7 +102,7 @@ namespace kore {
         );
     }
 
-    bool Scanner::open_file(const std::string& path) {
+    bool Scanner::open_file(const fs::path& path) {
         _source_name = path;
         std::ifstream ifs{ path };
         stream = std::make_unique<std::ifstream>(path);
