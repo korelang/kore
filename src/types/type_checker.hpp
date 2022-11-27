@@ -43,9 +43,6 @@ namespace kore {
             void visit(Branch& branch) override;
             void visit(Function& func) override;
             void visit(Return& ret) override;
-
-            /// Check if a variable shadows a variable in an outer scope
-            const Identifier* shadows_outer_scope(const Identifier& identifier);
     };
 }
 

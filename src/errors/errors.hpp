@@ -15,9 +15,10 @@ namespace kore {
             Error cannot_assign(const Type* lhs, const Type* rhs, const SourceLocation& location);
             Error incompatible_binop(const Type* left, const Type* right, BinOp op, const SourceLocation& location);
             Error binop_numeric_operands(const Type* left, const Type* right, BinOp op, const SourceLocation& location);
-            Error variable_shadows(const Identifier* identifier, const Identifier* shadowed, const SourceLocation& location);
+            Error variable_shadows(const Identifier* identifier, const Identifier* shadowed, const SourceLocation& location, const SourceLocation& prev_location);
             Error redeclaration_constant_variable(const Identifier& identifier, const SourceLocation& location, const Identifier& prev_declared);
             Error cannot_declare_mutable_global(const Identifier& identifier, const SourceLocation& location);
+            Error cannot_assign_global_variable(const Identifier* identifier, const Identifier* shadowed, const SourceLocation& location, const SourceLocation& prev_location);
             Error undefined_variable(const Identifier& identifier);
             Error unknown_call(const class Call& call);
             Error incorrect_parameter_type(const Expression* expression, const Type* arg_type, const Type* param_type, class Call& call, int arg_index);

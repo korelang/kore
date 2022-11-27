@@ -13,6 +13,8 @@ namespace kore {
         Reg reg;
         int level;
         const Identifier* identifier;
+
+        bool is_global_scope() const;
     };
 
     namespace {

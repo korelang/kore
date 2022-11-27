@@ -7,6 +7,7 @@
 #include "ast/statements/variable_declaration.hpp"
 #include "errors/errors.hpp"
 #include "types/function_type.hpp"
+#include "types/scope.hpp"
 #include "utils/unused_parameter.hpp"
 
 #include <sstream>
@@ -98,10 +99,26 @@ namespace kore {
             if (_scope_stack.is_global_scope() && identifier->is_mutable()) {
                 push_error(errors::typing::cannot_declare_mutable_global(*identifier, assignment.location()));
             } else {
-                auto shadowed_identifier = shadows_outer_scope(*identifier);
+                auto shadowed_entry = _scope_stack.find(identifier->name());
 
-                if (shadowed_identifier) {
-                    push_error(errors::typing::variable_shadows(identifier, shadowed_identifier, assignment.location()));
+                if (shadowed_entry) {
+                    auto shadowed_identifier = shadowed_entry->identifier;
+
+                    if (shadowed_entry->is_global_scope()) {
+                        push_error(errors::typing::cannot_assign_global_variable(
+                            identifier,
+                            shadowed_identifier,
+                            assignment.location(),
+                            shadowed_identifier->location()
+                        ));
+                    } else {
+                        push_error(errors::typing::variable_shadows(
+                            identifier,
+                            shadowed_identifier,
+                            assignment.location(),
+                            shadowed_identifier->location()
+                        ));
+                    }
                 }
 
                 _scope_stack.insert(identifier);
@@ -250,16 +267,6 @@ namespace kore {
         if (ret.expr()) {
             ret.expr()->accept_visit_only(*this);
         }
-    }
-
-    const Identifier* TypeChecker::shadows_outer_scope(const Identifier& identifier) {
-        auto entry = _scope_stack.find(identifier.name());
-
-        if (entry) {
-            return entry->identifier;
-        }
-
-        return nullptr;
     }
 }
 

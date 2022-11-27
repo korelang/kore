@@ -52,11 +52,11 @@ namespace kore {
                 return Error(ErrorType::Typing, message, location);
             }
 
-            Error variable_shadows(const Identifier* identifier, const Identifier* shadowed, const SourceLocation& location) {
-                std::string message = "variable '" + identifier->name() + "' shadows variable ";
+            Error variable_shadows(const Identifier* identifier, const Identifier* shadowed, const SourceLocation& location, const SourceLocation& prev_location) {
+                std::string message = "variable '" + identifier->name() + "' at (" + location.colon_format() + ") shadows variable ";
 
                 if (shadowed) {
-                    message += "'" + shadowed->name() + "' (at " + location.colon_format() + ")";
+                    message += "'" + shadowed->name() + "' (at " + prev_location.colon_format() + ")";
                 } else {
                     message += "in outer scope";
                 }
@@ -74,6 +74,12 @@ namespace kore {
 
             Error cannot_declare_mutable_global(const Identifier& identifier, const SourceLocation& location) {
                 auto message = "cannot declare global mutable variables ('" + identifier.name() + "')";
+
+                return Error(ErrorType::Typing, message, location);
+            }
+
+            Error cannot_assign_global_variable(const Identifier* identifier, const Identifier* shadowed, const SourceLocation& location, const SourceLocation& prev_location) {
+                std::string message = "assignment of '" + identifier->name() + "' at (" + location.colon_format() + ") cannot assign to global variable '" + shadowed->name() + "' previously declared at (" + std::to_string(prev_location.lnum()) + ")";
 
                 return Error(ErrorType::Typing, message, location);
             }

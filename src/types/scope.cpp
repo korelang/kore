@@ -1,6 +1,10 @@
 #include "types/scope.hpp"
 
 namespace kore {
+     bool ScopeEntry::is_global_scope() const {
+         return level == 1;
+     }
+
     ScopeEntry* Scope::find(const std::string& name) {
         auto entry = _map.find(name);
 
