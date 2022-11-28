@@ -94,7 +94,7 @@ namespace kore {
                 } else if (arg == "-v" || arg == "--verbose") {
                     ++parsed_args.verbosity;
                 } else {
-                    parsed_args.error_message = "Unrecognised commandline option";
+                    parsed_args.error_message = "Unrecognised commandline option: '" + arg + "'";
                     return parsed_args;
                 }
             } else {
