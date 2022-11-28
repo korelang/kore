@@ -8,7 +8,6 @@
 #include "backend/vm/vm.hpp"
 #include "compiler.hpp"
 #include "debug_time.hpp"
-#include "decode_instruction.hpp"
 #include "frontend/ast/ast_stream_writer.hpp"
 #include "logging/logging.hpp"
 #include "options.hpp"
