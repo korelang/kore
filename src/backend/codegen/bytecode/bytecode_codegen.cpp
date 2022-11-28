@@ -321,7 +321,6 @@ namespace kore {
 
     void BytecodeGenerator::visit(Return& ret) {
         KORE_DEBUG_BYTECODE_GENERATOR_LOG("return", std::string())
-        UNUSED_PARAM(ret);
 
         auto obj = current_object();
 
