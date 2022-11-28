@@ -196,6 +196,16 @@ namespace kore {
         push_register(reg);
     }
 
+    void BytecodeGenerator::visit(StringExpression& expr) {
+        KORE_DEBUG_BYTECODE_GENERATOR_LOG("str", std::string());
+        UNUSED_PARAM(expr);
+
+        auto obj = current_object();
+        auto reg = obj->allocate_register();
+
+        push_register(reg);
+    }
+
     void BytecodeGenerator::visit(Identifier& identifier) {
         KORE_DEBUG_BYTECODE_GENERATOR_LOG("identifier", identifier.name())
 

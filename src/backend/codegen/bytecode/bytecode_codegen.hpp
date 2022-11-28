@@ -5,6 +5,7 @@
 #include <memory>
 #include <vector>
 
+#include "ast/expressions/string_expression.hpp"
 #include "frontend/ast/ast.hpp"
 #include "frontend/ast/ast_visitor.hpp"
 #include "codegen/bytecode/bytecode.hpp"
@@ -40,6 +41,7 @@ namespace kore {
             void visit(BoolExpression& expr) override;
             void visit(IntegerExpression& expr) override;
             void visit(FloatExpression& expr) override;
+            void visit(StringExpression& expr) override;
             void visit(Identifier& identifier) override;
             void visit(VariableAssignment& assignment) override;
             void visit(IfStatement& ifstatement) override;
