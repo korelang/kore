@@ -95,9 +95,10 @@ namespace kore {
             Error incorrect_parameter_type(const Expression* expression, const Type* arg_type, const Type* param_type, Call& call, int arg_index) {
                 std::ostringstream oss;
 
-                oss << "function " << call.name() << " expected "
-                    << arg_type->name() << " for argument " << arg_index
-                    << " but got " << param_type->name() << " instead";
+                oss << "call to function " << call.name() << " "
+                    << "expected type of argument " << (arg_index + 1) << " to be "
+                    << param_type->name()
+                    << " but got " << arg_type->name() << " instead";
 
                 return Error(ErrorType::Typing, oss.str(), expression->location());
             }
