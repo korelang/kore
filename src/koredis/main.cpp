@@ -30,7 +30,6 @@ namespace koredis {
     }
 
     int run(int argc, char** argv) {
-        const std::string prog_name = "koredis";
         const kore::Version CURRENT_VERSION{ 0, 1, 0 };
         auto args = parse_commandline(argc, argv);
 
@@ -38,10 +37,10 @@ namespace koredis {
             kore::error("%s", args.error_message.c_str());
             return 1;
         } else if (args.version) {
-            print_version(prog_name, CURRENT_VERSION, false);
+            print_version(PROGRAM_NAME, CURRENT_VERSION, false);
             return 0;
         } else if (args.version_only) {
-            print_version(prog_name, CURRENT_VERSION, true);
+            print_version(PROGRAM_NAME, CURRENT_VERSION, true);
             return 0;
         } else if (args.help) {
             print_help_message();
