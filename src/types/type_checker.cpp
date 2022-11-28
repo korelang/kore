@@ -78,11 +78,14 @@ namespace kore {
     void TypeChecker::visit(VariableAssignment& assignment) {
         auto declared_type = assignment.declared_type();
         auto expr_type = assignment.expression()->type();
+
         KORE_DEBUG_TYPECHECKER_LOG(
             "assignment",
             declared_type->name(),
             expr_type->name()
         )
+
+        assignment.expression()->accept_visit_only(*this);
 
         // If the variable was not given an explicit type, rely on inferred
         // type instead
@@ -193,6 +196,10 @@ namespace kore {
     void TypeChecker::visit(BinaryExpression& binexpr) {
         auto left = binexpr.left();
         auto right = binexpr.right();
+
+        left->accept_visit_only(*this);
+        right->accept_visit_only(*this);
+
         auto op = binexpr.op();
 
         if (op == BinOp::Plus || op == BinOp::Minus || op == BinOp::Mult || op == BinOp::Div) {
