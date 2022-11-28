@@ -51,7 +51,7 @@ namespace kore {
         return _type.get();
     }
 
-    const Type* Function::return_type() {
+    const Type* Function::return_type() const {
         return _type->return_type();
     }
 

@@ -118,7 +118,7 @@ namespace kore {
 
         // Enter a new function scope and add all function
         // arguments to that scope
-        _scope_stack.enter_function_scope();
+        _scope_stack.enter_function_scope(&func);
 
         for (int i = 0; i < func.arity(); ++i) {
             auto parameter = func.parameter(i);
@@ -129,7 +129,7 @@ namespace kore {
             statement->accept_visit_only(*this);
         }
 
-        _scope_stack.leave();
+        _scope_stack.leave_function_scope();
 
         // After leaving the function scope, bind the function type
         // to the function name (not necessarily in the top-level scope

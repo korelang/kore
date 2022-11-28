@@ -63,6 +63,10 @@ namespace kore {
         return category() == TypeCategory::Function;
     }
 
+    bool Type::is_void() const noexcept {
+        return category() == TypeCategory::Void;
+    }
+
     TypeCategory Type::category() const noexcept {
         return _category;
     }

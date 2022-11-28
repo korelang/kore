@@ -242,7 +242,7 @@ namespace kore {
 
         // Enter a new function scope and add all function
         // arguments to that scope
-        _scope_stack.enter_function_scope();
+        _scope_stack.enter_function_scope(&func);
 
         for (int i = 0; i < func.arity(); ++i) {
             auto parameter = func.parameter(i);
@@ -253,7 +253,7 @@ namespace kore {
             statement->accept_visit_only(*this);
         }
 
-        _scope_stack.leave();
+        _scope_stack.leave_function_scope();
 
         // After leaving the function scope, bind the function type
         // to the function name (not necessarily in the top-level scope
@@ -264,8 +264,20 @@ namespace kore {
     void TypeChecker::visit(Return& ret) {
         KORE_DEBUG_TYPECHECKER_LOG("return", std::string(), std::string())
 
+        auto func = _scope_stack.enclosing_function();
+
         if (ret.expr()) {
-            ret.expr()->accept_visit_only(*this);
+            auto expr = ret.expr();
+            expr->accept_visit_only(*this);
+
+            if (expr->type()->unify(func->return_type())->is_unknown()) {
+                push_error(errors::typing::return_type_mismatch(func, expr->type(), ret.location()));
+                return;
+            }
+        } else {
+            if (!func->return_type()->is_void()) {
+                push_error(errors::typing::void_return_from_nonvoid_function(func, ret.location()));
+            }
         }
     }
 }

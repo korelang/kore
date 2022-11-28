@@ -27,7 +27,7 @@ namespace kore {
             bool exported() const noexcept;
             int arity() const;
             FunctionType* type() const;
-            const Type* return_type();
+            const Type* return_type() const;
 
             const Identifier* parameter(int param_index);
             void add_parameter(Parameter* parameter);

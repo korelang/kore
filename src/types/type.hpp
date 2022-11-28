@@ -52,6 +52,7 @@ namespace kore {
             bool is_unknown() const noexcept;
             bool is_simple() const noexcept;
             bool is_function() const noexcept;
+            bool is_void() const noexcept;
             TypeCategory category() const noexcept;
             virtual const Type* unify(const Type* other_type) const;
             virtual const Type* unify(const IntegerType* int_type) const;

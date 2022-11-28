@@ -120,6 +120,18 @@ namespace kore {
 
                 return Error(ErrorType::Typing, oss.str(), call.location());
             }
+
+            Error return_type_mismatch(const Function* func, const Type* type, const SourceLocation& location) {
+                auto message = "Trying to return " + type->name() + " from function '" + func->name() + "' returning " + func->return_type()->name();
+
+                return Error(ErrorType::Typing, message, location);
+            }
+
+            Error void_return_from_nonvoid_function(const Function* func, const SourceLocation& location) {
+                auto message = "Trying to return void from non-void function '" + func->name() + "'";
+
+                return Error(ErrorType::Typing, message, location);
+            }
         }
     }
 

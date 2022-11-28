@@ -338,7 +338,7 @@ namespace kore {
 
         // Enter a new function scope and add all function
         // arguments to that scope
-        _scope_stack.enter_function_scope();
+        _scope_stack.enter_function_scope(&func);
 
         // OR: func.add_parameters_to_scope(_scope_stack);
         for (int i = 0; i < func.arity(); ++i) {
@@ -351,7 +351,7 @@ namespace kore {
             statement->accept_visit_only(*this);
         }
 
-        _scope_stack.leave();
+        _scope_stack.leave_function_scope();
         end_function_compile();
     }
 

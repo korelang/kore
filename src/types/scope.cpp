@@ -26,12 +26,18 @@ namespace kore {
         _scopes.emplace_back(false);
     }
 
-    void ScopeStack::enter_function_scope() {
+    void ScopeStack::enter_function_scope(Function* func) {
         _scopes.emplace_back(true);
+        _functions.push_back(func);
     }
 
     void ScopeStack::leave() {
         _scopes.pop_back();
+    }
+
+    void ScopeStack::leave_function_scope() {
+        _scopes.pop_back();
+        _functions.pop_back();
     }
 
     ScopeEntry* ScopeStack::find(const std::string& name) {
@@ -46,6 +52,9 @@ namespace kore {
 
     ScopeEntry* ScopeStack::find_enclosing(const std::string& name) {
         return find_in_range(name, levels() - 1, 1);
+
+    Function* ScopeStack::enclosing_function() {
+        return _functions.empty() ? nullptr : _functions[_functions.size() - 1];
     }
 
     void ScopeStack::insert(const Identifier* identifier) {

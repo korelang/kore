@@ -6,6 +6,7 @@
 
 #include "ast/expressions/identifier.hpp"
 #include "backend/vm/vm.hpp"
+#include "ast/statements/function.hpp"
 
 namespace kore {
     /// An entry for each variable with additional bookkeeping
@@ -39,11 +40,13 @@ namespace kore {
 
             int levels() const;
             void enter();
-            void enter_function_scope();
+            void enter_function_scope(Function* func);
             void leave();
+            void leave_function_scope();
             ScopeEntry* find(const std::string& name);
             ScopeEntry* find_inner(const std::string& name);
             ScopeEntry* find_enclosing(const std::string& name);
+            Function* enclosing_function();
             void insert(const Identifier* identifier);
             void insert(const Identifier* identifier, Reg reg);
             bool is_global_scope() const;
