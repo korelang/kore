@@ -31,7 +31,8 @@ namespace kore {
             void set_compiler_version(std::array<char, 3> version);
             void set_bytecode_version(std::array<char, 3> version);
 
-            std::string path() const noexcept;
+            std::string name() const;
+            std::string path() const;
             int objects_count() const;
             int constants_count() const;
 

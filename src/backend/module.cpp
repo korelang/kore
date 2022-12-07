@@ -30,7 +30,12 @@ namespace kore {
         _bytecode_version.patch = version[2];
     }
 
-    std::string Module::path() const noexcept {
+    std::string Module::name() const {
+        // TODO
+        return "main";
+    }
+
+    std::string Module::path() const {
         return _path;
     }
 
