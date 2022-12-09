@@ -163,32 +163,27 @@ namespace kore {
             return;
         }
 
-        KORE_DEBUG_TYPECHECKER_LOG("call", func_type->name(), std::string())
+        KORE_DEBUG_TYPECHECKER_LOG("call", func_type->name(), std::string());
 
         // TODO: Move into Call class
-        /* for (int i = 0; i < call.arg_count(); ++i) { */
-        /*     auto arg = call.arg(i); */
-        /*     std::cout << "1" << std::endl; */
-        /*     auto arg_type = arg->type(); */
-        /*     std::cout << "2" << std::endl; */
-        /*     auto param = func_type->parameter(i); */
-        /*     std::cout << "3" << std::endl; */
-        /*     auto param_type = param->type(); */
-        /*     std::cout << arg_type->name() << std::endl; */
-        /*     std::cout << param_type->name() << std::endl; */
-        /*     auto unified_type = arg_type->unify(param_type); */
-        /*     std::cout << "5" << std::endl; */
+        for (int i = 0; i < call.arg_count(); ++i) {
+            auto arg = call.arg(i);
+            arg->accept_visit_only(*this);
 
-        /*     if (unified_type->is_unknown()) { */
-        /*         push_error(errors::typing::incorrect_parameter_type( */
-        /*             arg, */
-        /*             arg_type, */
-        /*             param_type, */
-        /*             call, */
-        /*             i */
-        /*         )); */
-        /*     } */
-        /* } */
+            auto arg_type = arg->type();
+            auto param_type = func_type->parameter(i)->type();
+            auto unified_type = arg_type->unify(param_type);
+
+            if (unified_type->is_unknown()) {
+                push_error(errors::typing::incorrect_parameter_type(
+                    arg,
+                    arg_type,
+                    param_type,
+                    call,
+                    i
+                ));
+            }
+        }
 
         call.set_type(func_type->return_type());
     }
