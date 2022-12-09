@@ -4,8 +4,8 @@ namespace kore {
     Module::Module()
         : _i32_constants(ConstantTableTag::I32),
           _i64_constants(ConstantTableTag::I64),
-          _f32_constants(ConstantTableTag::I32),
-          _f64_constants(ConstantTableTag::I64),
+          _f32_constants(ConstantTableTag::F32),
+          _f64_constants(ConstantTableTag::F64),
           _str_constants(ConstantTableTag::Str) {}
 
     Module::~Module() {}

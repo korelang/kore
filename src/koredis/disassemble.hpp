@@ -3,7 +3,6 @@
 
 #include <array>
 #include <filesystem>
-#include <fstream>
 
 #include "module.hpp"
 
@@ -15,6 +14,10 @@ namespace koredis {
     std::array<char, 3> read_compiler_version(std::istream& is);
 
     std::array<char, 3> read_bytecode_version(std::istream& is);
+
+    void disassemble_constant_tables(std::istream& is, kore::Module& module);
+
+    void disassemble_functions(std::istream& is, kore::Module& module);
 
     kore::Module disassemble_module_from_path(const fs::path& path);
 }

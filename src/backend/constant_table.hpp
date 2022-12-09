@@ -10,6 +10,7 @@ namespace kore {
     class ConstantTable final {
         public:
             using const_iterator = typename std::unordered_map<T, IndexType>::const_iterator;
+            using sorted_const_iterator = typename std::vector<T>::const_iterator;
 
         public:
             ConstantTable(ConstantTableTag tag) : _tag(tag) {}
@@ -44,6 +45,14 @@ namespace kore {
 
             const_iterator cend() const {
                 return _table.cend();
+            }
+
+            sorted_const_iterator sorted_cbegin() const {
+                return _constants.cbegin();
+            }
+
+            sorted_const_iterator sorted_cend() const {
+                return _constants.cend();
             }
 
             void clear() {

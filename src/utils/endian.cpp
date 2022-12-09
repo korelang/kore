@@ -7,15 +7,13 @@ namespace kore {
     bool is_big_endian() {
         const std::uint32_t one = 1;
 
-        return *(std::uint8_t*)(&one) != 1;
+        return *(std::uint8_t*)&one != 1;
     }
 
     // TODO: Template these functions
     std::uint16_t read_be16(std::istream& is) {
         std::array<char, 2> data;
         is.read(data.data(), 2);
-
-        return (data[0] & 0xff) << 8 | (data[1] & 0xff);
 
         if (is_big_endian()) {
             return (data[1] & 0xff) << 8 | (data[0] & 0xff);
@@ -28,12 +26,69 @@ namespace kore {
         std::array<char, 4> data;
         is.read(data.data(), 4);
 
-        return (data[0] & 0xff) << 24 | (data[1] & 0xff) << 16 | (data[2] & 0xff) << 8 | (data[3] & 0xff);
-
         if (is_big_endian()) {
-            return (data[0] & 0xff) << 24 | (data[1] & 0xff) << 16 | (data[2] & 0xff) << 8 | (data[3] & 0xff);
+            return
+                (data[3] & 0xff) << 24 |
+                (data[2] & 0xff) << 16 |
+                (data[1] & 0xff) << 8 |
+                (data[0] & 0xff);
         } else {
-            return (data[3] & 0xff) << 24 | (data[2] & 0xff) << 16 | (data[1] & 0xff) << 8 | (data[0] & 0xff);
+            return
+                (data[0] & 0xff) << 24 |
+                (data[1] & 0xff) << 16 |
+                (data[2] & 0xff) << 8 |
+                (data[3] & 0xff);
         }
+    }
+
+    /* std::uint64_t read_be64(std::istream& is) { */
+    /*     union endian_data { */
+    /*         std::array<char, 8> data; */
+    /*         std::uint64_t value; */
+    /*     } */
+
+    /*     is.read(data.data(), 8); */
+
+    /*     if (is_big_endian()) { */
+    /*         return */
+    /*             (data[0] & 0xff) << 56 */
+    /*             | (data[1] & 0xff) << 48 */
+    /*             | (data[2] & 0xff) << 40 */
+    /*             | (data[3] & 0xff) << 32 */
+    /*             | (data[4] & 0xff) << 24 */
+    /*             | (data[5] & 0xff) << 16 */
+    /*             | (data[6] & 0xff) << 8 */
+    /*             | (data[7] & 0xff); */
+    /*     } else { */
+    /*         return */
+    /*             (data[7] & 0xff) << 56 */
+    /*             | (data[6] & 0xff) << 48 */
+    /*             | (data[5] & 0xff) << 40 */
+    /*             | (data[4] & 0xff) << 32 */
+    /*             | (data[3] & 0xff) << 24 */
+    /*             | (data[2] & 0xff) << 16 */
+    /*             | (data[1] & 0xff) << 8 */
+    /*             | (data[0] & 0xff); */
+    /*     } */
+    /* } */
+
+    void write_be16(std::uint16_t value, std::ostream& os) {
+        if (!is_big_endian()) {
+            value = value << 8 | value >> 8;
+        }
+
+        os.write((char*)&value, 2);
+    }
+
+    void write_be32(std::uint32_t value, std::ostream& os) {
+        if (!is_big_endian()) {
+            value =
+                (value << 24) |
+                ((value & 0xff00) << 8) |
+                ((value >> 8) & 0xff00) |
+                (value >> 24);
+        }
+
+        os.write((char*)&value, 4);
     }
 }

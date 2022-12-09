@@ -4,7 +4,7 @@
 namespace kore {
     // Tags to identify entries in the constant table
     enum class ConstantTableTag {
-        I32,
+        I32 = 0,
         I64,
         F32,
         F64,
