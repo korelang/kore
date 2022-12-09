@@ -17,7 +17,7 @@ syn keyword koreFunc        func
 syn keyword koreSpecial     export
 
 syn match koreComment "#.*$"
-syn match koreNumber "\d\+"
+syn match koreNumber "<\d\+"
 
 syn region koreString       start=+"+  end=+"+
 syn region koreChar         start=+'+  end=+'+
