@@ -5,10 +5,7 @@ namespace kore {
         switch (bytecode) {
             case Noop:           return "noop";
             case Move:           return "move";
-            case GloadI32:       return "gloadi32";
-            case GloadI64:       return "gloadi64";
-            case GloadF32:       return "gloadf32";
-            case GloadF64:       return "gloadf64";
+            case Gload:          return "gload";
             case GstoreI32:      return "gstorei32";
             case LoadBool:       return "loadbool";
             case CloadI32:       return "cloadi32";

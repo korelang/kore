@@ -55,11 +55,8 @@ namespace kore {
         Noop,
         Move,
 
-        // Load globals
-        GloadI32,
-        GloadI64,
-        GloadF32,
-        GloadF64,
+        // Load global
+        Gload,
 
         // Load constants
         LoadBool,

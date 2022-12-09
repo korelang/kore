@@ -207,10 +207,19 @@ namespace kore {
     }
 
     void BytecodeGenerator::visit(Identifier& identifier) {
-        KORE_DEBUG_BYTECODE_GENERATOR_LOG("identifier", identifier.name())
+        KORE_DEBUG_BYTECODE_GENERATOR_LOG("identifier", identifier.name());
 
         auto entry = _scope_stack.find(identifier.name());
-        push_register(entry->reg);
+
+        if (entry->is_global_scope()) {
+            auto obj = current_object();
+            auto reg = obj->allocate_register();
+
+            _writer.write_2address(Bytecode::Gload, reg, entry->reg, obj);
+            push_register(reg);
+        } else {
+            push_register(entry->reg);
+        }
     }
 
     void BytecodeGenerator::visit(VariableAssignment& assignment) {

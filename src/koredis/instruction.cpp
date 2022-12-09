@@ -101,6 +101,7 @@ namespace koredis {
             case kore::Bytecode::CloadI64:
             case kore::Bytecode::CloadF32:
             case kore::Bytecode::CloadF64:
+            case kore::Bytecode::Gload:
                 os << " @" << instruction.reg1() << " #" << instruction.value();
                 return os;
 

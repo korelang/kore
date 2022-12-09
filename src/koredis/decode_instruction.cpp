@@ -41,6 +41,8 @@ namespace koredis {
             case kore::Bytecode::CloadF64:
                 return Instruction::load(opcode, pos++, GET_REG1(instruction), GET_VALUE(instruction));
 
+            case kore::Bytecode::Gload:
+                return Instruction::load(opcode, pos++, GET_REG1(instruction), GET_VALUE(instruction));
             case kore::Bytecode::Move:
             case kore::Bytecode::GstoreI32:
                 return Instruction(
