@@ -31,7 +31,7 @@ namespace kore {
     }
 
     void Compiler::print_errors(const Pass& pass, PassResult result) {
-        error_group(pass.name, "%d %s errors", result.errors.size(), "");
+        error_group(pass.name, "%d %serrors", result.errors.size(), "");
 
         for (const auto& error : result.errors) {
             section_error(pass.name, error, 1);

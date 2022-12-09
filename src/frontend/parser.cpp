@@ -361,6 +361,7 @@ namespace kore {
                 return;
             }
 
+            // TODO: Use Owned here
             auto identifier = new Identifier(identifier_token);
 
             add_statement(

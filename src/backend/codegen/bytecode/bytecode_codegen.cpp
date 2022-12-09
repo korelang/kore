@@ -1,5 +1,5 @@
-#include "backend/codegen/bytecode/bytecode.hpp"
-#include "backend/codegen/bytecode/bytecode_codegen.hpp"
+#include "codegen/bytecode/bytecode.hpp"
+#include "codegen/bytecode/bytecode_codegen.hpp"
 #include "utils/unused_parameter.hpp"
 
 #if defined(KORE_DEBUG_BYTECODE_GENERATOR) || defined(KORE_DEBUG)
@@ -200,10 +200,7 @@ namespace kore {
         KORE_DEBUG_BYTECODE_GENERATOR_LOG("str", std::string());
         UNUSED_PARAM(expr);
 
-        auto obj = current_object();
-        auto reg = obj->allocate_register();
-
-        push_register(reg);
+        push_register(current_object()->allocate_register());
     }
 
     void BytecodeGenerator::visit(Identifier& identifier) {
@@ -238,6 +235,9 @@ namespace kore {
             dest_reg = entry->reg;
         }
 
+        // TODO:
+        // Push a destination register for the right-hand side expression
+        //push_destination_register(dest_reg);
         assignment.expression()->accept_visit_only(*this);
         Reg reg = get_register_operand();
 
@@ -337,6 +337,7 @@ namespace kore {
         // for it, then get its register
         if (ret.expr()) {
             ret.expr()->accept_visit_only(*this);
+
             _writer.write_1address(
                 Bytecode::Ret,
                 get_register_operand(),
@@ -387,7 +388,7 @@ namespace kore {
         _register_stack.push_back(reg);
     }
 
-    int BytecodeGenerator::get_register_operand() {
+    Reg BytecodeGenerator::get_register_operand() {
         auto reg = _register_stack.back();
         _register_stack.pop_back();
 
