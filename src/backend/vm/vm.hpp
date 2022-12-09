@@ -10,7 +10,7 @@
 #include "register.hpp"
 #include "module.hpp"
 
-namespace fs = std::filesystem;
+/* namespace fs = std::filesystem; */
 
 namespace kore {
     namespace vm {
@@ -19,8 +19,9 @@ namespace kore {
             std::size_t sp = 0; // Stack pointer
             std::size_t fp = 0; // Frame pointer for current call frame
 
-            void reset();
+            /* Module* _current_module; */
 
+            void reset();
             void restore(int registers, std::size_t fp, std::size_t pc);
 
             /* void set_from_module(const Module& module) { */
@@ -32,7 +33,6 @@ namespace kore {
         struct CallFrame {
             int ret_count;
             int reg_count;
-            std::size_t fp;
             const bytecode_type* code; // Pointer to instructions currently being executed
             std::size_t size;
         };
@@ -64,9 +64,6 @@ namespace kore {
                 std::unordered_map<std::string, Module> _modules;
 
             private:
-                Bytecode inline decode_opcode(bytecode_type instruction);
-                void inline decode_address2_opcode(bytecode_type opcode, int* dest_reg, int* value);
-                void inline decode_address3_opcode(bytecode_type opcode, int* dest_reg, int* op1, int* op2);
                 void throw_unknown_opcode(Bytecode opcode);
 
                 /// Get a function by its index
@@ -76,28 +73,28 @@ namespace kore {
                 CallFrame& current_frame();
 
                 /// Push an i32 value onto a call frame's stack
-                void push(i32 value);
+                inline void push_i32(i32 value);
 
                 /// Push a Value onto a call frame's stack
-                void push(Value& value);
+                inline void push(Value& value);
 
                 /// Push the value of a register onto the current call frame
-                void push_register(Reg reg);
+                inline void push_register(Reg reg);
 
                 /// Push a new call frame
                 void push_call_frame(bytecode_type instruction);
 
                 /// Pop the current call frame
-                void pop_call_frame();
+                void pop_call_frame(bytecode_type instruction);
 
                 /// Pop a value from a call frame's stack
-                Value pop();
+                inline Value pop();
 
                 /// Get the position of the top of the stack
                 inline int top();
 
                 /// Move a value from a source register to a destination register
-                void move(Reg src_reg, Reg dst_reg);
+                inline void move(Reg src_reg, Reg dst_reg);
 
                 void add_module(Module& module);
         };

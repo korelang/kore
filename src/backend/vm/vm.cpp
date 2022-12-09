@@ -3,75 +3,62 @@
 #include "vm/vm.hpp"
 
 #define LOAD_OPCODE(type) {\
-    Reg dest_reg;\
-    Reg value;\
-    decode_address2_opcode(curr_instruction, &dest_reg, &value);\
+    Reg dest_reg = GET_REG1(opcode);\
+    Reg value = GET_VALUE(opcode);\
     _registers[dest_reg] = Value::from_##type(value);\
 }
 
-#define BINARY_ARITH_OPCODE(type, op) {\
-    Reg dest_reg;\
-    Reg op1_reg, op2_reg;\
-    decode_address3_opcode(curr_instruction, &dest_reg, &op1_reg, &op2_reg);\
+#define BINARY_OP(arg_type, ret_type, op) {\
+    Reg dest_reg = GET_REG1(instruction);\
+    Reg op1_reg = GET_REG2(instruction), op2_reg = GET_REG3(instruction);\
     \
-    auto value1 = _registers[op1_reg].as_##type();\
-    auto value2 = _registers[op2_reg].as_##type();\
+    auto value1 = _registers[fp + op1_reg].as_##arg_type();\
+    auto value2 = _registers[fp + op2_reg].as_##arg_type();\
     \
-    _registers[dest_reg] = Value::from_##type(value1 op value2);\
+    _registers[fp + dest_reg] = Value::from_##ret_type(value1 op value2);\
 }
 
 #define BINARY_OP_CASES(type, opcode_suffix) {\
     case Bytecode::Add##opcode_suffix:\
-        BINARY_ARITH_OPCODE(type, +)\
+        BINARY_OP(type, type, +)\
         break;\
     \
     case Bytecode::Sub##opcode_suffix:\
-        BINARY_ARITH_OPCODE(type, -)\
+        BINARY_OP(type, type, +)\
         break;\
     \
     case Bytecode::Mult##opcode_suffix:\
-        BINARY_ARITH_OPCODE(type, *)\
+        BINARY_OP(type, type, +)\
         break;\
     \
     case Bytecode::Div##opcode_suffix:\
-        BINARY_ARITH_OPCODE(type, /)\
+        BINARY_OP(type, type, +)\
         break;\
-}
-
-#define RELOP_OPCODE(type, op) {\
-    Reg dest_reg;\
-    Reg op1_reg, op2_reg;\
-    decode_address3_opcode(curr_instruction, &dest_reg, &op1_reg, &op2_reg);\
-    \
-    auto value1 = _registers[op1_reg].as_##type();\
-    auto value2 = _registers[op2_reg].as_##type();\
-    \
-    _registers[dest_reg] = Value::from_bool(value1 op value2);\
 }
 
 #define RELOP_CASES(type, opcode_suffix) {\
     case Bytecode::Lt##opcode_suffix:\
-        RELOP_OPCODE(type, <)\
+        BINARY_OP(type, bool, +)\
         break;\
     \
     case Bytecode::Gt##opcode_suffix:\
-        RELOP_OPCODE(type, <)\
+        BINARY_OP(type, bool, <)\
         break;\
     \
     case Bytecode::Le##opcode_suffix:\
-        RELOP_OPCODE(type, <)\
+        BINARY_OP(type, bool, <)\
         break;\
     \
     case Bytecode::Ge##opcode_suffix:\
-        RELOP_OPCODE(type, <)\
+        BINARY_OP(type, bool, <)\
         break;\
     \
     case Bytecode::Eq##opcode_suffix:\
-        RELOP_OPCODE(type, <)\
+        BINARY_OP(type, bool, <)\
         break;\
     \
     case Bytecode::Neq##opcode_suffix:\
-        RELOP_OPCODE(type, <)\
+        BINARY_OP(type, bool, <)\
         break;\
 }
 
@@ -99,26 +86,30 @@ namespace kore {
             _context.reset();
 
             // Push a call frame for the main object
-            _call_frames.push_back(CallFrame{ 0, 0, 0, code, size });
+            _call_frames.push_back(CallFrame{ 0, 0, code, size });
 
             // Main interpreter dispatch loop
             while (_context.pc < size) {
-                auto curr_instruction = current_frame().code[_context.pc++];
-                auto opcode = decode_opcode(curr_instruction);
+                auto instruction = current_frame().code[_context.pc++];
+                auto opcode = GET_OPCODE(instruction);
+                auto fp = _context.fp;
 
                 switch (opcode) {
                     case Bytecode::Noop:
                         break;
 
                     case Bytecode::Move: {
-                        _registers[GET_REG1(curr_instruction)] = _registers[GET_REG2(curr_instruction)];
+                        _registers[fp + GET_REG1(instruction)] = _registers[fp + GET_REG2(instruction)];
                         break;
                     }
 
-                    case Bytecode::LoadBool:
-                        LOAD_OPCODE(bool);
+                    case Bytecode::LoadBool: {
+                        Reg dest_reg = GET_REG1(opcode);
+                        _registers[fp + dest_reg] = Value::from_bool(GET_VALUE(opcode));
                         break;
+                    }
 
+                    // TODO: Get constants from current module
                     case Bytecode::CloadI32:
                         LOAD_OPCODE(i32);
                         break;
@@ -127,12 +118,11 @@ namespace kore {
                         LOAD_OPCODE(i64);
                         break;
 
-                    case Bytecode::LloadI32:
-                        Reg dest_reg;
-                        Reg offset;
-                        decode_address2_opcode(curr_instruction, &dest_reg, &offset);
-                        _registers[dest_reg] = _registers[current_frame().fp + offset];
+                    case Bytecode::Gload: {
+                        Reg dest_reg = GET_REG1(opcode);
+                        _registers[fp + dest_reg] = _registers[GET_VALUE(opcode)];
                         break;
+                    }
 
                     BINARY_OP_CASES(i32, I32)
                     BINARY_OP_CASES(i64, I64)
@@ -145,33 +135,33 @@ namespace kore {
                     RELOP_CASES(f64, F64)
 
                     case Bytecode::Jump: {
-                        _context.pc += GET_OFFSET(curr_instruction);
+                        _context.pc += GET_OFFSET(instruction);
                         break;
                     }
 
                     case Bytecode::JumpIf: {
-                        if (_registers[GET_REG1(curr_instruction)].as_bool()) {
+                        if (_registers[fp + GET_REG1(instruction)].as_bool()) {
                             // Adjust since we already incremented the pc
-                            _context.pc += GET_OFFSET(curr_instruction) - 1;
+                            _context.pc += GET_OFFSET(instruction) - 1;
                         }
                         break;
                     }
 
                     case Bytecode::JumpIfNot: {
-                        if (!_registers[GET_REG1(curr_instruction)].as_bool()) {
+                        if (!_registers[fp + GET_REG1(instruction)].as_bool()) {
                             // Adjust since we already incremented the pc
-                            _context.pc += GET_OFFSET(curr_instruction) - 1;
+                            _context.pc += GET_OFFSET(instruction) - 1;
                         }
                         break;
                     }
 
                     case Bytecode::Call: {
-                        push_call_frame(curr_instruction);
+                        push_call_frame(instruction);
                         break;
                     }
 
                     case kore::Bytecode::Ret: {
-                        pop_call_frame();
+                        pop_call_frame(instruction);
                         break;
                     }
 
@@ -196,21 +186,6 @@ namespace kore {
         /*     run(main_object->instructions(), main_object->code_size()); */
         /* } */
 
-        inline Bytecode Vm::decode_opcode(bytecode_type instruction) {
-            return GET_OPCODE(instruction);
-        }
-
-        void inline Vm::decode_address2_opcode(bytecode_type opcode, Reg* dest_reg, Reg* value) {
-            *dest_reg = GET_REG1(opcode);
-            *value = GET_OFFSET(opcode);
-        }
-
-        void inline Vm::decode_address3_opcode(bytecode_type opcode, Reg* dest_reg, Reg* op1, Reg* op2) {
-            *dest_reg = GET_REG1(opcode);
-            *op1 = GET_REG2(opcode);
-            *op2 = GET_REG3(opcode);
-        }
-
         void Vm::throw_unknown_opcode(Bytecode opcode) {
             auto message = "Unsupported bytecode at "  + std::to_string(_context.pc) + ": " + std::to_string(opcode);
 
@@ -228,7 +203,7 @@ namespace kore {
             return _call_frames.back();
         }
 
-        void Vm::push(i32 value) {
+        void Vm::push_i32(i32 value) {
             _registers[_context.sp++] = Value::from_i32(value);
         }
 
@@ -242,8 +217,8 @@ namespace kore {
 
         void Vm::push_call_frame(bytecode_type instruction) {
             // Push the current frame pointer and program counter
-            push(_context.fp);
-            push(_context.pc);
+            push_i32(_context.fp);
+            push_i32(_context.pc);
 
             // Save the current stack pointer position as the new frame pointer
             _context.fp = _context.sp;
@@ -268,29 +243,30 @@ namespace kore {
             auto function = get_function(func_index);
             UNUSED_PARAM(function);
 
-            // Begin executing the function
-            _call_frames.push_back(
-                CallFrame{ ret_count, 0, _context.fp, nullptr, 0 }
-            );
+            _call_frames.push_back(CallFrame{ ret_count, 0, nullptr, 0 });
         }
 
         Value Vm::pop() {
             return _registers[--_context.sp];
         }
 
-        void Vm::pop_call_frame() {
-            CallFrame& frame = current_frame();
+        void Vm::pop_call_frame(bytecode_type instruction) {
+            UNUSED_PARAM(instruction);
 
             // Get the old frame pointer and program counter
-            int old_fp = _registers[frame.fp - 2].as_i32();
-            int old_pc = _registers[frame.fp - 1].as_i32();
+            int old_fp = _registers[_context.fp - 2].as_i32();
+            int old_pc = _registers[_context.fp - 1].as_i32();
+
+            CallFrame& frame = current_frame();
 
             // How many values are we returning?
             int ret_count = frame.ret_count;
 
-            // Move return values down to the beginning of the call frame
+            // Copy return registers into destination registers in the previous
+            // call frame
             for (int i = 0; i < ret_count; ++i) {
-                move(frame.fp + i, top() - i);
+                // TODO: Fix
+                move(_context.fp + i, top() - i);
             }
 
             // Reset the stack pointer to the base of the current call frame
