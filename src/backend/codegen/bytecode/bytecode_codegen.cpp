@@ -241,11 +241,9 @@ namespace kore {
         assignment.expression()->accept_visit_only(*this);
         Reg reg = get_register_operand();
 
-        if (dest_reg != reg) {
-            // A little pre-optimisation: Do not emit moves from and to the
-            // same register
-            _writer.write_2address(Bytecode::Move, dest_reg, reg, obj);
-        }
+        // TODO: Globals should allocate from a separate counter
+        Bytecode opcode = _scope_stack.is_global_scope() ? Bytecode::Gstore : Bytecode::Move;
+        _writer.write_2address(opcode, dest_reg, reg, obj);
 
         // Free the register used for the right-hand side expression
         obj->free_registers(1);

@@ -124,6 +124,12 @@ namespace kore {
                         break;
                     }
 
+                    case Bytecode::Gstore: {
+                        Reg dest_reg = GET_REG1(opcode);
+                        _registers[dest_reg] = _registers[fp + GET_VALUE(opcode)];
+                        break;
+                    }
+
                     BINARY_OP_CASES(i32, I32)
                     BINARY_OP_CASES(i64, I64)
                     BINARY_OP_CASES(f32, F32)

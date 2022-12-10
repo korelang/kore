@@ -55,8 +55,9 @@ namespace kore {
         Noop,
         Move,
 
-        // Load global
+        // Load/store global
         Gload,
+        Gstore,
 
         // Load constants
         LoadBool,
@@ -70,7 +71,6 @@ namespace kore {
         LloadI64,
         LloadF32,
         LloadF64,
-        GstoreI32,
 
         // Arithmetic opcodes
         AddI32,

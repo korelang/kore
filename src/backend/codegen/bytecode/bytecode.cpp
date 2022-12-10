@@ -6,7 +6,7 @@ namespace kore {
             case Noop:           return "noop";
             case Move:           return "move";
             case Gload:          return "gload";
-            case GstoreI32:      return "gstorei32";
+            case Gstore:         return "gstore";
             case LoadBool:       return "loadbool";
             case CloadI32:       return "cloadi32";
             case CloadI64:       return "cloadi64";
