@@ -1,3 +1,4 @@
+#include <sstream>
 #include "instruction.hpp"
 
 namespace koredis {
@@ -69,6 +70,10 @@ namespace koredis {
         return _opcode;
     }
 
+    std::string Instruction::name() const {
+        return bytecode_to_string(opcode());
+    }
+
     kore::Reg Instruction::reg1() const {
         return _reg1;
     }
@@ -93,47 +98,53 @@ namespace koredis {
         return _arg_registers;
     }
 
-    std::ostream& operator<<(std::ostream& os, const Instruction instruction) {
-        os << instruction.position() << ": " << bytecode_to_string(instruction.opcode());
+    std::string Instruction::registers_as_string() const {
+        std::ostringstream oss;
 
-        switch (instruction.opcode()) {
+        switch (opcode()) {
             case kore::Bytecode::CloadI32:
             case kore::Bytecode::CloadI64:
             case kore::Bytecode::CloadF32:
             case kore::Bytecode::CloadF64:
             case kore::Bytecode::Gload:
-                os << " @" << instruction.reg1() << " #" << instruction.value();
-                return os;
+                oss << " @" << reg1() << " #" << value();
+                return oss.str();
 
             case kore::Bytecode::Call:
-                os << " " << instruction.reg1() << " " << instruction.reg2() << " " << instruction.reg3();
+                oss << " " << reg1() << " " << reg2() << " " << reg3();
 
-                for (auto ret_register : instruction.return_registers()) {
-                    os << " @" << ret_register;
+                for (auto ret_register : return_registers()) {
+                    oss << " @" << ret_register;
                 }
 
-                for (auto call_register : instruction.call_registers()) {
-                    os << " @" << call_register;
+                for (auto call_register : call_registers()) {
+                    oss << " @" << call_register;
                 }
 
-                return os;
+                return oss.str();
 
             default:
                 break;
         }
 
-        if (instruction.reg1() >= 0) {
-            os << " @" << instruction.reg1();
+        if (reg1() >= 0) {
+            oss << " @" << reg1();
         }
 
 
-        if (instruction.reg2() >= 0) {
-            os << " @" << instruction.reg2();
+        if (reg2() >= 0) {
+            oss << " @" << reg2();
         }
 
-        if (instruction.reg3() >= 0) {
-            os << " @" << instruction.reg3();
+        if (reg3() >= 0) {
+            oss << " @" << reg3();
         }
+
+        return oss.str();
+    }
+
+    std::ostream& operator<<(std::ostream& os, const Instruction instruction) {
+        os << instruction.position() << ": " << instruction.name() << instruction.registers_as_string();
 
         return os;
     }

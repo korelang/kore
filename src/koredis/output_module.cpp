@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <iomanip>
 
 #include "logging/color_attributes.hpp"
 #include "logging/colors.hpp"
@@ -26,16 +27,20 @@ namespace koredis {
 
     void output_function(std::ostream& os, kore::Color color, kore::CompiledObject& obj) {
         kore::section("function", kore::Color::Magenta, kore::ColorAttribute::Bold, 0, obj.name().c_str());
+        auto attr = kore::ColorAttribute::Reset;
 
-        os << color << "| " << kore::ColorAttribute::Reset << "locals   : " << obj.locals_count() << std::endl;
-        os << color << "| " << kore::ColorAttribute::Reset << "registers: " << obj.reg_count() << std::endl;
-        os << color << "| " << kore::ColorAttribute::Reset << "code size: " << obj.code_size() << std::endl;
-        os << color << "|" << kore::ColorAttribute::Reset << std::endl;
+        os << color << "| " << attr << "locals   : " << obj.locals_count() << std::endl;
+        os << color << "| " << attr << "registers: " << obj.reg_count() << std::endl;
+        os << color << "| " << attr << "code size: " << obj.code_size() << std::endl;
+        os << color << "|" << attr << std::endl;
 
         auto decoded_instructions = decode_instructions(obj);
 
         for (auto instruction : decoded_instructions) {
-            os << color << "| " << kore::ColorAttribute::Reset << instruction << std::endl;
+            os << color << "| " << attr
+               << std::setw(10) << std::left << instruction.name()
+               << instruction.registers_as_string()
+               << std::endl;
         }
     }
 

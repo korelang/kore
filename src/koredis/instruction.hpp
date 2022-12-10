@@ -37,6 +37,7 @@ namespace koredis {
 
             int position() const;
             kore::Bytecode opcode() const;
+            std::string name() const;
             /* short register_count() const; */
             kore::Reg reg1() const;
             kore::Reg reg2() const;
@@ -44,6 +45,7 @@ namespace koredis {
             int value() const;
             std::vector<kore::Reg> return_registers() const;
             std::vector<kore::Reg> call_registers() const;
+            std::string registers_as_string() const;
 
         private:
             int _pos;
