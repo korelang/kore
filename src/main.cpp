@@ -3,12 +3,13 @@
 #include <iostream>
 #include <sstream>
 
+#include "ast/ast_element_stream_writer.hpp"
+#include "ast/ast_stream_writer.hpp"
 #include "backend/bytecode_format_writer.hpp"
 #include "backend/codegen/bytecode/bytecode_codegen.hpp"
 #include "backend/vm/vm.hpp"
 #include "compiler.hpp"
 #include "debug_time.hpp"
-#include "frontend/ast/ast_stream_writer.hpp"
 #include "logging/logging.hpp"
 #include "options.hpp"
 #include "parser.hpp"
@@ -70,31 +71,44 @@ namespace kore {
         return 0;
     }
 
-    int dump_parse(
+    int dump_parse_helper(
         bool execute,
         const std::string& expr,
-        fs::path& path
+        fs::path& path,
+        AstWriter& writer
     ) {
         Ast ast;
         Parser parser;
+        auto group = "parse";
 
         if (execute) {
-            debug_time("parse", [&expr, &ast, &parser](){ parser.parse_non_module(expr, &ast); });
+            debug_time(group, [&expr, &ast, &parser](){ parser.parse_non_module(expr, &ast); });
         } else {
-            debug_time("parse", [&path, &ast, &parser](){ parser.parse_file(path, &ast); });
+            debug_time(group, [&path, &ast, &parser](){ parser.parse_file(path, &ast); });
         }
 
-        debug_group("parse", "dumping ast");
-
         if (!parser.failed()) {
-            AstStreamWriter stream_writer{std::cerr};
-            stream_writer.write(ast);
+            writer.write(ast);
         } else {
-            error_group("parse", "parse failed with %d errors", parser.error_count());
+            error_group(group, "parse failed with %d errors", parser.error_count());
             return 1;
         }
 
         return 0;
+    }
+
+    int dump_parse(bool execute, const std::string& expr, fs::path& path) {
+        debug_group("parse", "dumping ast");
+        AstStreamWriter stream_writer{std::cerr};
+
+        return dump_parse_helper(execute, expr, path, stream_writer);
+    }
+
+    int dump_parse_raw(bool execute, const std::string& expr, fs::path& path) {
+        debug_group("parse", "dumping parse");
+        AstElementStreamWriter stream_writer{std::cerr};
+
+        return dump_parse_helper(execute, expr, path, stream_writer);
     }
 }
 
@@ -119,6 +133,8 @@ int main(int argc, char** argv) {
         // Dump all scanned tokens to stderr
         return kore::dump_tokens(args.execute, args.expr, args.path);
     } else if (args.dump_parse) {
+        return kore::dump_parse_raw(args.execute, args.expr, args.path);
+    } else if (args.dump_ast) {
         return kore::dump_parse(args.execute, args.expr, args.path);
     }
 

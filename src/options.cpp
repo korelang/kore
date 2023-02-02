@@ -36,7 +36,8 @@ namespace kore {
 
             --dump-scan       Only perform a scan of the input file for tokens and
                               dump the tokens to stderr.
-            --dump-parse      Dump the parse tree to stderr.
+            --dump-parse      Dump the parse tree elements to stderr.
+            --dump-ast        Dump the parsed abstract syntax tree to stderr.
             --dump-codegen    Dump generated code to stderr.
             --dump-registers  Dump all registers once the vm is done executing
     )";
@@ -79,6 +80,8 @@ namespace kore {
                     }
                 } else if (arg == "--dump-parse") {
                     parsed_args.dump_parse = true;
+                } else if (arg == "--dump-ast") {
+                    parsed_args.dump_ast = true;
                 } else if (arg == "--dump-scan") {
                     parsed_args.dump_scan = true;
                 } else if (arg == "--dump-codegen") {

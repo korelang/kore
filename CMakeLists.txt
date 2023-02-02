@@ -14,6 +14,7 @@ set(BASE_SOURCES
     src/frontend/ast/ast_node.cpp
     src/frontend/ast/ast_writer.cpp
     src/frontend/ast/ast_stream_writer.cpp
+    src/frontend/ast/ast_element_stream_writer.cpp
     src/frontend/ast/ast_visitor.cpp
 
     # Expressions
