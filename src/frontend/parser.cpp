@@ -1,9 +1,21 @@
 #include <iostream>
 #include <sstream>
 
+#include "ast/expressions/array_fill_expression.hpp"
+#include "ast/expressions/array_range_expression.hpp"
+#include "ast/expressions/bool_expression.hpp"
+#include "ast/expressions/call.hpp"
+#include "ast/expressions/char_expression.hpp"
+#include "ast/expressions/float_expression.hpp"
+#include "ast/expressions/integer_expression.hpp"
+#include "ast/expressions/string_expression.hpp"
 #include "ast/parser_error_node.hpp"
+#include "ast/statements/expression_statement.hpp"
 #include "ast/statements/if_statement.hpp"
+#include "ast/statements/import_statement.hpp"
+#include "ast/statements/module_statement.hpp"
 #include "ast/statements/return_statement.hpp"
+#include "ast/statements/variable_assignment.hpp"
 #include "logging/color_attributes.hpp"
 #include "logging/colors.hpp"
 #include "logging/logging.hpp"
@@ -160,14 +172,14 @@ namespace kore {
         _module_name = module_name;
     }
 
-    void Parser::add_statement(Statement* const parent, Statement* statement) {
+    void Parser::add_statement(Statement* const parent, Owned<Statement> statement) {
         // Use the statement that will contain enclosed statements (such as an if
         // statement containing a brach of statements), otherwise use the top-level
         // ast node
         if (parent) {
-            parent->add_statement(statement);
+            parent->add_statement(std::move(statement));
         } else {
-            _ast->add_statement(statement);
+            _ast->add_statement(std::move(statement));
         }
     }
 
@@ -199,6 +211,8 @@ namespace kore {
     }
 
     void Parser::parse_statement_list(Statement* const parent) {
+        KORE_DEBUG_PARSER_LOG_TOKEN("statement list")
+
         while (valid_statement_start(current_token())) {
             parse_statement(parent);
         }
@@ -227,10 +241,10 @@ namespace kore {
         return _module_name;
     }
 
-    Expression* Parser::make_parser_error(const std::string& msg) {
+    Owned<Expression> Parser::make_parser_error(const std::string& msg) {
         emit_parser_error(msg.c_str());
 
-        return Expression::make_parser_error(msg, current_token()->location());
+        return Expression::make_expression<ParserErrorNode>(msg, current_token()->location());
     }
 
     void Parser::parse_module() {
@@ -244,7 +258,7 @@ namespace kore {
             if (token->is_identifier()) {
                 /* _ast->set_module_name(token->value()); */
                 set_module_name(token->value());
-                add_statement(nullptr, Statement::make_module_decl(*token));
+                add_statement(nullptr, Statement::make_statement<ModuleStatement>(*token));
             } else {
                 emit_parser_error("Module name must be an identifier");
             }
@@ -265,8 +279,8 @@ namespace kore {
             return;
         }
 
-        Identifier* module_name = parse_maybe_qualified_identifier();
-        add_statement(nullptr, Statement::make_import_decl(module_name));
+        auto module_name = parse_maybe_qualified_identifier();
+        add_statement(nullptr, Statement::make_statement<ImportStatement>(std::move(module_name)));
     }
 
     bool Parser::valid_statement_start(const Token* const token) {
@@ -361,13 +375,12 @@ namespace kore {
                 return;
             }
 
-            // TODO: Use Owned here
-            auto identifier = new Identifier(identifier_token);
+            auto identifier = Expression::make_expression<Identifier>(identifier_token);
 
             add_statement(
                 parent,
-                Statement::make_function_call(
-                    parse_function_call(identifier)
+                Statement::make_statement<ExpressionStatement>(
+                    parse_function_call(std::move(identifier))
                 )
             );
 
@@ -382,15 +395,15 @@ namespace kore {
             return;
         }
 
-        Expression* expr = parse_expression(operator_base_precedence());
+        Owned<Expression> expr = parse_expression(operator_base_precedence());
 
         add_statement(
             parent,
-            Statement::make_variable_assignment(
+            Statement::make_statement<VariableAssignment>(
                 is_mutable,
                 identifier_token,
                 decl_type,
-                expr
+                std::move(expr)
             )
         );
     }
@@ -400,17 +413,17 @@ namespace kore {
 
         if (expect_keyword(Keyword::If)) {
             // TODO: This will not be cleaned up if something throws
-            auto if_statement = new IfStatement();
+            auto if_statement = Statement::make_statement<IfStatement>();
             auto condition = parse_expression(operator_base_precedence());
 
             if (condition->is_error()) {
                 advance_to_next_statement_boundary();
-                add_statement(parent, if_statement);
+                add_statement(parent, std::move(if_statement));
                 return;
             }
 
-            parse_block(if_statement);
-            if_statement->add_branch(condition);
+            parse_block(if_statement.get());
+            if_statement->add_branch(std::move(condition));
 
             // Parse multiple 'else-if' statements
             while (expect_keyword(Keyword::Else)) {
@@ -422,15 +435,15 @@ namespace kore {
                         break;
                     }
 
-                    parse_block(if_statement);
-                    if_statement->add_branch(elseif_condition);
+                    parse_block(if_statement.get());
+                    if_statement->add_branch(std::move(elseif_condition));
                 } else {
-                    parse_block(if_statement);
+                    parse_block(if_statement.get());
                     if_statement->add_else_branch();
                 }
             }
 
-            add_statement(parent, if_statement);
+            add_statement(parent, std::move(if_statement));
         }
     }
 
@@ -489,16 +502,12 @@ namespace kore {
         const Token func_name(*token);
         next_token();
 
-        Function* func = Statement::make_function(exported, func_name);
+        auto func = Statement::make_statement<Function>(exported, func_name);
 
-        if (!func) {
-            // TODO
-        }
+        parse_function_signature(func.get());
+        parse_block(func.get());
 
-        parse_function_signature(func);
-        parse_block(func);
-
-        add_statement(parent, func);
+        add_statement(parent, std::move(func));
     }
 
     void Parser::parse_function_signature(Function* const func) {
@@ -575,13 +584,13 @@ namespace kore {
     }
 
     void Parser::parse_return(Statement* const parent) {
-        KORE_DEBUG_PARSER_LOG_TOKEN("parameter list")
+        KORE_DEBUG_PARSER_LOG_TOKEN("return")
 
         if (expect_keyword(Keyword::Return)) {
             // TODO: Should be an expression list in the future
             auto expr = parse_expression(operator_base_precedence());
 
-            add_statement(parent, Statement::make_return(expr));
+            add_statement(parent, Statement::make_statement<Return>(std::move(expr)));
         }
     }
 
@@ -592,7 +601,7 @@ namespace kore {
 
         do {
             if (token->is_identifier()) {
-                identifiers.emplace_back(Expression::make_identifier(*token));
+                identifiers.emplace_back(Expression::make_expression<Identifier>(*token));
                 token = next_token();
                 token = next_token();
 
@@ -656,39 +665,39 @@ namespace kore {
         return new UnknownType();
     }
 
-    Expression* Parser::parse_literal() {
+    Owned<Expression> Parser::parse_literal() {
         KORE_DEBUG_PARSER_LOG_TOKEN("literal")
 
         auto token = current_token();
-        Expression* result = nullptr;
+        Owned<Expression> result = nullptr;
 
         switch (token->type()) {
             case TokenType::integer:
-                result = Expression::make_int_literal(token->int_value(), token->location());
+                result = Expression::make_expression<IntegerExpression>(token->int_value(), token->location());
                 next_token();
                 break;
 
             case TokenType::floatp:
-                result = Expression::make_float_literal(token->float32_value(), token->location());
+                result = Expression::make_expression<FloatExpression>(token->float32_value(), token->location());
                 next_token();
                 break;
 
             case TokenType::character:
-                result = Expression::make_char_literal(token->int_value(), token->location());
+                result = Expression::make_expression<CharExpression>(token->int_value(), token->location());
                 next_token();
                 break;
 
             case TokenType::string:
-                result = Expression::make_string_literal(token->value(), token->location());
+                result = Expression::make_expression<StringExpression>(token->value(), token->location());
                 next_token();
                 break;
 
             case TokenType::keyword:
                 if (token->is_boolean_keyword()) {
-                    result = Expression::make_bool_literal(token->value(), token->location());
+                    result = Expression::make_expression<BoolExpression>(token->value(), token->location());
                     next_token();
                 } else {
-                    result = Expression::make_parser_error(
+                    result = Expression::make_expression<ParserErrorNode>(
                         "Expected literal token type, got keyword",
                         token->location()
                     );
@@ -700,24 +709,24 @@ namespace kore {
                 break;
 
             default:
-                result = Expression::make_parser_error("Expected literal token type", token->location());
+                result = Expression::make_expression<ParserErrorNode>("Expected literal token type", token->location());
                 break;
         }
 
         return result;
     }
 
-    Expression* Parser::parse_array(const Token* const lbracket_token) {
+    Owned<Expression> Parser::parse_array(const Token* const lbracket_token) {
         KORE_DEBUG_PARSER_LOG_TOKEN("array")
 
         next_token();
         auto first_expr = parse_expression(operator_base_precedence());
-        Expression* result = nullptr;
+        Owned<Expression> result = nullptr;
 
         if (expect_token_type(TokenType::colon)) {
-            result = parse_array_fill_expression(lbracket_token, first_expr);
+            result = parse_array_fill_expression(lbracket_token, std::move(first_expr));
         } else if (expect_token_type(TokenType::comma)) {
-            result = parse_normal_array_expression(lbracket_token, first_expr);
+            result = parse_normal_array_expression(lbracket_token, std::move(first_expr));
         } else {
             emit_parser_error("Expected ':' or ',' in array literal");
         }
@@ -725,33 +734,37 @@ namespace kore {
         return result;
     }
 
-    Expression* Parser::parse_array_fill_expression(
+    Owned<Expression> Parser::parse_array_fill_expression(
         const Token* const lbracket_token,
-        Expression* size_expr
+        Owned<Expression> size_expr
     ) {
         KORE_DEBUG_PARSER_LOG_TOKEN("array fill")
-        Expression* fill_expr = parse_expression(operator_base_precedence());
+        auto fill_expr = parse_expression(operator_base_precedence());
 
         if (!expect_token_type(TokenType::rbracket)) {
             return make_parser_error("Expected ']' after array fill expression");
         }
 
-        return Expression::make_array_fill(size_expr, fill_expr, lbracket_token->location());
+        return Expression::make_expression<ArrayFillExpression>(
+            std::move(size_expr),
+            std::move(fill_expr),
+            lbracket_token->location()
+        );
     }
 
-    Expression* Parser::parse_normal_array_expression(
+    Owned<Expression> Parser::parse_normal_array_expression(
         const Token* const lbracket_token,
-        Expression* first_elem_expr
+        Owned<Expression> first_elem_expr
     ) {
         KORE_DEBUG_PARSER_LOG_TOKEN("normal array")
 
-        ArrayExpression* array_expr = dynamic_cast<ArrayExpression*>(Expression::make_empty_array());
-        array_expr->add_element(first_elem_expr);
+        auto array_expr = Expression::make_expression<ArrayExpression>();
+        array_expr->add_element(std::move(first_elem_expr));
         array_expr->set_start_location(lbracket_token->location());
 
         while (!_scanner.eof()) {
-            Expression* element_expr = parse_expression(operator_base_precedence());
-            array_expr->add_element(element_expr);
+            auto element_expr = parse_expression(operator_base_precedence());
+            array_expr->add_element(std::move(element_expr));
 
             if (expect_token_type(TokenType::rbracket)) {
                 break;
@@ -767,7 +780,7 @@ namespace kore {
         return array_expr;
     }
 
-    Expression* Parser::parse_array_range_expression(const Token* const lbracket_token) {
+    Owned<Expression> Parser::parse_array_range_expression(const Token* const lbracket_token) {
         KORE_DEBUG_PARSER_LOG_TOKEN("normal array")
 
         int base_precedence = operator_base_precedence();
@@ -779,10 +792,14 @@ namespace kore {
 
         auto end_expr = parse_expression(base_precedence);
 
-        return Expression::make_array_range(start_expr, end_expr, lbracket_token->location());
+        return Expression::make_expression<ArrayRangeExpression>(
+            std::move(start_expr),
+            std::move(end_expr),
+            lbracket_token->location()
+        );
     }
 
-    Identifier* Parser::parse_maybe_qualified_identifier() {
+    Owned<Identifier> Parser::parse_maybe_qualified_identifier() {
         KORE_DEBUG_PARSER_LOG_TOKEN("identifier")
 
         std::vector<std::string> identifier;
@@ -805,10 +822,10 @@ namespace kore {
             }
         } while (true);
 
-        return Expression::make_identifier(identifier, loc);
+        return Expression::make_expression<Identifier>(identifier, loc);
     }
 
-    Expression* Parser::parse_unary_expression() {
+    Owned<Expression> Parser::parse_unary_expression() {
         KORE_DEBUG_PARSER_LOG_TOKEN("unary expression")
         auto expr = parse_subexpr();
 
@@ -860,7 +877,7 @@ namespace kore {
         /* return make_parser_error("Expected unary operator"); */
     }
 
-    Expression* Parser::parse_subexpr() {
+    Owned<Expression> Parser::parse_subexpr() {
         KORE_DEBUG_PARSER_LOG_TOKEN("subexpr")
         auto expr = parse_operand();
 
@@ -869,7 +886,7 @@ namespace kore {
                 return expr;
             }
 
-            auto call = parse_function_call(expr);
+            auto call = parse_function_call(std::move(expr));
 
             if (!call->is_error()) {
                 return call;
@@ -879,7 +896,7 @@ namespace kore {
         return expr;
     }
 
-    Expression* Parser::parse_operand() {
+    Owned<Expression> Parser::parse_operand() {
         KORE_DEBUG_PARSER_LOG_TOKEN("operand")
         auto expr = parse_literal();
 
@@ -890,10 +907,11 @@ namespace kore {
         return parse_maybe_qualified_identifier();
     }
 
-    Expression* Parser::parse_function_call(Expression* func_name) {
-        KORE_DEBUG_PARSER_LOG_TOKEN("call")
+    Owned<Expression> Parser::parse_function_call(Owned<Expression> func_name) {
+        KORE_DEBUG_PARSER_LOG_TOKEN("call");
 
-        std::vector<Expression*> expr_list;
+        // TODO: We can probably just return the vector here and use its move constructor
+        std::vector<Owned<Expression>> expr_list;
         auto result = parse_expression_list(expr_list);
 
         if (result && result->is_error()) {
@@ -901,13 +919,13 @@ namespace kore {
             return result;
         }
 
-        return Expression::make_call(
-            static_cast<Identifier*>(func_name),
-            expr_list
+        return Expression::make_expression<Call>(
+            std::move(func_name),
+            std::move(expr_list)
         );
     }
 
-    Expression* Parser::parse_expression_list(std::vector<Expression*>& expr_list) {
+    Owned<Expression> Parser::parse_expression_list(std::vector<Owned<Expression>>& expr_list) {
         KORE_DEBUG_PARSER_LOG_TOKEN("exprlist")
 
         if (!expect_token_type(TokenType::lparen)) {
@@ -918,11 +936,11 @@ namespace kore {
         }
 
         auto precedence = operator_base_precedence();
-        Expression* expr = nullptr;
+        Owned<Expression> expr = nullptr;
 
         while ((expr = parse_expression(precedence))) {
             KORE_DEBUG_PARSER_LOG_TOKEN("exprlist:expr")
-            expr_list.push_back(expr);
+            expr_list.push_back(std::move(expr));
 
             if (expect_token_type(TokenType::rparen)) {
                 break;
@@ -934,9 +952,9 @@ namespace kore {
         return nullptr;
     }
 
-    Expression* Parser::parse_parenthesised_expression() {
+    Owned<Expression> Parser::parse_parenthesised_expression() {
         KORE_DEBUG_PARSER_LOG_TOKEN("parenthesised expression")
-        Expression* expr = parse_expression(operator_base_precedence());
+        Owned<Expression> expr = parse_expression(operator_base_precedence());
 
         if (expect_token_type(TokenType::rparen)) {
             expr->set_parenthesised(true);
@@ -946,9 +964,9 @@ namespace kore {
         return make_parser_error("Expected ')' after expression");
     }
 
-    Expression* Parser::parse_expression(int precedence) {
+    Owned<Expression> Parser::parse_expression(int precedence) {
         KORE_DEBUG_PARSER_LOG_TOKEN("expression")
-        Expression* left = parse_unary_expression();
+        auto left = parse_unary_expression();
 
         if (left->is_error()) {
             return left;
@@ -975,9 +993,20 @@ namespace kore {
             auto right = parse_expression(right_precedence);
 
             if (op == "..") {
-                left = Expression::make_array_range(left, right, binop_location);
+                left = Expression::make_expression<ArrayRangeExpression>(
+                    std::move(left),
+                    std::move(right),
+                    binop_location
+                );
             } else {
-                left = Expression::make_binary(op, left, right, SourceLocation(left->location(), right->location()));
+                auto location = SourceLocation(left->location(), right->location());
+
+                left = Expression::make_expression<BinaryExpression>(
+                    op,
+                    std::move(left),
+                    std::move(right),
+                    location
+                );
             }
         }
 

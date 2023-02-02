@@ -3,8 +3,8 @@
 
 namespace kore {
     ArrayRangeExpression::ArrayRangeExpression(
-        Expression* start_expr,
-        Expression* end_expr,
+        Owned<Expression> start_expr,
+        Owned<Expression> end_expr,
         const SourceLocation& location
     ) : Expression(ExpressionType::Array, location),
         _start_expr(std::move(start_expr)),

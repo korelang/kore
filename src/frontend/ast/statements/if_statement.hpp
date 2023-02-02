@@ -17,10 +17,10 @@ namespace kore {
             IfStatement();
             virtual ~IfStatement();
 
-            void add_branch(Expression* condition);
+            void add_branch(Owned<Expression> condition);
             void add_else_branch();
 
-            void add_statement(Statement* statement) override;
+            void add_statement(Owned<Statement> statement) override;
             bool has_else_branch() const;
 
             int branch_count() const;

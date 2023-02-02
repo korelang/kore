@@ -9,7 +9,7 @@ namespace kore {
         bool is_mutable,
         const Token& identifier,
         Type* type,
-        Expression* expr
+        Owned<Expression> expr
     )
         : Statement(identifier.location(), StatementType::VariableAssignment),
         _identifier(identifier, is_mutable),
@@ -19,7 +19,7 @@ namespace kore {
         _location = SourceLocation(
             identifier.location().lnum(),
             identifier.location().start(),
-            expr->location().end()
+            _expr->location().end()
         );
 
         _identifier.set_type(type);

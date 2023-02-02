@@ -5,19 +5,19 @@
 #include "utils/unused_parameter.hpp"
 
 namespace kore {
-    Call::Call(Identifier* identifier, std::vector<Expression*>& parameters)
+    Call::Call(Owned<Expression> identifier, std::vector<Owned<Expression>> parameters)
         : Expression(ExpressionType::Call, identifier->location()),
-          _name(identifier->name())
+          _identifier(std::move(identifier))
     {
-        for (Expression* expr : parameters) {
-            _parameters.emplace_back(expr);
+        for (auto& expr : parameters) {
+            _parameters.emplace_back(std::move(expr));
         }
     }
 
     Call::~Call() {}
 
     std::string Call::name() const {
-        return _name;
+        return static_cast<Identifier*>(_identifier.get())->name();
     }
 
     Expression* Call::arg(int index) {

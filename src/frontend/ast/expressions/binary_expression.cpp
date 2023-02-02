@@ -67,13 +67,13 @@ namespace kore {
 
     BinaryExpression::BinaryExpression(
         const std::string& op,
-        Expression* left,
-        Expression* right,
+        Owned<Expression> left,
+        Owned<Expression> right,
         SourceLocation location
     ) : Expression(ExpressionType::Binary, location),
         _op(string_to_binop(op)),
-        _left(left),
-        _right(right)
+        _left(std::move(left)),
+        _right(std::move(right))
     {}
 
     BinaryExpression::~BinaryExpression() {

@@ -4,8 +4,8 @@
 #include "ast/expressions/expression.hpp"
 
 namespace kore {
-    Branch::Branch(Expression* condition, StatementList statements)
-        : _condition(condition),
+    Branch::Branch(Owned<Expression> condition, StatementList statements)
+        : _condition(std::move(condition)),
         _statements(std::move(statements)) {
     }
 
@@ -16,7 +16,7 @@ namespace kore {
     }
 
     Expression* Branch::condition() {
-        return _condition;
+        return _condition.get();
     }
 
     body_iterator Branch::begin() const {

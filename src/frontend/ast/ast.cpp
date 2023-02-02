@@ -20,8 +20,8 @@ namespace kore {
         return _module_name == "main";
     }
 
-    void Ast::add_statement(Statement* statement) {
-        _statements.emplace_back(statement);
+    void Ast::add_statement(Owned<Statement> statement) {
+        _statements.emplace_back(std::move(statement));
     }
 
     Ast::ConstIter Ast::begin() const {

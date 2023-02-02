@@ -3,7 +3,7 @@
 #include "ast/expressions/identifier.hpp"
 
 namespace kore {
-    ImportStatement::ImportStatement(Identifier* import_spec)
+    ImportStatement::ImportStatement(Owned<Identifier> import_spec)
         : Statement(SourceLocation::unknown, StatementType::ImportDecl),
         _spec(std::move(import_spec)) {
     }

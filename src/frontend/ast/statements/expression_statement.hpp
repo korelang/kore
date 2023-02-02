@@ -12,7 +12,7 @@ namespace kore {
     /// such as function calls or if statements
     class ExpressionStatement final : public Statement {
         public:
-            ExpressionStatement(Expression* expression);
+            ExpressionStatement(Owned<Expression> expression);
             virtual ~ExpressionStatement();
 
             Expression* expression();

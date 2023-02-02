@@ -11,7 +11,7 @@ namespace kore {
 
     class ImportStatement : public Statement {
         public:
-            ImportStatement(Identifier* import_spec);
+            ImportStatement(Owned<Identifier> import_spec);
             virtual ~ImportStatement();
 
             /// The imported spec e.g. 'system.env'

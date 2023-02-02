@@ -8,7 +8,7 @@ namespace kore {
     class Return : public Statement {
         public:
             Return();
-            Return(Expression* expr);
+            Return(Owned<Expression> expr);
             virtual ~Return();
 
             Expression* expr();

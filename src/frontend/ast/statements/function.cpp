@@ -72,14 +72,14 @@ namespace kore {
         _name.set_type(_type.get());
     }
 
-    void Function::add_statement(Statement* statement) {
-        _body.emplace_back(std::move(statement));
-
+    void Function::add_statement(Owned<Statement> statement) {
         // If the statement is a return, also save it separately. This
         // is useful for type-checking etc. later on
         if (statement->statement_type() == StatementType::Return) {
-            _returns.emplace_back(std::move(statement));
+            _returns.push_back(statement.get());
         }
+
+        _body.emplace_back(std::move(statement));
     }
 
     Function::body_iterator Function::begin() {

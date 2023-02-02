@@ -26,7 +26,7 @@ namespace kore {
             bool is_main() const noexcept;
 
             /// Add a statement to this AST
-            void add_statement(Statement* statement);
+            void add_statement(Owned<Statement> statement);
 
             ConstIter begin() const;
             ConstIter end() const;

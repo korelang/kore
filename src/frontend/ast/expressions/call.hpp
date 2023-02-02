@@ -8,7 +8,7 @@
 namespace kore {
     class Call : public Expression {
         public:
-            Call(Identifier* identifier, std::vector<Expression*>& parmeters);
+            Call(Owned<Expression> identifier, std::vector<Owned<Expression>> parmeters);
             virtual ~Call();
 
             std::string name() const;
@@ -23,7 +23,7 @@ namespace kore {
             void accept_visit_only(AstVisitor& visitor) override;
 
         private:
-            std::string _name;
+            Expression::pointer _identifier;
             std::vector<Expression::pointer> _parameters;
     };
 }

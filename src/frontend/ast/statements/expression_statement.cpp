@@ -4,8 +4,8 @@
 #include "ast/statements/expression_statement.hpp"
 
 namespace kore {
-    ExpressionStatement::ExpressionStatement(Expression* expression)
-        : _expression(expression) {}
+    ExpressionStatement::ExpressionStatement(Owned<Expression> expression)
+        : _expression(std::move(expression)) {}
 
     ExpressionStatement::~ExpressionStatement() {}
 

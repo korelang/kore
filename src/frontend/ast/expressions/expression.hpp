@@ -57,7 +57,7 @@ namespace kore {
             static Expression* make_float_literal(f32, const SourceLocation&);
             static Expression* make_char_literal(i32, const SourceLocation&);
             static Expression* make_string_literal(const std::string&, const SourceLocation&);
-            static Identifier* make_identifier(const Token&);
+            static Owned<Expression> make_identifier(const Token&);
             static Identifier* make_identifier(const std::string&, const SourceLocation&);
             static Identifier* make_identifier(const std::vector<std::string>&, const SourceLocation&);
             static Expression* make_unary(const std::string& op, Expression*, const SourceLocation&);
@@ -65,9 +65,9 @@ namespace kore {
             static Expression* make_parameter(const Token&, Type*);
             static Expression* make_call(Identifier*, std::vector<Expression*>& parameters);
 
-            template<typename T, typename ...Args>
-            static Expression* make_expression(Args... args) {
-                return std::make_unique<T>(std::forward(args)...);
+            template<typename T, typename... Args>
+            static Owned<T> make_expression(Args... args) {
+                return std::make_unique<T>(std::forward<Args>(args)...);
             }
 
         protected:

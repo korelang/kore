@@ -21,7 +21,7 @@ namespace kore {
 
     Statement::~Statement() {}
 
-    void Statement::add_statement(Statement* statement) {
+    void Statement::add_statement(Owned<Statement> statement) {
         UNUSED_PARAM(statement);
 
         throw std::runtime_error("This statement type does not contain other statements");
@@ -35,10 +35,6 @@ namespace kore {
         return new Function(exported, func_name);
     }
 
-    Return* Statement::make_return(Expression* expr) {
-        return new Return(expr);
-    }
-
     Statement* Statement::make_module_decl(const std::string& module_name, const SourceLocation& location) {
         return new ModuleStatement(module_name, location);
     }
@@ -47,19 +43,7 @@ namespace kore {
         return new ModuleStatement(token);
     }
 
-    Statement* Statement::make_import_decl(Identifier* import_spec) {
-        return new ImportStatement(import_spec);
-    }
-
     Statement* Statement::make_variable_decl(const Token& identifier, const Token& type) {
         return new VariableDeclaration(identifier, type);
-    }
-
-    Statement* Statement::make_variable_assignment(bool is_mutable, const Token& identifier, Type* type, Expression* expr) {
-        return new VariableAssignment(is_mutable, identifier, type, expr);
-    }
-
-    Statement* Statement::make_function_call(Expression* expression) {
-        return new ExpressionStatement(expression);
     }
 }

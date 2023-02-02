@@ -32,7 +32,7 @@ namespace kore {
             const Identifier* parameter(int param_index);
             void add_parameter(Parameter* parameter);
             void set_return_type(Type* type);
-            void add_statement(Statement* statment) override;
+            void add_statement(Owned<Statement> statement) override;
 
             body_iterator begin();
             body_iterator end();
@@ -45,7 +45,7 @@ namespace kore {
             bool _exported;
             Owned<FunctionType> _type;
             StatementList _body;
-            StatementList _returns;
+            std::vector<Statement*> _returns;
     };
 }
 

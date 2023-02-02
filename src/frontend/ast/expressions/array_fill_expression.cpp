@@ -3,8 +3,8 @@
 
 namespace kore {
     ArrayFillExpression::ArrayFillExpression(
-            Expression* size_expr,
-            Expression* element_expr,
+            Owned<Expression> size_expr,
+            Owned<Expression> element_expr,
             const SourceLocation& location
         ) : Expression(ExpressionType::Array, location),
             _size_expr(std::move(size_expr)),

@@ -26,7 +26,7 @@ namespace kore {
         _end = location;
     }
 
-    void ArrayExpression::add_element(Expression* expr) {
+    void ArrayExpression::add_element(Owned<Expression> expr) {
         if (_elements.empty()) {
             _type = new ArrayType(expr->type());
         } else {

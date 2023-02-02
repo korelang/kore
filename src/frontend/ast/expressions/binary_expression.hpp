@@ -37,7 +37,7 @@ namespace kore {
 
     class BinaryExpression : public Expression {
         public:
-            BinaryExpression(const std::string& op, Expression* left, Expression* right, SourceLocation location);
+            BinaryExpression(const std::string& op, Owned<Expression> left, Owned<Expression> right, SourceLocation location);
             virtual ~BinaryExpression();
 
             const Type* type() const override;

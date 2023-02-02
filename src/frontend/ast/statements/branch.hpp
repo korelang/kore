@@ -8,7 +8,7 @@ namespace kore {
 
     class Branch : public Statement {
         public:
-            Branch(Expression* condition, StatementList statements);
+            Branch(Owned<Expression> condition, StatementList statements);
             Branch(StatementList statements);
             virtual ~Branch();
 
@@ -21,7 +21,7 @@ namespace kore {
             void accept_visit_only(AstVisitor& visitor) override;
 
         private:
-            Expression* _condition;
+            Owned<Expression> _condition;
             StatementList _statements;
     };
 }

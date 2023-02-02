@@ -6,7 +6,11 @@
 namespace kore {
     class ArrayFillExpression : public Expression {
         public:
-            ArrayFillExpression(Expression* size_expr, Expression* element_expr, const SourceLocation& location);
+            ArrayFillExpression(
+                Owned<Expression> size_expr,
+                Owned<Expression> element_expr,
+                const SourceLocation& location
+            );
             virtual ~ArrayFillExpression();
 
             bool uses_constants_only() const;

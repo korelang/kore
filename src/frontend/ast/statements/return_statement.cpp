@@ -4,7 +4,7 @@
 namespace kore {
     Return::Return() : _expr(nullptr) {}
 
-    Return::Return(Expression* expr)
+    Return::Return(Owned<Expression> expr)
         : Statement(expr->location(), StatementType::Return),
           _expr(std::move(expr)) {}
 

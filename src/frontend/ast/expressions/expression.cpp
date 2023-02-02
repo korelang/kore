@@ -69,24 +69,8 @@ namespace kore {
         return new ParserErrorNode(msg, location);
     }
 
-    Expression* Expression::make_array_fill(
-        Expression* size_expr,
-        Expression* fill_expr,
-        const SourceLocation& location
-    ) {
-        return new ArrayFillExpression(size_expr, fill_expr, location);
-    }
-
     Expression* Expression::make_empty_array() {
         return new ArrayExpression();
-    }
-
-    Expression* Expression::make_array_range(
-        Expression* start_expr,
-        Expression* end_expr,
-        const SourceLocation& location
-    ) {
-        return new ArrayRangeExpression(start_expr, end_expr, location);
     }
 
     Expression* Expression::make_bool_literal(const std::string& value, const SourceLocation& location) {
@@ -110,14 +94,14 @@ namespace kore {
         return new StringExpression(str, location);
     }
 
-    Identifier* Expression::make_identifier(const Token& token) {
-        return new Identifier(token.value(), token.location());
+    Owned<Expression> Expression::make_identifier(const Token& token) {
+        return Expression::make_expression<Identifier>(token.value(), token.location());
         /* return Expression::make_identifier(token.value(), token.location()); */
     }
 
-    Identifier* Expression::make_identifier(const std::string& str, const SourceLocation& location) {
-        return new Identifier(str, location);
-    }
+    /* Owned<Expression> Expression::make_identifier(const std::string& str, const SourceLocation& location) { */
+    /*     return new Identifier(str, location); */
+    /* } */
 
     Identifier* Expression::make_identifier(const std::vector<std::string>& parts, const SourceLocation& location) {
         return new Identifier(parts, location);
@@ -127,23 +111,10 @@ namespace kore {
         return new UnaryExpression(op, expr, location);
     }
 
-    Expression* Expression::make_binary(
-        const std::string& op,
-        Expression* left,
-        Expression* right,
-        const SourceLocation& location
-    ) {
-        return new BinaryExpression(op, left, right, location);
-    }
-
     Expression* Expression::make_parameter(
         const Token& token,
         Type* type
     ) {
         return new Parameter(token, type);
-    }
-
-    Expression* Expression::make_call(Identifier* identifier, std::vector<Expression*>& parameters) {
-        return new Call(identifier, parameters);
     }
 }

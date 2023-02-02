@@ -14,7 +14,7 @@
 #include "token.hpp"
 
 namespace kore {
-    using IdentifierList = std::vector<Identifier*>;
+    using IdentifierList = std::vector<Owned<Identifier>>;
 
     /// The parser. Each parse method is annotated with a comment with the /
     /// particular part of the grammar that it handles. It is a recursive descent
@@ -74,11 +74,11 @@ namespace kore {
 
             void emit_parser_error(const char* const format, ...);
 
-            Expression* make_parser_error(const std::string& msg);
+            Owned<Expression> make_parser_error(const std::string& msg);
 
             void set_module_name(const std::string& module_name);
 
-            void add_statement(Statement* const parent, Statement* statement);
+            void add_statement(Statement* const parent, Owned<Statement> statement);
 
             // When we encounter an error, this method is called to advance the
             // parser (and scanner) to the beginning of the next expression.
@@ -135,7 +135,7 @@ namespace kore {
             void parse_return(Statement* const parent);
 
             /// IdentifierList = Identifier { "," Identifier } .
-            std::vector<Identifier*> parse_identifier_list();
+            IdentifierList parse_identifier_list();
 
             Type* parse_type();
 
@@ -143,44 +143,44 @@ namespace kore {
             void parse_block(Statement* const parent);
 
             /// int_lit = decimal_lit | binary_lit | octal_lit | hex_lit .
-            Expression* parse_literal();
+            Owned<Expression> parse_literal();
 
             /// ArrayDecl = Array | ArrayRange | ArrayFill .
-            Expression* parse_array(const Token* const lbracket_token);
+            Owned<Expression> parse_array(const Token* const lbracket_token);
 
             /// ArrayFill = "[" Expression ":" Expression "]" .
-            Expression* parse_array_fill_expression(
+            Owned<Expression> parse_array_fill_expression(
                 const Token* const lbracket_token,
-                Expression* size_expr
+                Owned<Expression> size_expr
             );
 
             /// Array = "[" [ ExpressionList ] "]" .
-            Expression* parse_normal_array_expression(
+            Owned<Expression> parse_normal_array_expression(
                 const Token* const lbracket_token,
-                Expression* first_expr
+                Owned<Expression> first_expr
             );
 
             /// ArrayRange = Expression ".." Expression .
-            Expression* parse_array_range_expression(const Token* const lbracket_token);
+            Owned<Expression> parse_array_range_expression(const Token* const lbracket_token);
 
-            Identifier* parse_maybe_qualified_identifier();
+            Owned<Identifier> parse_maybe_qualified_identifier();
 
-            Expression* parse_parenthesised_expression();
+            Owned<Expression> parse_parenthesised_expression();
 
             /// UnaryExpr = UnaryOp UnaryExpr .
-            Expression* parse_unary_expression();
+            Owned<Expression> parse_unary_expression();
 
-            Expression* parse_subexpr();
+            Owned<Expression> parse_subexpr();
 
-            Expression* parse_operand();
+            Owned<Expression> parse_operand();
 
-            Expression* parse_function_call(Expression* func_name);
+            Owned<Expression> parse_function_call(Owned<Expression> func_name);
 
-            Expression* parse_expression_list(std::vector<Expression*>& expr_list);
+            Owned<Expression> parse_expression_list(std::vector<Owned<Expression>>& expr_list);
 
             /// Expression = UnaryExpr | Expression binary_op Expression .
             /// Expresions are parsed using "precedence climbing"
-            Expression* parse_expression(int precedence);
+            Owned<Expression> parse_expression(int precedence);
     };
 }
 

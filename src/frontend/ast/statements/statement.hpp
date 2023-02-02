@@ -31,7 +31,7 @@ namespace kore {
             Statement(SourceLocation location, StatementType statement_type);
             virtual ~Statement();
 
-            virtual void add_statement(Statement* statement);
+            virtual void add_statement(Owned<Statement> statement);
 
             StatementType statement_type() const;
 
@@ -43,6 +43,11 @@ namespace kore {
             static Statement* make_variable_decl(const Token& identifier, const Token& type);
             static Statement* make_variable_assignment(bool is_mutable, const Token& identifier, Type* type, Expression* expr);
             static Statement* make_function_call(Expression* expression);
+
+            template<typename T, typename... Args>
+            static Owned<T> make_statement(Args... args) {
+                return std::make_unique<T>(std::forward<Args>(args)...);
+            }
 
         private:
             StatementType _statement_type;

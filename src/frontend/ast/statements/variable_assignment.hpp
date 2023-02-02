@@ -11,7 +11,7 @@ namespace kore {
 
     class VariableAssignment : public Statement {
         public:
-            VariableAssignment(bool is_mutable, const Token& identifier, Type* type, Expression* expr);
+            VariableAssignment(bool is_mutable, const Token& identifier, Type* type, Owned<Expression> expr);
             virtual ~VariableAssignment();
 
             const Identifier* identifier() const;

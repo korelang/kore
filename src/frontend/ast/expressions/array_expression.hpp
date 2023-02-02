@@ -16,7 +16,7 @@ namespace kore {
 
             void set_start_location(const SourceLocation& location);
             void set_end_location(const SourceLocation& location);
-            void add_element(Expression* expr);
+            void add_element(Owned<Expression> expr);
             bool uses_constants_only() const;
             int size() const;
             Expression* operator[](int index);

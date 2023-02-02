@@ -9,8 +9,10 @@ namespace kore {
     IfStatement::~IfStatement() {
     }
 
-    void IfStatement::add_branch(Expression* condition) {
-        _branches.emplace_back(new Branch(condition, std::move(_statement_accumulator)));
+    void IfStatement::add_branch(Owned<Expression> condition) {
+        _branches.emplace_back(
+            new Branch(std::move(condition), std::move(_statement_accumulator))
+        );
         _statement_accumulator.clear();
     }
 
@@ -20,8 +22,8 @@ namespace kore {
         _statement_accumulator.clear();
     }
 
-    void IfStatement::add_statement(Statement* statement) {
-        _statement_accumulator.emplace_back(statement);
+    void IfStatement::add_statement(Owned<Statement> statement) {
+        _statement_accumulator.emplace_back(std::move(statement));
     }
 
     bool IfStatement::has_else_branch() const {
