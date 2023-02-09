@@ -11,6 +11,8 @@ namespace kore {
     };
 
     std::ostream& operator<<(std::ostream& out, const Version& version);
+
+    void print_version(const std::string& name, kore::Version version, bool version_only);
 }
 
 #endif // KORE_VERSION_HPP
