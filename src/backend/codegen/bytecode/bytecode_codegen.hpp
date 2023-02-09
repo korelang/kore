@@ -54,6 +54,7 @@ namespace kore {
             static const std::string _MAIN_FUNC_NAME;
 
             std::vector<Reg> _register_stack;
+            std::vector<Reg> _destination_register_stack;
             BytecodeArrayWriter _writer;
             ScopeStack _scope_stack;
 
@@ -75,7 +76,10 @@ namespace kore {
         private:
             void reset();
             void push_register(Reg reg);
+            void push_destination_register(Reg reg);
             Reg get_register_operand();
+            Reg get_destination_register();
+            Reg get_destination_register_or_allocate();
             reg_iterator get_register_operands(int count);
             Bytecode get_binop_instruction(
                 TypeCategory type_category,

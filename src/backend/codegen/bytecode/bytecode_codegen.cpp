@@ -144,7 +144,7 @@ namespace kore {
         KORE_DEBUG_BYTECODE_GENERATOR_LOG("bool", std::string())
 
         auto obj = current_object();
-        auto reg = obj->allocate_register();
+        auto reg = get_destination_register_or_allocate();
 
         _writer.write_load(
             Bytecode::LoadBool,
@@ -159,7 +159,7 @@ namespace kore {
         KORE_DEBUG_BYTECODE_GENERATOR_LOG("i" + std::to_string(num_bits), std::string())
 
         auto obj = current_object();
-        auto reg = obj->allocate_register();
+        auto reg = get_destination_register_or_allocate();
         int index;
         Bytecode opcode;
 
@@ -180,7 +180,7 @@ namespace kore {
         KORE_DEBUG_BYTECODE_GENERATOR_LOG("f" + std::to_string(num_bits), std::string())
 
         auto obj = current_object();
-        auto reg = obj->allocate_register();
+        auto reg = get_destination_register_or_allocate();
         int index;
         Bytecode opcode;
 
@@ -235,18 +235,15 @@ namespace kore {
             dest_reg = entry->reg;
         }
 
-        // TODO:
-        // Push a destination register for the right-hand side expression
-        //push_destination_register(dest_reg);
+        // Push destination register for the right-hand side expression
+        push_destination_register(dest_reg);
+
         assignment.expression()->accept_visit_only(*this);
-        Reg reg = get_register_operand();
 
         // TODO: Globals should allocate from a separate counter
-        Bytecode opcode = _scope_stack.is_global_scope() ? Bytecode::Gstore : Bytecode::Move;
-        _writer.write_2address(opcode, dest_reg, reg, obj);
-
-        // Free the register used for the right-hand side expression
-        obj->free_registers(1);
+        if (_scope_stack.is_global_scope()) {
+            _writer.write_2address(Bytecode::Gstore, dest_reg, get_register_operand(), obj);
+        }
     }
 
     void BytecodeGenerator::visit(IfStatement& ifstatement) {
@@ -386,11 +383,30 @@ namespace kore {
         _register_stack.push_back(reg);
     }
 
+    void BytecodeGenerator::push_destination_register(Reg reg) {
+        _destination_register_stack.push_back(reg);
+    }
+
     Reg BytecodeGenerator::get_register_operand() {
         auto reg = _register_stack.back();
         _register_stack.pop_back();
 
         return reg;
+    }
+
+    Reg BytecodeGenerator::get_destination_register() {
+        auto reg = _destination_register_stack.back();
+        _destination_register_stack.pop_back();
+
+        return reg;
+    }
+
+    Reg BytecodeGenerator::get_destination_register_or_allocate() {
+        if (_destination_register_stack.size() > 0) {
+            return get_destination_register();
+        }
+
+        return current_object()->allocate_register();
     }
 
     BytecodeGenerator::reg_iterator BytecodeGenerator::get_register_operands(int count) {
