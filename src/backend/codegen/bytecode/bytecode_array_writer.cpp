@@ -1,9 +1,21 @@
 #include "codegen/bytecode/bytecode_array_writer.hpp"
 
+/* #define KORE_ENCODE_OPCODE(opcode) (\ */
+/*     (opcode & OPCODE_BITMASK) << OPCODE_SHIFT |\ */
+/* ) */
+
+#define KORE_MAKE_INSTRUCTION(opcode, reg, value, value_mask) (\
+    (opcode & OPCODE_BITMASK) << OPCODE_SHIFT |\
+    (reg & 0xff) << 16 |\
+    (value & value_mask)\
+)
+
 namespace kore {
-    static constexpr int JUMP_BITMASK = 0xffff;
+    static constexpr int VALUE_BITMASK = 0xffff;
+    static constexpr int JUMP_BITMASK = VALUE_BITMASK;
     static constexpr int OPCODE_BITMASK = 0xff;
     static constexpr int OPCODE_SHIFT = 24;
+    /* static constexpr int IMMEDIATE_FLAG = 1 << 31; */
 
     BytecodeArrayWriter::BytecodeArrayWriter() {}
 
@@ -12,28 +24,21 @@ namespace kore {
     void BytecodeArrayWriter::write_header() {}
 
     void BytecodeArrayWriter::write_opcode(Bytecode opcode, CompiledObject* target) {
-        target->add_instruction(opcode << OPCODE_SHIFT);
+        target->add_instruction(KORE_MAKE_INSTRUCTION(opcode, 0, 0, 0));
     }
 
     void BytecodeArrayWriter::write_load(Bytecode opcode, Reg reg, i32 value, CompiledObject* target) {
-        target->add_instruction(
-            (opcode & OPCODE_BITMASK) << OPCODE_SHIFT |
-            (reg & 0xff) << 16 |
-            (value & 0xffff)
-        );
+        target->add_instruction(KORE_MAKE_INSTRUCTION(opcode, reg, value, VALUE_BITMASK));
     }
 
     void BytecodeArrayWriter::write_1address(Bytecode opcode, Reg reg, CompiledObject* target) {
-        target->add_instruction(
-            (opcode & OPCODE_BITMASK) << OPCODE_SHIFT |
-            (reg & 0xff) << 16
-        );
+        target->add_instruction(KORE_MAKE_INSTRUCTION(opcode, reg, 0, 0));
     }
 
-    void BytecodeArrayWriter::write_2address(Bytecode opcode, Reg destination_reg, Reg reg_operand, CompiledObject* target) {
+    void BytecodeArrayWriter::write_2address(Bytecode opcode, Reg dest_reg, Reg reg_operand, CompiledObject* target) {
         target->add_instruction(
             (opcode & OPCODE_BITMASK) << OPCODE_SHIFT |
-            (destination_reg & 0xff) << 16 |
+            (dest_reg & 0xff) << 16 |
             (reg_operand & 0xff) << 8
         );
     }
