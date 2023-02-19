@@ -44,10 +44,10 @@ namespace kore {
             object_iterator objects_begin() const;
             object_iterator objects_end() const;
 
-            const ConstantTable<i32> i32_constant_table() const;
-            const ConstantTable<i64> i64_constant_table() const;
-            const ConstantTable<f32> f32_constant_table() const;
-            const ConstantTable<f64> f64_constant_table() const;
+            const ConstantTable<i32>& i32_constant_table() const;
+            const ConstantTable<i64>& i64_constant_table() const;
+            const ConstantTable<f32>& f32_constant_table() const;
+            const ConstantTable<f64>& f64_constant_table() const;
 
             CompiledObject* new_compiled_object();
             CompiledObject* new_function(const Function& func);

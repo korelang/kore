@@ -73,19 +73,19 @@ namespace kore {
         return _objects.end();
     }
 
-    const ConstantTable<i32> Module::i32_constant_table() const {
+    const ConstantTable<i32>& Module::i32_constant_table() const {
         return _i32_constants;
     }
 
-    const ConstantTable<i64> Module::i64_constant_table() const {
+    const ConstantTable<i64>& Module::i64_constant_table() const {
         return _i64_constants;
     }
 
-    const ConstantTable<f32> Module::f32_constant_table() const {
+    const ConstantTable<f32>& Module::f32_constant_table() const {
         return _f32_constants;
     }
 
-    const ConstantTable<f64> Module::f64_constant_table() const {
+    const ConstantTable<f64>& Module::f64_constant_table() const {
         return _f64_constants;
     }
 
