@@ -3,23 +3,48 @@
 namespace kore {
     namespace vm {
         Value Value::from_bool(bool value) {
-            return Value{ ValueTag::Bool, { ._bool = value } };
+            auto _value = Value();
+
+            _value.tag = ValueTag::Bool;
+            _value.value._bool = value;
+
+            return _value;
         }
 
         Value Value::from_i32(i32 value) {
-            return Value{ ValueTag::I32, { ._i32 = value } };
+            auto _value = Value();
+
+            _value.tag = ValueTag::I32;
+            _value.value._i32 = value;
+
+            return _value;
         }
 
         Value Value::from_i64(i64 value) {
-            return Value{ ValueTag::I64, { ._i64 = value } };
+            auto _value = Value();
+
+            _value.tag = ValueTag::I64;
+            _value.value._i64 = value;
+
+            return _value;
         }
 
         Value Value::from_f32(f32 value) {
-            return Value{ ValueTag::F32, { ._f32 = value } };
+            auto _value = Value();
+
+            _value.tag = ValueTag::F32;
+            _value.value._f32 = value;
+
+            return _value;
         }
 
         Value Value::from_f64(f64 value) {
-            return Value{ ValueTag::F64, { ._f64 = value } };
+            auto _value = Value();
+
+            _value.tag = ValueTag::F64;
+            _value.value._f64 = value;
+
+            return _value;
         }
 
         std::ostream& operator<<(std::ostream& out, const Value& value) {
