@@ -39,7 +39,6 @@ namespace kore {
             --dump-parse      Dump the parse tree elements to stderr.
             --dump-ast        Dump the parsed abstract syntax tree to stderr.
             --dump-codegen    Dump generated code to stderr.
-            --dump-registers  Dump all registers once the vm is done executing
     )";
 
     void validate_args(int argc, ParsedCommandLineArgs& args) {

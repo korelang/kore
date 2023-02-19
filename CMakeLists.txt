@@ -94,7 +94,10 @@ set(BASE_SOURCES
     src/utils/endian.cpp
 
     # Backend
+    src/koredis/disassemble.cpp
+    src/koredis/disassemble_error.cpp
     src/backend/module.cpp
+    src/backend/module_loader.cpp
     src/backend/codegen/bytecode/bytecode.cpp
     src/backend/codegen/bytecode/bytecode_array_writer.cpp
     src/backend/codegen/bytecode/bytecode_codegen.cpp
@@ -132,6 +135,9 @@ set_target_properties(${COMPILER_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CM
 
 # Build kore disassembler (koredis)
 add_subdirectory("./src/koredis")
+
+# Build the kore runner
+add_subdirectory("./src/kore")
 
 # Build tests
 add_subdirectory("./tests")

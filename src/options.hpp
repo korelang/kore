@@ -15,7 +15,6 @@ namespace kore {
         bool dump_parse;
         bool dump_ast;
         bool dump_codegen;
-        bool dump_registers;
         bool disassemble;
         bool backend;
         bool version;

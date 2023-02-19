@@ -82,6 +82,10 @@ namespace kore {
         _body.emplace_back(std::move(statement));
     }
 
+    Statement* Function::last_statement() {
+        return _body.size() > 0 ? _body.back().get() : nullptr;
+    }
+
     Function::body_iterator Function::begin() {
         return _body.begin();
     }

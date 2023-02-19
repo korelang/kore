@@ -60,6 +60,7 @@ set(DISASSEMBLER_SOURCES
 
     # Backend
     ${PROJECT_SOURCE_DIR}/src/backend/module.cpp
+    ${PROJECT_SOURCE_DIR}/src/backend/module_loader.cpp
     ${PROJECT_SOURCE_DIR}/src/backend/codegen/bytecode/bytecode.cpp
     ${PROJECT_SOURCE_DIR}/src/backend/codegen/compiled_object.cpp
 

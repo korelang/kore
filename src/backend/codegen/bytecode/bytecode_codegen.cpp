@@ -93,6 +93,10 @@ namespace kore {
         reset();
         statement.accept(*this);
 
+        // Write an implicit return at the end of compilation to pop
+        // the main object's call frame
+        _writer.write_1address(Bytecode::Ret, 0, current_object());
+
         return std::move(_objects.front());
     }
 
@@ -104,6 +108,10 @@ namespace kore {
         for (auto const& statement : ast) {
             statement->accept_visit_only(*this);
         }
+
+        // Write an implicit return at the end of compilation to pop
+        // the main object's call frame
+        _writer.write_1address(Bytecode::Ret, 0, current_object());
 
         return std::move(_module);
     }
@@ -296,8 +304,6 @@ namespace kore {
         }
     }
 
-    // TODO: What functions are we calling?
-    // TODO: How do we specify the return register(s)?
     void BytecodeGenerator::visit(class Call& call) {
         KORE_DEBUG_BYTECODE_GENERATOR_LOG("call", call.name())
 
@@ -319,17 +325,20 @@ namespace kore {
             Bytecode::Call,
             static_cast<std::uint8_t>(func_index_reg),
             static_cast<std::uint8_t>(call.arg_count()),
+            // TODO: Use return count of called function here
             1 // So far only one return register
         };
 
-        // Write argument instructions
-        bytes.insert(
-            bytes.end(),
-            get_register_operands(call.arg_count()),
-            _register_stack.cend()
-        );
+        if (call.arg_count() > 0) {
+            // Write argument instructions
+            bytes.insert(
+                bytes.end(),
+                get_register_operands(call.arg_count()),
+                _register_stack.cend()
+            );
+        }
 
-        // Write return registers
+        /* // Write return registers */
         bytes.push_back(retreg);
 
         _writer.write_bytes(bytes, obj);
@@ -346,8 +355,9 @@ namespace kore {
         if (ret.expr()) {
             ret.expr()->accept_visit_only(*this);
 
-            _writer.write_1address(
+            _writer.write_2address(
                 Bytecode::Ret,
+                1,
                 get_register_operand(),
                 obj
             );
@@ -376,6 +386,13 @@ namespace kore {
         // Compile the body of the function
         for (auto& statement : func) {
             statement->accept_visit_only(*this);
+        }
+
+        auto last_statement = func.last_statement();
+
+        // Add an implicit return for void functions without an explicit return
+        if (last_statement && last_statement->statement_type() != StatementType::Return) {
+            _writer.write_opcode(Bytecode::Ret, obj);
         }
 
         _scope_stack.leave_function_scope();

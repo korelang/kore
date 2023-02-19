@@ -101,6 +101,7 @@ namespace koredis {
     std::string Instruction::registers_as_string() const {
         std::ostringstream oss;
 
+        // Special-case output for more complex opcodes
         switch (opcode()) {
             case kore::Bytecode::CloadI32:
             case kore::Bytecode::CloadI64:
@@ -110,18 +111,34 @@ namespace koredis {
                 oss << " @" << reg1() << " #" << value();
                 return oss.str();
 
-            case kore::Bytecode::Call:
-                oss << " " << reg1() << " " << reg2() << " " << reg3();
-
-                for (auto ret_register : return_registers()) {
-                    oss << " @" << ret_register;
-                }
+            case kore::Bytecode::Call: {
+                oss << " @" << reg1() << " " << reg2() << " " << reg3();
 
                 for (auto call_register : call_registers()) {
                     oss << " @" << call_register;
                 }
 
+                for (auto ret_register : return_registers()) {
+                    oss << " @" << ret_register;
+                }
+
                 return oss.str();
+            }
+
+            case kore::Bytecode::Ret: {
+                auto ret_count = reg1();
+
+                if (ret_count > 0) {
+                    oss << ret_count << " @" << reg2();
+                }
+
+                return oss.str();
+            }
+
+            case kore::Bytecode::Gstore: {
+                oss << "#" << reg1() << " @" << reg2();
+                return oss.str();
+            }
 
             default:
                 break;

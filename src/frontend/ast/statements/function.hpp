@@ -33,6 +33,7 @@ namespace kore {
             void add_parameter(Parameter* parameter);
             void set_return_type(Type* type);
             void add_statement(Owned<Statement> statement) override;
+            Statement* last_statement();
 
             body_iterator begin();
             body_iterator end();
