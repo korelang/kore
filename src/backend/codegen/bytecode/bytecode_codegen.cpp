@@ -207,15 +207,25 @@ namespace kore {
         KORE_DEBUG_BYTECODE_GENERATOR_LOG("identifier", identifier.name());
 
         auto entry = _scope_stack.find(identifier.name());
+        auto obj = current_object();
 
         if (entry->is_global_scope()) {
-            auto obj = current_object();
             auto reg = obj->allocate_register();
 
+            // TODO: Global values have a 16-bit address space which isn't used here
             _writer.write_2address(Bytecode::Gload, reg, entry->reg, obj);
             push_register(reg);
         } else {
-            push_register(entry->reg);
+            // There is a destination register available so move the
+            // identifier's register into the destination
+            if (_destination_register_stack.size() > 0) {
+                Reg dst_reg = get_destination_register();
+                _writer.write_2address(Bytecode::Move, dst_reg, entry->reg, obj);
+            } else {
+                // Otherwise, we push the identifier's register for further
+                // compilation
+                push_register(entry->reg);
+            }
         }
     }
 
