@@ -106,7 +106,7 @@ namespace kore {
         write_be32(location.lnum(), os);
         write_be32(location.start(), os);
         write_be32(location.end(), os);
-
+        write_be32(object->func_index(), os);
         write_be32(object->locals_count(), os);
         write_be32(object->max_regs_used(), os);
 

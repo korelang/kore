@@ -6,20 +6,26 @@
 namespace kore {
     CompiledObject::CompiledObject() {}
 
-    CompiledObject::CompiledObject(const std::string& name) : _name(name) {}
+    CompiledObject::CompiledObject(const std::string& name, int func_index)
+        : _name(name),
+          _func_index(func_index) {
+    }
 
-    CompiledObject::CompiledObject(const Function* func) {
-        _name = func->name();
-        _location = func->location();
+    CompiledObject::CompiledObject(const Function* func, int func_index)
+        : _name(func->name()),
+          _func_index(func_index),
+          _location(func->location()) {
     }
 
     CompiledObject::CompiledObject(
         const std::string& name,
         const SourceLocation& location,
+        int func_index,
         int locals_count,
         int reg_count,
         const std::vector<bytecode_type>& instructions
     ) : _name(name),
+        _func_index(func_index),
         _location(location),
         _local_count(locals_count),
         _instructions(instructions),
@@ -30,6 +36,10 @@ namespace kore {
 
     std::string CompiledObject::name() const {
         return _name;
+    }
+
+    int CompiledObject::func_index() const {
+        return _func_index;
     }
 
     SourceLocation CompiledObject::location() const {

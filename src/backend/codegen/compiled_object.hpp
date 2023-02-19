@@ -25,11 +25,12 @@ namespace kore {
 
         public:
             CompiledObject();
-            CompiledObject(const std::string& name);
-            CompiledObject(const Function* func);
+            CompiledObject(const std::string& name, int func_index);
+            CompiledObject(const Function* func, int func_index);
             CompiledObject(
                 const std::string& name,
                 const SourceLocation& location,
+                int func_index,
                 int locals_count,
                 int reg_count,
                 const std::vector<bytecode_type>& instructions
@@ -37,6 +38,7 @@ namespace kore {
             virtual ~CompiledObject();
 
             std::string name() const;
+            int func_index() const;
             SourceLocation location() const;
             int locals_count() const;
             int reg_count() const;
@@ -52,9 +54,11 @@ namespace kore {
 
             instruction_iterator begin() const;
             instruction_iterator end() const;
+            const bytecode_type* instructions() const;
 
         private:
             std::string _name;
+            int _func_index = -1;
             SourceLocation _location;
             int _local_count = 0;
             std::vector<bytecode_type> _instructions;
@@ -64,7 +68,6 @@ namespace kore {
             int _reg_count = 0;
 
             int _max_regs_used = 0;
-            const bytecode_type* instructions() const;
     };
 }
 

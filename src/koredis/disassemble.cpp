@@ -81,6 +81,7 @@ namespace koredis {
         auto lnum = kore::read_be32(is);
         auto start = kore::read_be32(is);
         auto end = kore::read_be32(is);
+        auto func_index = kore::read_be32(is);
         auto locals_count = kore::read_be32(is);
         auto reg_count = kore::read_be32(is);
         auto code_size = kore::read_be32(is);
@@ -90,7 +91,7 @@ namespace koredis {
             instructions.push_back(kore::read_be32(is));
         }
 
-        module.add_function(name, lnum, start, end, locals_count, reg_count, instructions);
+        module.add_function(name, lnum, start, end, func_index, locals_count, reg_count, instructions);
     }
 
     void disassemble_functions(std::istream& is, kore::Module& module) {

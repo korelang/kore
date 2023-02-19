@@ -291,33 +291,36 @@ namespace kore {
     void BytecodeGenerator::visit(class Call& call) {
         KORE_DEBUG_BYTECODE_GENERATOR_LOG("call", call.name())
 
-        // Generate code in reverse order of arguments so we can
-        // get the registers in the correct order for the call
-        /* for (int i = call.arg_count() - 1; i >= 0; --i) { */
         for (int i = 0; i < call.arg_count(); ++i) {
             call.arg(i)->accept_visit_only(*this);
         }
 
         auto obj = current_object();
-        std::uint8_t func_index = 0;
+        Reg func_index_reg = obj->allocate_register();
         Reg retreg = obj->allocate_register();
+        auto called = _module->get_function(call.name());
 
-        // TODO: We also need to specify what function to call here (probably
-        // via a register)
+        // Load the called function's index into a fresh register
+        i32 index =_module->add_i32_constant(called->func_index());
+        _writer.write_load(Bytecode::CloadI32, func_index_reg, index, obj);
+
+        // Call instruction
         std::vector<std::uint8_t> bytes{
             Bytecode::Call,
-            func_index,
-            1, // So far only one return register
-            static_cast<std::uint8_t>(call.arg_count())
+            static_cast<std::uint8_t>(func_index_reg),
+            static_cast<std::uint8_t>(call.arg_count()),
+            1 // So far only one return register
         };
 
-        bytes.push_back(retreg);
-
+        // Write argument instructions
         bytes.insert(
             bytes.end(),
             get_register_operands(call.arg_count()),
             _register_stack.cend()
         );
+
+        // Write return registers
+        bytes.push_back(retreg);
 
         _writer.write_bytes(bytes, obj);
         push_register(retreg);

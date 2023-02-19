@@ -109,21 +109,26 @@ namespace koredis {
                 return Instruction(opcode, pos++, GET_REG1(instruction));
 
             case kore::Bytecode::Call: {
-                int func_index = GET_REG1(instruction);
-                UNUSED_PARAM(func_index); // TODO
-                int return_count = GET_REG2(instruction);
-                int arg_count = GET_REG3(instruction);
+                int func_reg = GET_REG1(instruction);
+                int arg_count = GET_REG2(instruction);
+                int return_count = GET_REG3(instruction);
                 int start_pos = pos;
                 ++pos;
                 int byte_offset = 0;
-                auto ret_regs = decode_registers(pos, byte_offset, return_count, obj);
-                auto arg_regs = decode_registers(pos, byte_offset, arg_count, obj);
-                ++pos;
+                std::vector<kore::Reg> arg_regs;
+                std::vector<kore::Reg> ret_regs;
+
+                arg_regs = decode_registers(pos, byte_offset, arg_count, obj);
+                ret_regs = decode_registers(pos, byte_offset, return_count, obj);
+
+                if (arg_count > 0 || return_count > 0) {
+                    ++pos;
+                }
 
                 return Instruction::call(
                     opcode,
                     start_pos,
-                    func_index,
+                    func_reg,
                     return_count,
                     arg_count,
                     ret_regs,

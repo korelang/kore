@@ -96,7 +96,10 @@ namespace kore {
     }
 
     CompiledObject* Module::new_function(const Function& func) {
-        _objects.emplace_back(std::make_unique<CompiledObject>(&func));
+        _objects.emplace_back(std::make_unique<CompiledObject>(
+            &func,
+            get_free_function_index()
+        ));
 
         std::string name = func.name();
         _function_map[name] = _objects.back().get();
@@ -105,7 +108,7 @@ namespace kore {
     }
 
     CompiledObject* Module::new_function_from_name(const std::string& name) {
-        _objects.emplace_back(std::make_unique<CompiledObject>(name));
+        _objects.emplace_back(std::make_unique<CompiledObject>(name, get_free_function_index()));
         _function_map[name] = _objects.back().get();
 
         return _function_map[name];
@@ -126,13 +129,20 @@ namespace kore {
         int lnum,
         int start,
         int end,
+        int func_index,
         int locals_count,
         int reg_count,
         const std::vector<bytecode_type>& instructions
     ) {
         auto location = SourceLocation(lnum, start, end);
 
-        _objects.emplace_back(std::make_unique<CompiledObject>(name, location, locals_count, reg_count, instructions));
+        _objects.emplace_back(std::make_unique<CompiledObject>(name, location, func_index, locals_count, reg_count, instructions));
         _function_map[name] = _objects.back().get();
     }
+
+    int Module::get_free_function_index() {
+        return Module::_free_func_index++;
+    }
+
+    int Module::_free_func_index = 0;
 }

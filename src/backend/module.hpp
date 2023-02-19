@@ -60,6 +60,7 @@ namespace kore {
                 int lnum,
                 int start,
                 int end,
+                int func_index,
                 int locals_count,
                 int reg_count,
                 const std::vector<bytecode_type>& instructions
@@ -84,6 +85,11 @@ namespace kore {
             ConstantTable<f32> _f32_constants;
             ConstantTable<f64> _f64_constants;
             ConstantTable<std::string> _str_constants;
+
+            // TODO: Probably move this into CompiledObject
+            static int get_free_function_index();
+
+            static int _free_func_index;
     };
 }
 
