@@ -314,7 +314,7 @@ namespace kore {
 
                 // Get the next instruction containing the beginning of the
                 // argument registers
-                instruction = frame.code[_context.pc++];
+                instruction = frame.code[_context.pc];
 
                 // Push argument registers onto the call stack
                 for (int i = 0; i < arg_count; ++i, shift -= 8) {
@@ -324,7 +324,7 @@ namespace kore {
 
                     if (shift == 0) {
                         shift = 24;
-                        instruction = frame.code[_context.pc++];
+                        instruction = frame.code[++_context.pc];
                     }
                 }
             }
