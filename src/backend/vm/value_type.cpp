@@ -50,7 +50,7 @@ namespace kore {
         std::ostream& operator<<(std::ostream& out, const Value& value) {
             switch (value.tag) {
                 case ValueTag::Bool:
-                    out << "Value(" << value.value._bool << ", bool)";
+                    out << "Value(" << (value.value._bool == 1 ? "true" : "false") << ", bool)";
                     break;
 
                 case ValueTag::I32:
