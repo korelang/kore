@@ -27,15 +27,15 @@
         break;\
     \
     case Bytecode::Sub##opcode_suffix:\
-        BINARY_OP(type, type, +)\
+        BINARY_OP(type, type, -)\
         break;\
     \
     case Bytecode::Mult##opcode_suffix:\
-        BINARY_OP(type, type, +)\
+        BINARY_OP(type, type, *)\
         break;\
     \
     case Bytecode::Div##opcode_suffix:\
-        BINARY_OP(type, type, +)\
+        BINARY_OP(type, type, /)\
         break;\
 }
 
