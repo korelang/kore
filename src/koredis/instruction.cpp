@@ -142,10 +142,8 @@ namespace koredis {
             }
 
             case kore::Bytecode::Ret: {
-                auto ret_count = reg1();
-
-                if (ret_count > 0) {
-                    oss << ret_count << " @" << reg2();
+                for (auto ret_register : return_registers()) {
+                    oss << " @" << ret_register;
                 }
 
                 return oss.str();
