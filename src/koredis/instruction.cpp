@@ -103,6 +103,22 @@ namespace koredis {
 
         // Special-case output for more complex opcodes
         switch (opcode()) {
+            case kore::Bytecode::LoadBool: {
+                oss << " @" << reg1() << " " << (value() == 1 ? "true" : "false");
+                return oss.str();
+            }
+
+            case kore::Bytecode::Jump: {
+                oss << value();
+                return oss.str();
+            }
+
+            case kore::Bytecode::JumpIf:
+            case kore::Bytecode::JumpIfNot: {
+                oss << " @" << reg1() << " " << value();
+                return oss.str();
+            }
+
             case kore::Bytecode::CloadI32:
             case kore::Bytecode::CloadI64:
             case kore::Bytecode::CloadF32:
