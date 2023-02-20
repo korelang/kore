@@ -147,7 +147,7 @@ namespace koredis {
 
             case kore::Bytecode::Ret: {
                 int regs = GET_REG1(instruction);
-                int byte_offset = 0;
+                int byte_offset = 2;
                 auto ret_regs = decode_registers(pos, byte_offset, regs, obj);
 
                 return Instruction::ret(opcode, pos++, regs, ret_regs);
