@@ -88,7 +88,7 @@ namespace kore {
         }
 
         void Context::restore(const CallFrame& call_frame) {
-            this->sp -= call_frame.reg_count + 2;
+            this->sp -= call_frame.reg_count;
             this->fp = call_frame.old_fp;
             this->pc = call_frame.old_pc;
         }
