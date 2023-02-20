@@ -139,8 +139,8 @@ namespace kore {
                     }
 
                     case Bytecode::LoadBool: {
-                        Reg dest_reg = GET_REG1(opcode);
-                        _registers[fp + dest_reg] = Value::from_bool(GET_VALUE(opcode));
+                        Reg dest_reg = GET_REG1(instruction);
+                        _registers[fp + dest_reg] = Value::from_bool(GET_VALUE(instruction));
                         break;
                     }
 
@@ -155,14 +155,14 @@ namespace kore {
                     }
 
                     case Bytecode::Gload: {
-                        Reg dest_reg = GET_REG1(opcode);
-                        _registers[fp + dest_reg] = _globals[GET_REG2(opcode)];
+                        Reg dest_reg = GET_REG1(instruction);
+                        _registers[fp + dest_reg] = _globals[GET_REG2(instruction)];
                         break;
                     }
 
                     case Bytecode::Gstore: {
-                        Reg dest_reg = GET_REG1(opcode);
-                        _globals[dest_reg] = _registers[fp + GET_REG2(opcode)];
+                        Reg dest_reg = GET_REG1(instruction);
+                        _globals[dest_reg] = _registers[fp + GET_REG2(instruction)];
                         break;
                     }
 
