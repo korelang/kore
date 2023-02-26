@@ -57,6 +57,15 @@ namespace koredis {
         os << color << "bytecode version: " << kore::ColorAttribute::Reset << bytecode_version << std::endl;
         os << std::endl;
 
+        kore::section(
+            "globals",
+            kore::Color::Magenta,
+            kore::ColorAttribute::Bold,
+            0,
+            "%d",
+            module.global_indices_count()
+        );
+
         output_constant_table(os, color, module.i32_constant_table());
         /* output_constant_table(os, color, module.i64_constant_table()); */
         /* output_constant_table(os, color, module.f32_constant_table()); */

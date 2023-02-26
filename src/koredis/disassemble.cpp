@@ -70,6 +70,10 @@ namespace koredis {
         }
     }
 
+    void disassemble_global_indices_count(std::istream& is, kore::Module& module) {
+        module.set_global_indices_count(kore::read_be32(is));
+    }
+
     void disassemble_constant_tables(std::istream& is, kore::Module& module) {
         disassemble_constant_table(is, module);
         /* disassemble_constant_table(ifs, module); */
@@ -116,6 +120,8 @@ namespace koredis {
         kore::Module module;
         module.set_compiler_version(read_compiler_version(ifs));
         module.set_bytecode_version(read_bytecode_version(ifs));
+
+        koredis::disassemble_global_indices_count(ifs, module);
 
         // Read constant tables
         disassemble_constant_tables(ifs, module);

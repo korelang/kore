@@ -17,6 +17,8 @@ namespace koredis {
 
     void disassemble_constant_tables(std::istream& is, kore::Module& module);
 
+    void disassemble_global_indices_count(std::istream& is, kore::Module& module);
+
     void disassemble_functions(std::istream& is, kore::Module& module);
 
     kore::Module disassemble_module_from_path(const fs::path& path);

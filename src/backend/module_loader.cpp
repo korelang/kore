@@ -28,6 +28,8 @@ namespace kore {
         module.set_compiler_version(koredis::read_compiler_version(is));
         module.set_bytecode_version(koredis::read_bytecode_version(is));
 
+        koredis::disassemble_global_indices_count(is, module);
+
         // Read constant tables
         koredis::disassemble_constant_tables(is, module);
 

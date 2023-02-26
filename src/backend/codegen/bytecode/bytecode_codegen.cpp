@@ -113,6 +113,9 @@ namespace kore {
         // the main object's call frame
         _writer.write_1address(Bytecode::Ret, 0, current_object());
 
+        // Store number of globals to allocate in this module
+        _module->set_global_indices_count(_global_indices.size());
+
         return std::move(_module);
     }
 
@@ -258,8 +261,8 @@ namespace kore {
 
         assignment.expression()->accept_visit_only(*this);
 
-        // TODO: Globals should allocate from a separate counter
         if (_scope_stack.is_global_scope()) {
+            add_global_index(dest_reg);
             _writer.write_2address(Bytecode::Gstore, dest_reg, get_register_operand(), obj);
         }
     }
@@ -404,6 +407,7 @@ namespace kore {
         _functions.clear();
         _objects.clear();
         _scope_stack.clear();
+        _global_indices.clear();
 
         _current_object = nullptr;
         _module.reset(nullptr);
@@ -458,6 +462,10 @@ namespace kore {
         if (_functions.size() > 0) {
             _current_object = _module->get_function(_functions.back());
         }
+    }
+
+    void BytecodeGenerator::add_global_index(Reg reg) {
+        _global_indices.insert(reg);
     }
 
     void BytecodeGenerator::new_function_from_name(const std::string& name) {

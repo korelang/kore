@@ -49,6 +49,9 @@ namespace kore {
             const ConstantTable<f32>& f32_constant_table() const;
             const ConstantTable<f64>& f64_constant_table() const;
 
+            void set_global_indices_count(int count);
+            int global_indices_count() const;
+
             CompiledObject* new_compiled_object();
             CompiledObject* new_function(const Function& func);
             CompiledObject* new_function_from_name(const std::string& name);
@@ -85,6 +88,8 @@ namespace kore {
             ConstantTable<f32> _f32_constants;
             ConstantTable<f64> _f64_constants;
             ConstantTable<std::string> _str_constants;
+
+            int _global_indices;
 
             // TODO: Probably move this into CompiledObject
             static int get_free_function_index();

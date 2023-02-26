@@ -231,6 +231,9 @@ namespace kore {
         }
 
         void Vm::run_module(Module& module) {
+            // Allocate space for globals
+            _globals.resize(module.global_indices_count());
+
             add_module(module);
 
             // Push a call frame to the main object and allocate local stack

@@ -31,6 +31,7 @@ namespace kore {
 
         private:
             void write_header(const Module* const module, std::ostream& ofs);
+            void write_global_indices_count(const Module* const module, std::ostream& os);
             void write_constant_tables(const Module* const module, std::ostream& ofs);
             void write_value(const vm::Value& value, std::ostream& ofs);
             void write_string(const std::string& s, std::ostream& ofs);

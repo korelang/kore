@@ -89,6 +89,14 @@ namespace kore {
         return _f64_constants;
     }
 
+    void Module::set_global_indices_count(int count) {
+        _global_indices = count;
+    }
+
+    int Module::global_indices_count() const {
+        return _global_indices;
+    }
+
     CompiledObject* Module::new_compiled_object() {
         _objects.emplace_back();
 

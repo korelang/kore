@@ -18,6 +18,7 @@ namespace kore {
         }
 
         write_header(module, ofs);
+        write_global_indices_count(module, ofs);
         write_constant_tables(module, ofs);
         write_functions(module, ofs);
         write_main_code(module, ofs);
@@ -35,6 +36,10 @@ namespace kore {
 
         char bytecode_version[] = {1, 0, 0};
         os.write(bytecode_version, 3);
+    }
+
+    void BytecodeFormatWriter::write_global_indices_count(const Module* const module, std::ostream& os) {
+        write_be32(module->global_indices_count(), os);
     }
 
     void BytecodeFormatWriter::write_constant_tables(

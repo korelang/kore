@@ -3,6 +3,7 @@
 
 #include <map>
 #include <memory>
+#include <set>
 #include <vector>
 
 #include "ast/expressions/string_expression.hpp"
@@ -73,6 +74,10 @@ namespace kore {
             // Current module being compiled
             Module::pointer _module;
 
+            // The set of globals (indices) used in this module. Used in the
+            // VM to allocate space for a global table of values
+            std::set<int> _global_indices;
+
         private:
             void reset();
             void push_register(Reg reg);
@@ -88,6 +93,7 @@ namespace kore {
             CompiledObject* current_object();
             void start_function_compile(const Function& func);
             void end_function_compile();
+            void add_global_index(Reg reg);
 
             template<typename ...Args>
             void new_compiled_object(const std::vector<CompiledObject::pointer>& type, Args&&... args) {
