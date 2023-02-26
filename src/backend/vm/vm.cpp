@@ -198,12 +198,12 @@ namespace kore {
                     }
 
                     case Bytecode::Call: {
-                        do_call(instruction);
+                        do_function_call(instruction);
                         break;
                     }
 
                     case Bytecode::Ret: {
-                        do_return(instruction);
+                        do_function_return(instruction);
                         break;
                     }
 
@@ -293,7 +293,7 @@ namespace kore {
             return _call_frames[_call_frames.size() - 2];
         }
 
-        void Vm::do_call(bytecode_type instruction) {
+        void Vm::do_function_call(bytecode_type instruction) {
             int func_reg = GET_REG1(instruction);
             int arg_count = GET_REG2(instruction);
             int ret_count = GET_REG3(instruction);
@@ -344,7 +344,7 @@ namespace kore {
             return _registers[--_context.sp];
         }
 
-        void Vm::do_return(bytecode_type instruction) {
+        void Vm::do_function_return(bytecode_type instruction) {
             KORE_DEBUG_VM_LOG("pop call frame", std::string());
 
             CallFrame& frame = current_frame();

@@ -109,10 +109,10 @@ namespace kore {
                 inline const CallFrame& get_caller();
 
                 /// Push a new call frame
-                void do_call(bytecode_type instruction);
+                void do_function_call(bytecode_type instruction);
 
                 /// Pop the current call frame
-                void do_return(bytecode_type instruction);
+                void do_function_return(bytecode_type instruction);
 
                 /// Pop a value from a call frame's stack
                 inline Value pop();
