@@ -61,7 +61,7 @@ namespace kore {
 
             inline f32 as_f32() const {
                 #if KORE_VM_DEBUG
-                if (tag != ValueTag::f32) {
+                if (tag != ValueTag::F32) {
                     throw std::runtime_error("Not an f32 value");
                 }
                 #endif
@@ -71,7 +71,7 @@ namespace kore {
 
             inline f64 as_f64() const {
                 #if KORE_VM_DEBUG
-                if (tag != ValueTag::f64) {
+                if (tag != ValueTag::F64) {
                     throw std::runtime_error("Not an f64 value");
                 }
                 #endif
