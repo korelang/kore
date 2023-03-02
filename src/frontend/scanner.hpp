@@ -13,6 +13,27 @@ namespace kore {
     /// Scanner (or lexer) class that groups up an input stream into tokens
     class Scanner final {
         public:
+            /// An iterator for iterating scanned tokens
+            class token_iterator final
+                    : public std::iterator<
+                        std::input_iterator_tag,
+                        const Token
+                    > {
+                public:
+                    token_iterator(Token token);
+                    token_iterator(Scanner& scanner);
+
+                    token_iterator& operator++();
+                    reference operator*() const;
+                    bool operator==(token_iterator other) const;
+                    bool operator!=(token_iterator other) const;
+
+                private:
+                    Token _token;
+                    Scanner* _scanner;
+            };
+
+        public:
             Scanner();
             virtual ~Scanner();
 
@@ -22,6 +43,9 @@ namespace kore {
             bool eof() const;
             std::string current_line() const;
             Token next_token();
+
+            token_iterator begin();
+            token_iterator end();
 
         private:
             std::size_t lnum;
@@ -52,6 +76,7 @@ namespace kore {
             bool expect_peek(char byte);
             inline bool eol() const;
             void skip_whitespace();
+
             bool is_whitespace(char byte) const noexcept;
             bool is_digit_start(char byte) const noexcept;
             bool is_digit(char byte) const noexcept;
@@ -60,6 +85,7 @@ namespace kore {
             bool is_octal_digit(char byte) const noexcept;
             bool is_valid_identifier_start(char byte) const noexcept;
             bool is_valid_identifier(char byte) const noexcept;
+
             Token scan_number();
             Token scan_hex_number();
             Token scan_binary_number();

@@ -49,10 +49,9 @@ namespace kore {
             }
         }
 
-        do {
-            token = scanner.next_token();
+        for (auto& token : scanner) {
             token.column_format(std::cerr) << std::endl;
-        } while (!token.is_eof());
+        }
 
         return 0;
     }

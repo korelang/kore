@@ -14,6 +14,32 @@
 // $ korec <file> --dump-scan
 
 namespace kore {
+    Scanner::token_iterator::token_iterator(Token token) : _token(token) {}
+
+    Scanner::token_iterator::token_iterator(Scanner& scanner) : _scanner(&scanner) {
+        ++*this;
+    }
+
+    Scanner::token_iterator& Scanner::token_iterator::operator++() {
+        if (_scanner && !_token.is_eof()) {
+            _token = _scanner->next_token();
+        }
+
+        return *this;
+    }
+
+    Scanner::token_iterator::reference Scanner::token_iterator::operator*() const {
+        return _token;
+    }
+
+    bool Scanner::token_iterator::operator==(token_iterator other) const {
+        return _token.type() == other._token.type();
+    }
+
+    bool Scanner::token_iterator::operator!=(token_iterator other) const {
+        return _token.type() != other._token.type();
+    }
+
     Scanner::Scanner()
         : lnum(0),
         last_col(0),
@@ -592,5 +618,13 @@ namespace kore {
         // Make the compiler happy, even though this method will throw and neveer
         // get here
         return Token();
+    }
+
+    Scanner::token_iterator Scanner::begin() {
+        return token_iterator(*this);
+    }
+
+    Scanner::token_iterator Scanner::end() {
+        return token_iterator(Token::make_eof(-1, -1, -1));
     }
 }
