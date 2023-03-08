@@ -7,7 +7,7 @@ namespace kore {
     /// Represents an optional type that may or may not be present
     class Optional : public Type {
         public:
-            Optional(Type* contained_type);
+            Optional(const Type* contained_type);
             virtual ~Optional();
 
             std::string name() const override;
@@ -16,7 +16,7 @@ namespace kore {
             void write(AstWriter* const writer) const override;
 
         private:
-            Type::pointer _contained_type;
+            const Type* _contained_type;
     };
 }
 

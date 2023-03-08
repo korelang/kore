@@ -5,7 +5,6 @@
 namespace kore {
     ArrayType::ArrayType()
         : _element_type(Type::unknown()) {
-
     }
 
     ArrayType::ArrayType(const Type* element_type)
@@ -39,11 +38,11 @@ namespace kore {
     }
 
     const Type* ArrayType::unify(const ArrayType* array_type) const {
-        return _element_type->unify(array_type->_element_type.get());
+        return _element_type->unify(array_type->_element_type);
     }
 
     void ArrayType::unify_element_type(const Type* type) {
-        _element_type.reset(_element_type->unify(type));
+        _element_type = _element_type->unify(type);
     }
 
     std::string ArrayType::name() const {

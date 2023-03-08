@@ -18,11 +18,11 @@ namespace kore {
             virtual ~FunctionType();
 
             std::string name() const override;
-            void add_parameter(Parameter* parameter);
+            void add_parameter(Owned<Parameter>&& parameter);
             int arity() const;
             const Identifier* parameter(int param_index) const;
             const Type* return_type() const;
-            void set_return_type(Type* type);
+            void set_return_type(const Type* type);
 
             const Type* unify(const Type* other_type) const override;
             const Type* unify(const FunctionType* func_type) const override;
@@ -33,7 +33,7 @@ namespace kore {
             void write(AstWriter* const writer) const override;
 
         private:
-            Type::pointer _return_type;
+            const Type* _return_type;
             ParameterList _parameters;
 
             std::string create_name(bool with_arg_names) const;

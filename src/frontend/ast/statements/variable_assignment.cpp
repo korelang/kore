@@ -8,7 +8,7 @@ namespace kore {
     VariableAssignment::VariableAssignment(
         bool is_mutable,
         const Token& identifier,
-        Type* type,
+        const Type* type,
         Owned<Expression> expr
     )
         : Statement(identifier.location(), StatementType::VariableAssignment),
@@ -44,7 +44,7 @@ namespace kore {
     }
 
     const Type* VariableAssignment::declared_type() const {
-        return _type.get();
+        return _type;
     }
 
     void VariableAssignment::accept(AstVisitor& visitor) {

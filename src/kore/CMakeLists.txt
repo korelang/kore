@@ -77,6 +77,7 @@ set(VM_SOURCES
     ${PROJECT_SOURCE_DIR}/src/types/scope.cpp
     ${PROJECT_SOURCE_DIR}/src/types/symbol_table.cpp
     ${PROJECT_SOURCE_DIR}/src/types/void_type.cpp
+    ${PROJECT_SOURCE_DIR}/src/types/type_cache.cpp
 
     # Errors
     ${PROJECT_SOURCE_DIR}/src/errors/error.cpp

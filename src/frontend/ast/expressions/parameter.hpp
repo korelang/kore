@@ -8,7 +8,7 @@ namespace kore {
     class Parameter : public Identifier {
         public:
             Parameter(const Token& token);
-            Parameter(const Token& token, Type* type);
+            Parameter(const Token& token, const Type* type);
             virtual ~Parameter();
 
             void accept(AstVisitor& visitor) override;

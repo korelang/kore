@@ -47,9 +47,12 @@ set(DISASSEMBLER_SOURCES
     ${PROJECT_SOURCE_DIR}/src/types/float_type.cpp
     ${PROJECT_SOURCE_DIR}/src/types/function_type.cpp
     ${PROJECT_SOURCE_DIR}/src/types/integer_type.cpp
+    ${PROJECT_SOURCE_DIR}/src/types/optional.cpp
     ${PROJECT_SOURCE_DIR}/src/types/str_type.cpp
     ${PROJECT_SOURCE_DIR}/src/types/type.cpp
     ${PROJECT_SOURCE_DIR}/src/types/unknown_type.cpp
+    ${PROJECT_SOURCE_DIR}/src/types/void_type.cpp
+    ${PROJECT_SOURCE_DIR}/src/types/type_cache.cpp
 
     # Frontend utilities
     ${PROJECT_SOURCE_DIR}/src/logging/color_attributes.cpp

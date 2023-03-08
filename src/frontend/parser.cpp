@@ -387,7 +387,7 @@ namespace kore {
             return;
         }
 
-        Type* decl_type = parse_type();
+        auto decl_type = parse_type();
         auto type = *token;
 
         if (!expect_token_type(TokenType::assign)) {
@@ -395,7 +395,7 @@ namespace kore {
             return;
         }
 
-        Owned<Expression> expr = parse_expression(operator_base_precedence());
+        auto expr = parse_expression(operator_base_precedence());
 
         add_statement(
             parent,
@@ -518,18 +518,18 @@ namespace kore {
                 parse_function_parameters(func);
             }
 
-            Type* return_type = parse_type();
+            auto return_type = parse_type();
 
             // If no return type was specified, mark it as unknown and infer it
             // in the typechecker
-            func->set_return_type(return_type ? return_type : new UnknownType());
+            func->set_return_type(return_type ? return_type : Type::unknown());
         }
     }
 
     void Parser::parse_function_parameters(Function* const func) {
         KORE_DEBUG_PARSER_LOG_TOKEN("function parameters")
 
-        const Token* token = current_token();
+        auto token = current_token();
 
         if (token->is_identifier()) {
             parse_parameter_list(func);
@@ -547,27 +547,23 @@ namespace kore {
         auto token = *current_token();
 
         if (token.type() == TokenType::identifier) {
-            Type* arg_type = nullptr;
-            auto next = next_token();
+            auto parameter = Expression::make_expression<Parameter>(token, Type::unknown());
+            token = *next_token();
 
-            if (next->is_type()) {
-                arg_type = parse_type();
+            if (token.type() != TokenType::comma && token.type() != TokenType::rparen) {
+                parameter->set_type(parse_type());
             }
 
-            auto parameter = Expression::make_parameter(token, arg_type);
-            func->add_parameter(static_cast<Parameter*>(parameter));
-
-            if (next->type() == TokenType::comma) {
-                next_token();
-            } else if (next->type() == TokenType::rparen) {
-                return false;
-            } else {
-                emit_parser_error("Unexpected token '%s' in function parameter", next->type());
-                return false;
-            }
+            func->add_parameter(std::move(parameter));
+        } else if (token.type() == TokenType::comma) {
+            next_token();
+        } else if (token.type() == TokenType::rparen) {
+            return false;
+        } else {
+            emit_parser_error("Unexpected token '%s' in function parameter", token.type());
         }
 
-        return true;
+        return token.type() != TokenType::rparen;
     }
 
     void Parser::parse_parameter_list(Function* const func) {
@@ -631,13 +627,13 @@ namespace kore {
         }
     }
 
-    Type* Parser::parse_type() {
+    const Type* Parser::parse_type() {
         KORE_DEBUG_PARSER_LOG_TOKEN("type")
 
         auto token = current_token();
 
         if (token->is_type()) {
-            Type* type = Type::from_token(*token);
+            auto type = Type::from_token(*token);
             next_token();
             ArrayType* array_type = nullptr;
 
@@ -650,19 +646,19 @@ namespace kore {
                     }
 
                     if (!array_type) {
-                        array_type = new ArrayType(type);
+                        array_type = Type::make_array_type(type);
                     } else {
                         array_type->increase_rank();
                     }
                 } else if (expect_token_type(TokenType::question_mark)) {
-                    return new Optional(type);
+                    return Type::make_optional_type(type);
                 } else {
                     return array_type ? array_type : type;
                 }
             } while (true);
         }
 
-        return new UnknownType();
+        return Type::unknown();
     }
 
     Owned<Expression> Parser::parse_literal() {
@@ -836,7 +832,7 @@ namespace kore {
         auto token = current_token();
 
         if (token->is_keyword() && token->keyword() == Keyword::None) {
-            auto expr = Expression::make_identifier(*token);
+            auto expr = Expression::make_expression<Identifier>(*token);
             next_token();
 
             return expr;

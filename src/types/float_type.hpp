@@ -4,7 +4,7 @@
 #include "types/type.hpp"
 
 namespace kore {
-    // Type for i32, a 32-bit float
+    // Type for f32 and f64
     class FloatType : public Type {
         public:
             FloatType(int num_bits);

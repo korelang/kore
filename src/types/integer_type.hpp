@@ -4,7 +4,7 @@
 #include "types/type.hpp"
 
 namespace kore {
-    // Type for i32, a 32-bit integer
+    // Type for all types of integers
     class IntegerType : public Type {
         public:
             IntegerType(int num_bits);

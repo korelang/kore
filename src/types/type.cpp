@@ -1,10 +1,13 @@
+#include "array_type.hpp"
 #include "bool_type.hpp"
 #include "char_type.hpp"
 #include "integer_type.hpp"
 #include "str_type.hpp"
 #include "type.hpp"
+#include "optional.hpp"
 #include "float_type.hpp"
 #include "unknown_type.hpp"
+#include "void_type.hpp"
 #include "utils/unused_parameter.hpp"
 
 namespace kore {
@@ -125,35 +128,57 @@ namespace kore {
         return Type::unknown();
     }
 
-    const UnknownType* Type::_unknown_type = new UnknownType();
+    const Type* Type::unify(const VoidType* void_type) const {
+        UNUSED_PARAM(void_type);
 
-    const UnknownType* Type::unknown() {
-        return UnknownType::_unknown_type;
+        return Type::unknown();
     }
 
-    Type* Type::from_token(const Token& token) {
+    TypeCache Type::_type_cache;
+
+    const UnknownType* Type::unknown() {
+        return static_cast<const UnknownType*>(_type_cache.get_type(TypeCategory::Unknown));
+    }
+
+    const VoidType* Type::void_type() {
+        return static_cast<const VoidType*>(_type_cache.get_type(TypeCategory::Void));
+    }
+
+    ArrayType* Type::make_array_type(const Type* element_type) {
+        return _type_cache.get_array_type(element_type);
+    }
+
+    const Optional* Type::make_optional_type(const Type* contained_type) {
+        return _type_cache.get_optional_type(contained_type);
+    }
+
+    const Type* Type::from_token(const Token& token) {
         if (!token.is_type()) {
             throw std::runtime_error("Cannot create type from non-type token '%s'");
         }
 
         if (token.value() == "i32") {
-            return new IntegerType(32);
+            return _type_cache.get_type(TypeCategory::Integer32);
         } else if (token.value() == "i64") {
-            return new IntegerType(64);
+            return _type_cache.get_type(TypeCategory::Integer64);
         } else if (token.value() == "f32") {
-            return new FloatType(32);
+            return _type_cache.get_type(TypeCategory::Float32);
         } else if (token.value() == "f64") {
-            return new FloatType(64);
+            return _type_cache.get_type(TypeCategory::Float64);
         } else if (token.value() == "byte") {
-            return new IntegerType(8);
+            return _type_cache.get_type(TypeCategory::Byte);
         } else if (token.value() == "char") {
-            return new CharType();
+            return _type_cache.get_type(TypeCategory::Char);
         } else if (token.value() == "str") {
-            return new StrType();
+            return _type_cache.get_type(TypeCategory::Str);
         } else if (token.value() == "bool") {
-            return new BoolType();
+            return _type_cache.get_type(TypeCategory::Bool);
+        } else if (token.value() == "void") {
+            return Type::void_type();
+        } else if (token.value() == "unknown") {
+            return Type::unknown();
         }
 
-        return new UnknownType();
+        return Type::unknown();
     }
 }

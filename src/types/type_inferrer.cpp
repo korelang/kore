@@ -120,6 +120,7 @@ namespace kore {
         // arguments to that scope
         _scope_stack.enter_function_scope(&func);
 
+        // TODO: Move into enter_function_scope?
         for (int i = 0; i < func.arity(); ++i) {
             auto parameter = func.parameter(i);
             _scope_stack.insert(parameter);

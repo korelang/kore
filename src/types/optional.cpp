@@ -4,9 +4,9 @@
 #include "utils/unused_parameter.hpp"
 
 namespace kore {
-    Optional::Optional(Type* contained_type)
+    Optional::Optional(const Type* contained_type)
         : Type(TypeCategory::Optional),
-        _contained_type(std::move(contained_type)) {
+        _contained_type(contained_type) {
     }
 
     Optional::~Optional() {}
@@ -21,7 +21,7 @@ namespace kore {
                 return other_type->unify(this);
 
             default:
-                if (!other_type->unify(_contained_type.get())->is_unknown()) {
+                if (!other_type->unify(_contained_type)->is_unknown()) {
                     // If we can unify the contained type of this optional
                     // with the other type, we're good
                     return this;
@@ -32,7 +32,7 @@ namespace kore {
     }
 
     const Type* Optional::unify(const Optional* optional) const {
-        return _contained_type->unify(optional->_contained_type.get());
+        return _contained_type->unify(optional->_contained_type);
     }
 
     void Optional::write(AstWriter* const writer) const {

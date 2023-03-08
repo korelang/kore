@@ -11,14 +11,20 @@ namespace kore {
 
     void IfStatement::add_branch(Owned<Expression> condition) {
         _branches.emplace_back(
-            new Branch(std::move(condition), std::move(_statement_accumulator))
+            std::make_unique<Branch>(
+                std::move(condition),
+                std::move(_statement_accumulator)
+            )
         );
+
         _statement_accumulator.clear();
     }
 
     void IfStatement::add_else_branch() {
         _has_else_branch = true;
-        _branches.emplace_back(new Branch(std::move(_statement_accumulator)));
+        _branches.emplace_back(
+            std::make_unique<Branch>(std::move(_statement_accumulator))
+        );
         _statement_accumulator.clear();
     }
 
@@ -42,12 +48,12 @@ namespace kore {
         return _branches.cend();
     }
 
-    branch_ptr& IfStatement::operator[](int index) {
-        return _branches[index];
+    Branch* IfStatement::operator[](int index) {
+        return _branches[index].get();
     }
 
-    branch_ptr& IfStatement::last_branch() {
-        return _branches[_branches.size()-1];
+    Branch* IfStatement::last_branch() {
+        return _branches[_branches.size()-1].get();
     }
 
     void IfStatement::accept(AstVisitor& visitor) {

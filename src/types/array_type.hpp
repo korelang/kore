@@ -23,7 +23,7 @@ namespace kore {
 
         private:
             int _rank;
-            Type::pointer _element_type;
+            const Type* _element_type;
     };
 }
 

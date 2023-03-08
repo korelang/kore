@@ -1,13 +1,14 @@
 #include "ast/ast_visitor.hpp"
 #include "ast/expressions/array_expression.hpp"
 #include "types/array_type.hpp"
+#include "types/unknown_type.hpp"
 
 namespace kore {
     ArrayExpression::ArrayExpression()
         : Expression(ExpressionType::Array, SourceLocation::unknown),
         _start(SourceLocation::unknown),
         _end(SourceLocation::unknown),
-        _type(new ArrayType()) {
+        _type(Type::make_array_type(Type::unknown())) {
     }
 
     ArrayExpression::ArrayExpression(const SourceLocation& location)
@@ -28,7 +29,7 @@ namespace kore {
 
     void ArrayExpression::add_element(Owned<Expression> expr) {
         if (_elements.empty()) {
-            _type = new ArrayType(expr->type());
+            _type = Type::make_array_type(expr->type());
         } else {
             _type->unify_element_type(expr->type());
         }

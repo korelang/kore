@@ -35,6 +35,12 @@ namespace kore {
         _parts(parts) {
     }
 
+    Identifier::Identifier(const Token& token, Type* type)
+        : Expression(ExpressionType::Parameter, token.location()),
+          _value(token.value()) {
+        set_type(type);
+    }
+
     Identifier::~Identifier() {}
 
     std::string Identifier::name() const {
@@ -73,11 +79,5 @@ namespace kore {
 
     void Identifier::accept_visit_only(AstVisitor& visitor) {
         visitor.visit(*this);
-    }
-
-    Identifier::Identifier(const Token& token, Type* type)
-        : Expression(ExpressionType::Parameter, token.location()),
-          _value(token.value()) {
-        set_type(type);
     }
 }

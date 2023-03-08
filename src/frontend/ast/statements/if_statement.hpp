@@ -9,8 +9,7 @@
 #include "pointer_types.hpp"
 
 namespace kore {
-    using branch_ptr = Owned<Branch>;
-    using branch_iterator = std::vector<branch_ptr>::const_iterator;
+    using branch_iterator = std::vector<Owned<Branch>>::const_iterator;
 
     class IfStatement : public Statement {
         public:
@@ -26,15 +25,15 @@ namespace kore {
             int branch_count() const;
             branch_iterator begin() const;
             branch_iterator end() const;
-            branch_ptr& operator[](int index);
-            branch_ptr& last_branch();
+            Branch* operator[](int index);
+            Branch* last_branch();
 
             void accept(AstVisitor& visitor) override;
             void accept_visit_only(AstVisitor& visitor) override;
 
         private:
             bool _has_else_branch;
-            std::vector<branch_ptr> _branches;
+            std::vector<Owned<Branch>> _branches;
             StatementList _statement_accumulator;
     };
 }

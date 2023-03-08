@@ -7,7 +7,6 @@
 #include "types/unknown_type.hpp"
 
 namespace kore {
-    // TODO
     FunctionType::FunctionType() : Type(TypeCategory::Function) {
     }
 
@@ -18,8 +17,8 @@ namespace kore {
         return create_name(false);
     }
 
-    void FunctionType::add_parameter(Parameter* parameter) {
-        _parameters.emplace_back(parameter);
+    void FunctionType::add_parameter(Owned<Parameter>&& parameter) {
+        _parameters.emplace_back(std::move(parameter));
     }
 
     int FunctionType::arity() const {
@@ -31,11 +30,11 @@ namespace kore {
     }
 
     const Type* FunctionType::return_type() const {
-        return _return_type.get();
+        return _return_type;
     }
 
-    void FunctionType::set_return_type(Type* type) {
-        _return_type.reset(type);
+    void FunctionType::set_return_type(const Type* type) {
+        _return_type = type;
     }
 
     const Type* FunctionType::unify(const Type* other_type) const {

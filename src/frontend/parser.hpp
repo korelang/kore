@@ -137,7 +137,7 @@ namespace kore {
             /// IdentifierList = Identifier { "," Identifier } .
             IdentifierList parse_identifier_list();
 
-            Type* parse_type();
+            const Type* parse_type();
 
             /// Block = "{" StatementList "}" .
             void parse_block(Statement* const parent);

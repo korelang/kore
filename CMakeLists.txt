@@ -72,6 +72,8 @@ set(BASE_SOURCES
     src/types/type_checker.cpp
     src/types/scope.cpp
     src/types/symbol_table.cpp
+    src/types/void_type.cpp
+    src/types/type_cache.cpp
 
     # Errors
     src/errors/error.cpp

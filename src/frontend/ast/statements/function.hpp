@@ -30,8 +30,8 @@ namespace kore {
             const Type* return_type() const;
 
             const Identifier* parameter(int param_index);
-            void add_parameter(Parameter* parameter);
-            void set_return_type(Type* type);
+            void add_parameter(Owned<Parameter>&& parameter);
+            void set_return_type(const Type* type);
             void add_statement(Owned<Statement> statement) override;
             Statement* last_statement();
 

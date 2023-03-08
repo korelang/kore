@@ -59,11 +59,11 @@ namespace kore {
         return _type->parameter(param_index);
     }
 
-    void Function::add_parameter(Parameter* parameter) {
-        _type->add_parameter(parameter);
+    void Function::add_parameter(Owned<Parameter>&& parameter) {
+        _type->add_parameter(std::move(parameter));
     }
 
-    void Function::set_return_type(Type* type) {
+    void Function::set_return_type(const Type* type) {
         _type->set_return_type(type);
 
         // After parsing the return type, as therefore the parameters,

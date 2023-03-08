@@ -30,20 +30,4 @@ namespace kore {
     StatementType Statement::statement_type() const {
         return _statement_type;
     }
-
-    Function* Statement::make_function(bool exported, const Token& func_name) {
-        return new Function(exported, func_name);
-    }
-
-    Statement* Statement::make_module_decl(const std::string& module_name, const SourceLocation& location) {
-        return new ModuleStatement(module_name, location);
-    }
-
-    Statement* Statement::make_module_decl(const Token& token) {
-        return new ModuleStatement(token);
-    }
-
-    Statement* Statement::make_variable_decl(const Token& identifier, const Token& type) {
-        return new VariableDeclaration(identifier, type);
-    }
 }

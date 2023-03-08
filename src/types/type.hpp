@@ -3,6 +3,8 @@
 
 #include "pointer_types.hpp"
 #include "token.hpp"
+#include "type_cache.hpp"
+#include "type_category.hpp"
 
 namespace kore {
     class AstWriter;
@@ -15,32 +17,10 @@ namespace kore {
     class Optional;
     class StrType;
     class UnknownType;
-
-    // Use this approach or make subclasses?
-    enum class TypeCategory {
-        Array,
-        Bool,
-        Char,
-        Float32,
-        Float64,
-        Function,
-        Integer32,
-        Integer64,
-        Map,
-        Optional,
-        Str,
-        Struct,
-        Unknown,
-        Void,
-    };
-
-    struct TypeDeleter;
+    class VoidType;
 
     /// Represents the different types
     class Type {
-        public:
-            using pointer = Owned<const Type, TypeDeleter>;
-
         public:
             Type();
             virtual ~Type();
@@ -63,39 +43,26 @@ namespace kore {
             virtual const Type* unify(const Optional* optional) const;
             virtual const Type* unify(const ArrayType* array_type) const;
             virtual const Type* unify(const FunctionType* func_type) const;
+            virtual const Type* unify(const VoidType* void_type) const;
 
             virtual void write(AstWriter* const writer) const = 0;
 
             static const UnknownType* unknown();
-            static Type* from_token(const Token& token);
+            static const VoidType* void_type();
+            static ArrayType* make_array_type(const Type* element_type);
+            static const Optional* make_optional_type(const Type* contained_type);
+
+            static const Type* from_token(const Token& token);
 
         protected:
             Type(TypeCategory type_type);
 
         private:
             TypeCategory _category;
-            /* bool _immutable = false; */
-            static const UnknownType* _unknown_type;
+
+            // Static methods for getting common types
+            static TypeCache _type_cache;
     };
-
-    // Custom deleter for unique_ptr of types that only deletes
-    // non-shared complex types so simple types (i32, bool
-    struct TypeDeleter {
-        TypeDeleter() {}
-
-        void operator()(Type* type) const {
-            if (!type->is_simple()) {
-                delete type;
-            }
-        }
-
-        void operator()(const Type* type) const {
-            if (!type->is_simple()) {
-                delete type;
-            }
-        }
-    };
-
 }
 
 #endif // KORE_TYPE_HPP

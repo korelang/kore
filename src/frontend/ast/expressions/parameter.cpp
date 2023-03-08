@@ -8,7 +8,7 @@ namespace kore {
         set_type(Type::unknown());
     }
 
-    Parameter::Parameter(const Token& token, Type* type)
+    Parameter::Parameter(const Token& token, const Type* type)
         : Identifier(token, type) {
     }
 

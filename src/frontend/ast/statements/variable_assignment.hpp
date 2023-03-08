@@ -11,7 +11,7 @@ namespace kore {
 
     class VariableAssignment : public Statement {
         public:
-            VariableAssignment(bool is_mutable, const Token& identifier, Type* type, Owned<Expression> expr);
+            VariableAssignment(bool is_mutable, const Token& identifier, const Type* type, Owned<Expression> expr);
             virtual ~VariableAssignment();
 
             const Identifier* identifier() const;
@@ -27,7 +27,7 @@ namespace kore {
             // TODO: Should this be a variable instead? It is more specific in
             // this context
             Identifier _identifier;
-            Type::pointer _type;
+            const Type* _type;
             Expression::pointer _expr;
     };
 }
