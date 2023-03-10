@@ -29,16 +29,18 @@ namespace koredis {
         kore::section("function", kore::Color::Magenta, kore::ColorAttribute::Bold, 0, obj.name().c_str());
         auto attr = kore::ColorAttribute::Reset;
 
-        os << color << "| " << attr << "locals   : " << obj.locals_count() << std::endl;
-        os << color << "| " << attr << "registers: " << obj.reg_count() << std::endl;
-        os << color << "| " << attr << "code size: " << obj.code_size() << std::endl;
-        os << color << "|" << attr << std::endl;
+        os << color << "  " << attr << "locals   : " << obj.locals_count() << std::endl;
+        os << color << "  " << attr << "registers: " << obj.reg_count() << std::endl;
+        os << color << "  " << attr << "code size: " << obj.code_size() << std::endl;
+        os << color << "" << attr << std::endl;
 
         auto decoded_instructions = decode_instructions(obj);
+        auto opcode_color = kore::Color::Blue;
 
         for (auto instruction : decoded_instructions) {
-            os << color << "| " << attr
-               << std::setw(10) << std::left << instruction.name()
+            os << color << "  " << attr
+               << std::setw(10) << std::left
+               << opcode_color << instruction.name() << attr
                << instruction.registers_as_string()
                << std::endl;
         }
@@ -71,7 +73,7 @@ namespace koredis {
         /* output_constant_table(os, color, module.f32_constant_table()); */
         /* output_constant_table(os, color, module.f64_constant_table()); */
 
-        kore::info("functions (%d)", module.objects_count());
+        kore::section("functions", kore::Color::Magenta, kore::ColorAttribute::Bold, 0, "%d", module.objects_count());
 
         for (auto it = module.objects_begin(); it != module.objects_end(); ++it) {
             output_function(os, color, *it->get());
