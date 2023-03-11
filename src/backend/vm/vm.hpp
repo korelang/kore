@@ -88,6 +88,14 @@ namespace kore {
                 /// Load all functions from a module
                 void load_functions_from_module(const Module& module);
 
+                /// Allocate space for globals
+                void allocate_globals(const Module& module);
+
+                /// Reserve local stack space for the called function
+                void allocate_local_stack(const CompiledObject* const obj);
+
+                [[noreturn]] void throw_vm_error(const std::string& message);
+
                 void throw_unknown_opcode(Bytecode opcode);
 
                 /// Get a function by its index

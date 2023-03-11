@@ -1,5 +1,6 @@
 #include "module_loader.hpp"
 #include "utils/unused_parameter.hpp"
+#include "vm/config.hpp"
 #include "vm/vm.hpp"
 
 #define LOAD_OPCODE(type) {\
@@ -232,12 +233,11 @@ namespace kore {
 
         void Vm::run_module(Module& module) {
             // Allocate space for globals
-            _globals.resize(module.global_indices_count());
+            allocate_globals(module);
 
             add_module(module);
 
-            // Push a call frame to the main object and allocate local stack
-            // space for it
+            // Push a call frame to the main object
             auto main_object = _context._current_module->main_object();
             _call_frames.push_back(CallFrame{ 0, 0, 0, 0, main_object });
 
@@ -257,10 +257,28 @@ namespace kore {
             }
         }
 
+        void Vm::allocate_globals(const Module& module) {
+            _globals.resize(_globals.size() + module.global_indices_count());
+        }
+
+        void Vm::allocate_local_stack(const CompiledObject* const obj) {
+            auto reg_count = obj->reg_count();
+
+            if (_context.sp + reg_count >= KORE_VM_MAX_REGISTERS) {
+                throw_vm_error("Stack-overflow, ran out of local stack");
+            }
+
+            _context.sp += reg_count;
+        }
+
+        void Vm::throw_vm_error(const std::string& message) {
+            throw std::runtime_error(message);
+        }
+
         void Vm::throw_unknown_opcode(Bytecode opcode) {
             auto message = "Unsupported bytecode at "  + std::to_string(_context.pc) + ": " + std::to_string(opcode);
 
-            throw std::runtime_error(message);
+            throw_vm_error(message);
         }
 
         CompiledObject* Vm::get_function(int func_index) {
