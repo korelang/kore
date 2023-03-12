@@ -1,7 +1,7 @@
 #ifndef KORE_ERROR_HPP
 #define KORE_ERROR_HPP
 
-#include "source_location.hpp"
+#include "ast/source_location.hpp"
 
 namespace kore {
     namespace errors {

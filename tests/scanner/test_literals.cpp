@@ -1,8 +1,8 @@
 #include "catch.hpp"
 
 #include "test_utils.hpp"
-#include "scanner.hpp"
-#include "source_location.hpp"
+#include "ast/scanner/scanner.hpp"
+#include "ast/source_location.hpp"
 
 namespace kore {
     TEST_CASE("Can scan literals", "[literals]") {

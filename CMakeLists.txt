@@ -1,145 +1,137 @@
 cmake_minimum_required(VERSION 3.8)
 
 project(kore)
+
 set(CMAKE_CXX_STANDARD 17)
+set(KORE_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/src)
 
-set(COMPILER_INCLUDE_DIRS
-    "./src"
-    "./src/frontend"
-    "./src/backend"
+set(KORE_AST_SOURCES
+    ${PROJECT_SOURCE_DIR}/src/ast/ast.cpp
+    ${PROJECT_SOURCE_DIR}/src/ast/ast_element_stream_writer.cpp
+    ${PROJECT_SOURCE_DIR}/src/ast/ast_node.cpp
+    ${PROJECT_SOURCE_DIR}/src/ast/ast_stream_writer.cpp
+    ${PROJECT_SOURCE_DIR}/src/ast/ast_visitor.cpp
+    ${PROJECT_SOURCE_DIR}/src/ast/ast_writer.cpp
+    ${PROJECT_SOURCE_DIR}/src/ast/source_location.cpp
 )
 
-set(BASE_SOURCES
-    src/frontend/ast/ast.cpp
-    src/frontend/ast/ast_node.cpp
-    src/frontend/ast/ast_writer.cpp
-    src/frontend/ast/ast_stream_writer.cpp
-    src/frontend/ast/ast_element_stream_writer.cpp
-    src/frontend/ast/ast_visitor.cpp
-
-    # Expressions
-    src/frontend/ast/parser_error_node.cpp
-    src/frontend/ast/expressions/array_fill_expression.cpp
-    src/frontend/ast/expressions/array_expression.cpp
-    src/frontend/ast/expressions/array_range_expression.cpp
-    src/frontend/ast/expressions/binary_expression.cpp
-    src/frontend/ast/expressions/bool_expression.cpp
-    src/frontend/ast/expressions/call.cpp
-    src/frontend/ast/expressions/char_expression.cpp
-    src/frontend/ast/expressions/expression.cpp
-    src/frontend/ast/expressions/float_expression.cpp
-    src/frontend/ast/expressions/identifier.cpp
-    src/frontend/ast/expressions/integer_expression.cpp
-    src/frontend/ast/expressions/parameter.cpp
-    src/frontend/ast/expressions/string_expression.cpp
-    src/frontend/ast/expressions/unary_expression.cpp
-
-    # Statements
-    src/frontend/ast/statements/statement.cpp
-    src/frontend/ast/statements/branch.cpp
-    src/frontend/ast/statements/if_statement.cpp
-    src/frontend/ast/statements/function.cpp
-    src/frontend/ast/statements/expression_statement.cpp
-    src/frontend/ast/statements/import_statement.cpp
-    src/frontend/ast/statements/module_statement.cpp
-    src/frontend/ast/statements/variable_declaration.cpp
-    src/frontend/ast/statements/return_statement.cpp
-    src/frontend/ast/statements/variable_assignment.cpp
-    src/frontend/ast/statements/expression_statement.cpp
-
-    src/frontend/keywords.cpp
-    src/frontend/source_location.cpp
-    src/frontend/operator.cpp
-    src/frontend/parser.cpp
-    src/frontend/scanner.cpp
-    src/frontend/string-utils.cpp
-    src/frontend/token.cpp
-    src/frontend/token_category.cpp
-    src/frontend/token_type.cpp
-
-    # Types
-    src/types/type.cpp
-    src/types/array_type.cpp
-    src/types/bool_type.cpp
-    src/types/char_type.cpp
-    src/types/float_type.cpp
-    src/types/function_type.cpp
-    src/types/integer_type.cpp
-    src/types/optional.cpp
-    src/types/str_type.cpp
-    src/types/unknown_type.cpp
-    src/types/type_inferrer.cpp
-    src/types/type_checker.cpp
-    src/types/scope.cpp
-    src/types/symbol_table.cpp
-    src/types/void_type.cpp
-    src/types/type_cache.cpp
-
-    # Errors
-    src/errors/error.cpp
-    src/errors/errors.cpp
-
-    # Logging
-    src/logging/color_attributes.cpp
-    src/logging/colors.cpp
-    src/logging/logging.cpp
-
-    # Compiler passes
-    src/passes/passes.cpp
-
-    src/utf8/utf8.cpp
-    src/options.cpp
-    src/version.cpp
-    src/compiler.cpp
-
-    # Utils
-    src/utils/endian.cpp
-
-    # Backend
-    src/koredis/disassemble.cpp
-    src/koredis/disassemble_error.cpp
-    src/backend/module.cpp
-    src/backend/module_loader.cpp
-    src/backend/codegen/bytecode/bytecode.cpp
-    src/backend/codegen/bytecode/bytecode_array_writer.cpp
-    src/backend/codegen/bytecode/bytecode_codegen.cpp
-    src/backend/bytecode_format_writer.cpp
-    src/backend/codegen/compiled_object.cpp
-    src/backend/vm/value_type.cpp
-    src/backend/vm/vm.cpp
+set(KORE_PARSER_SOURCES
+    ${PROJECT_SOURCE_DIR}/src/ast/parser/operator.cpp
+    ${PROJECT_SOURCE_DIR}/src/ast/parser/parser.cpp
 )
 
-set(COMPILER_SOURCES
-    ${BASE_SOURCES}
-    src/main.cpp
+set(KORE_SCANNER_SOURCES
+    ${PROJECT_SOURCE_DIR}/src/ast/scanner/keywords.cpp
+    ${PROJECT_SOURCE_DIR}/src/ast/scanner/scanner.cpp
+    ${PROJECT_SOURCE_DIR}/src/ast/scanner/token.cpp
+    ${PROJECT_SOURCE_DIR}/src/ast/scanner/token_category.cpp
+    ${PROJECT_SOURCE_DIR}/src/ast/scanner/token_type.cpp
 )
 
-set(COMPILER_NAME "korec")
-
-set(SHARED_COMPILE_FLAGS -Wall -Wextra -pedantic -Werror)
-
-# Main compiler executable
-add_executable(${COMPILER_NAME} ${COMPILER_SOURCES})
-
-add_definitions("-DNDEBUG -g3 -O1")
-
-include_directories(${COMPILER_NAME} ${COMPILER_INCLUDE_DIRS})
-
-target_compile_options(${COMPILER_NAME} PUBLIC ${SHARED_COMPILE_FLAGS})
-
-target_compile_definitions(${COMPILER_NAME} PRIVATE
-    KORE_DEBUG_TYPECHECKER=1
-    KORE_DEBUG_TYPEINFERRER=1
-    KORE_DEBUG_BYTECODE_GENERATOR=1
+set (KORE_AST_EXPRESSION_SOURCES
+    ${PROJECT_SOURCE_DIR}/src/ast/expressions/array_expression.cpp
+    ${PROJECT_SOURCE_DIR}/src/ast/expressions/array_fill_expression.cpp
+    ${PROJECT_SOURCE_DIR}/src/ast/expressions/array_range_expression.cpp
+    ${PROJECT_SOURCE_DIR}/src/ast/expressions/binary_expression.cpp
+    ${PROJECT_SOURCE_DIR}/src/ast/expressions/bool_expression.cpp
+    ${PROJECT_SOURCE_DIR}/src/ast/expressions/call.cpp
+    ${PROJECT_SOURCE_DIR}/src/ast/expressions/char_expression.cpp
+    ${PROJECT_SOURCE_DIR}/src/ast/expressions/expression.cpp
+    ${PROJECT_SOURCE_DIR}/src/ast/expressions/float_expression.cpp
+    ${PROJECT_SOURCE_DIR}/src/ast/expressions/identifier.cpp
+    ${PROJECT_SOURCE_DIR}/src/ast/expressions/integer_expression.cpp
+    ${PROJECT_SOURCE_DIR}/src/ast/expressions/parameter.cpp
+    ${PROJECT_SOURCE_DIR}/src/ast/expressions/string_expression.cpp
+    ${PROJECT_SOURCE_DIR}/src/ast/expressions/unary_expression.cpp
+    ${PROJECT_SOURCE_DIR}/src/ast/parser_error_node.cpp
 )
 
-set_target_properties(${COMPILER_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+set(KORE_AST_STATEMENT_SOURCES
+    ${PROJECT_SOURCE_DIR}/src/ast/statements/branch.cpp
+    ${PROJECT_SOURCE_DIR}/src/ast/statements/expression_statement.cpp
+    ${PROJECT_SOURCE_DIR}/src/ast/statements/function.cpp
+    ${PROJECT_SOURCE_DIR}/src/ast/statements/if_statement.cpp
+    ${PROJECT_SOURCE_DIR}/src/ast/statements/import_statement.cpp
+    ${PROJECT_SOURCE_DIR}/src/ast/statements/module_statement.cpp
+    ${PROJECT_SOURCE_DIR}/src/ast/statements/return_statement.cpp
+    ${PROJECT_SOURCE_DIR}/src/ast/statements/statement.cpp
+    ${PROJECT_SOURCE_DIR}/src/ast/statements/variable_assignment.cpp
+    ${PROJECT_SOURCE_DIR}/src/ast/statements/variable_declaration.cpp
+)
 
-# Build kore disassembler (koredis)
-add_subdirectory("./src/koredis")
+set(KORE_TYPE_SOURCES
+    ${PROJECT_SOURCE_DIR}/src/types/array_type.cpp
+    ${PROJECT_SOURCE_DIR}/src/types/bool_type.cpp
+    ${PROJECT_SOURCE_DIR}/src/types/char_type.cpp
+    ${PROJECT_SOURCE_DIR}/src/types/float_type.cpp
+    ${PROJECT_SOURCE_DIR}/src/types/function_type.cpp
+    ${PROJECT_SOURCE_DIR}/src/types/integer_type.cpp
+    ${PROJECT_SOURCE_DIR}/src/types/optional.cpp
+    ${PROJECT_SOURCE_DIR}/src/types/scope.cpp
+    ${PROJECT_SOURCE_DIR}/src/types/str_type.cpp
+    ${PROJECT_SOURCE_DIR}/src/types/symbol_table.cpp
+    ${PROJECT_SOURCE_DIR}/src/types/type.cpp
+    ${PROJECT_SOURCE_DIR}/src/types/type_cache.cpp
+    ${PROJECT_SOURCE_DIR}/src/types/type_checker.cpp
+    ${PROJECT_SOURCE_DIR}/src/types/type_inferrer.cpp
+    ${PROJECT_SOURCE_DIR}/src/types/unknown_type.cpp
+    ${PROJECT_SOURCE_DIR}/src/types/void_type.cpp
+)
 
-# Build the kore runner
-add_subdirectory("./src/kore")
+set(KORE_ERRORS_SOURCES
+    ${PROJECT_SOURCE_DIR}/src/errors/error.cpp
+    ${PROJECT_SOURCE_DIR}/src/errors/errors.cpp
+)
+
+set(KORE_LOGGING_SOURCES
+    ${PROJECT_SOURCE_DIR}/src/logging/color_attributes.cpp
+    ${PROJECT_SOURCE_DIR}/src/logging/colors.cpp
+    ${PROJECT_SOURCE_DIR}/src/logging/logging.cpp
+)
+
+set(KORE_COMPILER_SOURCES
+    ${PROJECT_SOURCE_DIR}/src/compiler/compiler.cpp
+    ${PROJECT_SOURCE_DIR}/src/compiler/passes/passes.cpp
+)
+
+set(KORE_UTF8_SOURCES
+    ${PROJECT_SOURCE_DIR}/src/utf8/utf8.cpp
+)
+
+set(KORE_TOP_LEVEL_SOURCES
+    ${PROJECT_SOURCE_DIR}/src/version.cpp
+)
+
+set(KORE_UTILS_SOURCES
+    ${PROJECT_SOURCE_DIR}/src/utils/endian.cpp
+    ${PROJECT_SOURCE_DIR}/src/utils/string-utils.cpp
+)
+
+set(KORE_TARGETS_BYTECODE_SOURCES
+    ${PROJECT_SOURCE_DIR}/src/targets/bytecode/bytecode_format_writer.cpp
+    ${PROJECT_SOURCE_DIR}/src/targets/bytecode/compiled_object.cpp
+    ${PROJECT_SOURCE_DIR}/src/targets/bytecode/module.cpp
+    ${PROJECT_SOURCE_DIR}/src/targets/bytecode/module_loader.cpp
+    ${PROJECT_SOURCE_DIR}/src/targets/bytecode/codegen/bytecode.cpp
+    ${PROJECT_SOURCE_DIR}/src/targets/bytecode/codegen/bytecode_array_writer.cpp
+    ${PROJECT_SOURCE_DIR}/src/targets/bytecode/codegen/bytecode_codegen.cpp
+    ${PROJECT_SOURCE_DIR}/src/targets/bytecode/disassemble/decode_instruction.cpp
+    ${PROJECT_SOURCE_DIR}/src/targets/bytecode/disassemble/disassemble.cpp
+    ${PROJECT_SOURCE_DIR}/src/targets/bytecode/disassemble/disassemble_error.cpp
+    ${PROJECT_SOURCE_DIR}/src/targets/bytecode/disassemble/instruction.cpp
+    ${PROJECT_SOURCE_DIR}/src/targets/bytecode/vm/value_type.cpp
+    ${PROJECT_SOURCE_DIR}/src/targets/bytecode/vm/vm.cpp
+)
+
+set(KORE_SHARED_COMPILE_FLAGS -Wall -Wextra -pedantic -Werror)
+
+# Build main executables:
+#   - Bytecode compiler (korec)
+#   - Disassembler (koredis)
+#   - Virtual machine (kore)
+add_subdirectory("./src/bin/korec")
+# add_subdirectory("./src/bin/koredis")
+# add_subdirectory("./src/bin/kore")
 
 # Build tests
 add_subdirectory("./tests")

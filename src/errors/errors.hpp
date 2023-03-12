@@ -6,7 +6,7 @@
 #include "ast/statements/function.hpp"
 #include "errors/error.hpp"
 #include "ast/expressions/binary_expression.hpp"
-#include "source_location.hpp"
+#include "ast/source_location.hpp"
 #include "types/type.hpp"
 
 namespace kore {

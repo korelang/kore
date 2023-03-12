@@ -2,7 +2,7 @@
 #define KORE_TYPE_HPP
 
 #include "pointer_types.hpp"
-#include "token.hpp"
+#include "ast/scanner/token.hpp"
 #include "type_cache.hpp"
 #include "type_category.hpp"
 

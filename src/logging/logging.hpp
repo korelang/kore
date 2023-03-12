@@ -4,7 +4,7 @@
 #include "errors/error.hpp"
 #include "logging/color_attributes.hpp"
 #include "logging/colors.hpp"
-#include "source_location.hpp"
+#include "ast/source_location.hpp"
 
 namespace kore {
     void success(const char* const format, ...);

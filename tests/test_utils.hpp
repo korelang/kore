@@ -1,7 +1,7 @@
 #ifndef KORE_TEST_UTILS_HPP
 #define KORE_TEST_UTILS_HPP
 
-#include "scanner.hpp"
+#include "ast/scanner/scanner.hpp"
 
 namespace kore {
     void expect_token(

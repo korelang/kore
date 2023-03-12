@@ -5,8 +5,8 @@
 #include <vector>
 
 #include "ast/expressions/identifier.hpp"
-#include "backend/vm/vm.hpp"
 #include "ast/statements/function.hpp"
+#include "targets/bytecode/register.hpp"
 
 namespace kore {
     /// An entry for each variable with additional bookkeeping
