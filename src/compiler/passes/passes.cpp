@@ -12,8 +12,14 @@ namespace kore {
             "parser",
             [](PassContext& context) {
                 Parser parser;
-                parser.parse_file(context.cmdline_args.path, &context.ast); 
 
+                for (const auto& path : context.args.paths) {
+                    Ast ast;
+                    parser.parse_file(path, &ast); 
+                    context.asts.push_back(std::move(ast));
+                }
+
+                // TODO: Add errors
                 return PassResult{ !parser.failed(), {} };
             }
         };
@@ -24,7 +30,10 @@ namespace kore {
             "type inference",
             [](PassContext& context) {
                 TypeInferrer type_inferrer;
-                type_inferrer.infer(context.ast); 
+
+                for (auto& ast : context.asts) {
+                    type_inferrer.infer(ast); 
+                }
 
                 return PassResult{ true, {} };
             }
@@ -36,7 +45,11 @@ namespace kore {
             "type checking",
             [](PassContext& context) {
                 TypeChecker type_checker;
-                int error_count = type_checker.check(context.ast);
+                int error_count = 0;
+
+                for (auto& ast : context.asts) {
+                    error_count += type_checker.check(ast);
+                }
 
                 return PassResult{ error_count == 0, type_checker.errors() };
             }
@@ -45,12 +58,16 @@ namespace kore {
 
     Pass get_bytecode_codegen_pass() {
         return Pass {
-            "bytecode generation",
+            "codegen:bytecode",
             [](PassContext& context) {
                 BytecodeGenerator code_generator;
-                context.module = code_generator.compile(context.ast);
 
-                return PassResult{ true, {} };
+                for (auto it = context.kir.begin(); it < context.kir.end(); ++it) {
+                    /* context.buffers.push_back(code_generator.generate(*it)); */
+                }
+
+                // Stop running passes here if --dump-kir was passed
+                return PassResult{ context.args.dump_kir.empty(), {} };
             }
         };
     }
@@ -59,13 +76,17 @@ namespace kore {
         return Pass {
             "bytecode write",
             [](PassContext& context) {
-                BytecodeFormatWriter writer;
-                writer.write(
-                    context.module.get(),
-                    context.cmdline_args.path.replace_extension(
-                        config::KORE_COMPILED_EXTENSION
-                    )
-                );
+                for (std::size_t idx = 0; idx < context.args.paths.size(); ++idx) {
+                    auto& path = context.args.paths[idx];
+                    auto& target_path = path.replace_extension(config::KORE_COMPILED_EXTENSION);
+                    auto& buffer = context.buffers[idx];
+                    std::ofstream ofs(target_path, std::ios::out | std::ios::binary);
+
+                    ofs.write(
+                        reinterpret_cast<const char*>(buffer.data()),
+                        buffer.size()
+                    );
+                }
 
                 return PassResult{ true, {} };
             }

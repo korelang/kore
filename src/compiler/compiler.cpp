@@ -9,7 +9,7 @@ namespace kore {
     ) : _context(args), _passes(passes) {}
 
     int Compiler::run_passes() {
-        auto verbosity = _context.cmdline_args.verbosity;
+        auto verbosity = _context.args.verbosity;
 
         for (auto& pass : _passes) {
             auto result = pass.run(_context);
@@ -28,6 +28,10 @@ namespace kore {
         }
 
         return 0;
+    }
+
+    const PassContext& Compiler::context() const {
+        return _context;
     }
 
     void Compiler::print_errors(const Pass& pass, PassResult result) {

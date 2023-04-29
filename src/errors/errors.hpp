@@ -29,6 +29,10 @@ namespace kore {
             Error return_type_mismatch(const Function* func, const Type* type, const SourceLocation& location);
             Error void_return_from_nonvoid_function(const Function* func, const SourceLocation& location);
         }
+
+        namespace kir {
+            Error moved_variable(Identifier& expr);
+        }
     }
 
     std::string format_locations(const SourceLocation& start, const SourceLocation& end);

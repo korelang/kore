@@ -14,6 +14,10 @@ namespace kore {
         return _value;
     }
 
+    bool BoolExpression::bool_value() const {
+        return value() == "true";
+    }
+
     const Type* BoolExpression::type() const {
         return &_type;
     }

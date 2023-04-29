@@ -2,6 +2,29 @@
 
 namespace kore {
     namespace vm {
+        Value::~Value() {
+            switch (tag) {
+                case ValueTag::Bool:
+                case ValueTag::I32:
+                case ValueTag::I64:
+                case ValueTag::F32:
+                case ValueTag::F64:
+                    // We don't allocate any memory for these values
+                    break;
+
+                case ValueTag::Array: {
+                    #if KORE_VM_DEBUG
+                        if (value._array == nullptr) {
+                            throw std::runtime_error("Array is not allocated");
+                        }
+                    #endif
+
+                    delete value._array;
+                    break;
+                }
+            }
+        }
+
         Value Value::from_bool(bool value) {
             auto _value = Value();
 
@@ -56,31 +79,51 @@ namespace kore {
         /*     return _value; */
         /* } */
 
+        Value Value::allocate_array(std::size_t size) {
+            auto _value = Value();
+
+            _value.tag = ValueTag::Array;
+            _value.value._array = ArrayValue::allocate(size);
+
+            return _value;
+        }
+
         std::ostream& operator<<(std::ostream& out, const Value& value) {
             switch (value.tag) {
                 case ValueTag::Bool:
-                    out << "Value(" << (value.value._bool == 1 ? "true" : "false") << ", bool)";
+                    out << (value.value._bool ? "true" : "false");
                     break;
 
                 case ValueTag::I32:
-                    out << "Value(" << value.value._i32 << ", i32)";
+                    out << "i32(" << value.value._i32 << ")";
                     break;
 
                 case ValueTag::I64:
-                    out << "Value(" << value.value._i64 << ", i64)";
+                    out << "i64(" << value.value._i64 << ")";
                     break;
 
                 case ValueTag::F32:
-                    out << "Value(" << value.value._f32 << ", f32)";
+                    out << "f32(" << value.value._f32 << ")";
                     break;
 
                 case ValueTag::F64:
-                    out << "Value(" << value.value._f64 << ", f64)";
+                    out << "f64(" << value.value._f64 << ")";
                     break;
 
                 /* case ValueTag::Str: */
                 /*     out << "Value(" << value.value._str << ", str)"; */
                 /*     break; */
+
+                case ValueTag::Array: {
+                    #if KORE_VM_DEBUG
+                        if (value.value._array == nullptr) {
+                            throw std::runtime_error("Array is not allocated");
+                        }
+                    #endif
+
+                    out << (*value.value._array);
+                    break;
+                }
             }
 
             return out;

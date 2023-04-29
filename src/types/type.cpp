@@ -70,6 +70,25 @@ namespace kore {
         return category() == TypeCategory::Void;
     }
 
+    bool Type::is_value_type() const noexcept {
+        switch (category()) {
+            case TypeCategory::Bool:
+            case TypeCategory::Byte:
+            case TypeCategory::Char:
+            case TypeCategory::Float32:
+            case TypeCategory::Float64:
+            case TypeCategory::Integer32:
+            case TypeCategory::Integer64:
+            case TypeCategory::Unknown:
+            case TypeCategory::Void: {
+                return true;
+            }
+
+            default:
+                return false;
+        }
+    }
+
     TypeCategory Type::category() const noexcept {
         return _category;
     }

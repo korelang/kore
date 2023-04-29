@@ -134,6 +134,12 @@ namespace kore {
                 return Error(ErrorType::Typing, message, location);
             }
         }
+
+        namespace kir {
+            Error moved_variable(Identifier& expr) {
+                return Error("cannot reference moved variable", expr.location());
+            }
+        }
     }
 
     std::string format_locations(const SourceLocation& start) {

@@ -11,6 +11,7 @@ namespace kore {
             virtual ~BoolExpression();
 
             std::string value() const;
+            bool bool_value() const;
             const Type* type() const override;
 
             void accept(AstVisitor& visitor) override;

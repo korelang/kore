@@ -3,6 +3,9 @@
 
 #include <filesystem>
 #include <string>
+#include <vector>
+
+namespace fs = std::filesystem;
 
 namespace kore {
     struct ParsedCommandLineArgs {
@@ -14,6 +17,7 @@ namespace kore {
         bool dump_scan;
         bool dump_parse;
         bool dump_ast;
+        std::string dump_kir;
         bool dump_codegen;
         bool disassemble;
         bool backend;
@@ -28,7 +32,7 @@ namespace kore {
         bool mem_stats;
 
         std::string expr;
-        std::filesystem::path path;
+        std::vector<fs::path> paths;
     };
 
     ParsedCommandLineArgs parse_commandline(int argc, char** args);

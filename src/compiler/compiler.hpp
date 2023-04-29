@@ -16,7 +16,7 @@ namespace kore {
             );
 
             int run_passes();
-
+            const PassContext& context() const;
             void print_errors(const Pass& pass, PassResult result);
 
         private:

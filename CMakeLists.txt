@@ -89,6 +89,16 @@ set(KORE_LOGGING_SOURCES
     ${PROJECT_SOURCE_DIR}/src/logging/logging.cpp
 )
 
+set(KORE_KIR_SOURCES
+    ${PROJECT_SOURCE_DIR}/src/targets/bytecode/codegen/kir/basic_block.cpp
+    ${PROJECT_SOURCE_DIR}/src/targets/bytecode/codegen/kir/function.cpp
+    ${PROJECT_SOURCE_DIR}/src/targets/bytecode/codegen/kir/graph.cpp
+    ${PROJECT_SOURCE_DIR}/src/targets/bytecode/codegen/kir/instruction.cpp
+    ${PROJECT_SOURCE_DIR}/src/targets/bytecode/codegen/kir/kir.cpp
+    ${PROJECT_SOURCE_DIR}/src/targets/bytecode/codegen/kir/kir_lowering_pass.cpp
+    ${PROJECT_SOURCE_DIR}/src/targets/bytecode/codegen/kir/module.cpp
+)
+
 set(KORE_COMPILER_SOURCES
     ${PROJECT_SOURCE_DIR}/src/compiler/compiler.cpp
     ${PROJECT_SOURCE_DIR}/src/compiler/passes/passes.cpp
@@ -115,11 +125,13 @@ set(KORE_TARGETS_BYTECODE_SOURCES
     ${PROJECT_SOURCE_DIR}/src/targets/bytecode/codegen/bytecode.cpp
     ${PROJECT_SOURCE_DIR}/src/targets/bytecode/codegen/bytecode_array_writer.cpp
     ${PROJECT_SOURCE_DIR}/src/targets/bytecode/codegen/bytecode_codegen.cpp
+    ${PROJECT_SOURCE_DIR}/src/targets/bytecode/codegen/bytecode_codegen2.cpp
     ${PROJECT_SOURCE_DIR}/src/targets/bytecode/disassemble/decode_instruction.cpp
     ${PROJECT_SOURCE_DIR}/src/targets/bytecode/disassemble/disassemble.cpp
     ${PROJECT_SOURCE_DIR}/src/targets/bytecode/disassemble/disassemble_error.cpp
     ${PROJECT_SOURCE_DIR}/src/targets/bytecode/disassemble/instruction.cpp
     ${PROJECT_SOURCE_DIR}/src/targets/bytecode/vm/value_type.cpp
+    ${PROJECT_SOURCE_DIR}/src/targets/bytecode/vm/values/array_value.cpp
     ${PROJECT_SOURCE_DIR}/src/targets/bytecode/vm/vm.cpp
 )
 

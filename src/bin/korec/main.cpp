@@ -38,7 +38,7 @@ namespace kore {
         Scanner scanner{};
         Token token;
 
-        debug_group("scan", "dumping scanned tokens");
+        debug_group("scan", path.c_str());
 
         if (execute) {
             scanner.scan_string(expr);
@@ -95,6 +95,16 @@ namespace kore {
 
         return dump_parse_helper(execute, expr, path, stream_writer);
     }
+
+    void dump_kir(const kir::Kir& kir) {
+        for (auto module = kir.cbegin(); module < kir.cend(); ++module) {
+            for (auto func = module->cbegin(); func < module->cend(); ++func) {
+                debug_group("kir", "module at %s", module->path().c_str());
+                func->graph().write_adjacency_lists(std::cerr);
+                std::cerr << std::endl;
+            }
+        }
+    }
 }
 
 int main(int argc, char** argv) {
@@ -112,18 +122,36 @@ int main(int argc, char** argv) {
         kore::print_help_message();
         return 0;
     } else if (args.dump_scan) {
-        // Dump all scanned tokens to stderr
-        return kore::dump_tokens(args.execute, args.expr, args.path);
+        kore::debug_group("scan", "dumping scanned tokens");
+
+        for (auto& path : args.paths) {
+            kore::dump_tokens(args.execute, args.expr, path);
+        }
     } else if (args.dump_parse) {
-        return kore::dump_parse_raw(args.execute, args.expr, args.path);
+        kore::debug_group("scan", "dumping raw parse");
+
+        for (auto& path : args.paths) {
+            kore::dump_parse_raw(args.execute, args.expr, path);
+        }
     } else if (args.dump_ast) {
-        return kore::dump_parse(args.execute, args.expr, args.path);
+        kore::debug_group("scan", "dumping parse");
+
+        for (auto& path : args.paths) {
+            kore::dump_parse(args.execute, args.expr, path);
+        }
     }
 
     try {
         kore::Compiler compiler{args, kore::get_default_passes()};
 
-        return compiler.run_passes();
+        auto ret_code = compiler.run_passes();
+
+        if (!args.dump_kir.empty()) {
+            kore::debug_group("kir", "dumping kir graph");
+            kore::dump_kir(compiler.context().kir);
+        }
+
+        return ret_code;
     } catch (std::runtime_error& ex) {
         kore::error_group("fatal", "%s", ex.what());
 

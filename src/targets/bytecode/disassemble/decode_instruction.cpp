@@ -46,12 +46,14 @@ namespace koredis {
 
             case kore::Bytecode::Move:
             case kore::Bytecode::Gstore:
+            case kore::Bytecode::AllocArray: {
                 return Instruction(
                     opcode,
                     pos++,
                     GET_REG1(instruction),
                     GET_REG2(instruction)
                 );
+            }
 
             case kore::Bytecode::AddI32:
             case kore::Bytecode::AddI64:
@@ -97,6 +99,8 @@ namespace koredis {
             case kore::Bytecode::NeqI64:
             case kore::Bytecode::NeqF32:
             case kore::Bytecode::NeqF64:
+            case kore::Bytecode::ArrayIndexGet:
+            case kore::Bytecode::ArrayIndexSet: {
                 return Instruction(
                     opcode,
                     pos++,
@@ -104,6 +108,7 @@ namespace koredis {
                     GET_REG2(instruction),
                     GET_REG3(instruction)
                 );
+            }
 
             case kore::Bytecode::Jump:
                 return Instruction(opcode, pos++, GET_REG1(instruction));

@@ -3,6 +3,7 @@
 
 #include <istream>
 #include <ostream>
+#include <vector>
 
 namespace kore {
     bool is_big_endian();
@@ -63,12 +64,16 @@ namespace kore {
     /*     } */
     /* } */
 
+    // Stream-based endian functions
     std::uint16_t read_be16(std::istream& is);
     std::uint32_t read_be32(std::istream& is);
     /* std::uint64_t read_be64(std::istream& is); */
     void write_be16(std::uint16_t value, std::ostream& os);
     void write_be32(std::uint32_t value, std::ostream& os);
     /* void write_be64(std::uint32_t value, std::ostream& os); */
+
+    // Buffer-based endian functions
+    void write_le32(std::uint32_t value, std::vector<std::uint8_t>& buffer);
 }
 
 #endif // KORE_ENDIAN_HPP

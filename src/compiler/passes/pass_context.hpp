@@ -6,20 +6,26 @@
 #include "ast/ast.hpp"
 #include "targets/bytecode/module.hpp"
 #include "bin/korec/options.hpp"
-
-namespace fs = std::filesystem;
+#include "targets/bytecode/codegen/kir/kir.hpp"
 
 namespace kore {
     /// Context to propagate through compiler passes
     struct PassContext {
         PassContext() = default;
-        PassContext(ParsedCommandLineArgs args) : cmdline_args(args) {}
+        PassContext(ParsedCommandLineArgs args) : args(args) {}
 
-        fs::path source_name;
+        // Command line arguments
+        ParsedCommandLineArgs args;
 
-        Ast ast; // TODO: Make the parser produce an AST instead
-        ParsedCommandLineArgs cmdline_args;
-        Owned<Module> module;
+        // TODO: Make the parser produce an AST instead
+        // List of ASTs produced from each path
+        std::vector<Ast> asts;
+
+        // KIR representation for each AST
+        kir::Kir kir;
+
+        // List of bytecode buffers for each AST
+        std::vector<std::vector<std::uint8_t>> buffers;
     };
 }
 

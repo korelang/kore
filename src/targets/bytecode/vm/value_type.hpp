@@ -4,6 +4,7 @@
 #include <ostream>
 
 #include "internal_value_types.hpp"
+#include "targets/bytecode/vm/values/array_value.hpp"
 
 namespace kore {
     namespace vm {
@@ -13,6 +14,7 @@ namespace kore {
             I64,
             F32,
             F64,
+            Array,
             /* Str, */
         };
 
@@ -27,8 +29,11 @@ namespace kore {
                 i64 _i64;
                 f32 _f32;
                 f64 _f64;
+                ArrayValue* _array;
                 /* std::string _str; */
             } value;
+
+            ~Value();
 
             inline bool as_bool() const {
                 #if KORE_VM_DEBUG
@@ -90,12 +95,23 @@ namespace kore {
             /*     return value._str; */
             /* } */
 
+            inline ArrayValue* as_array() {
+                #if KORE_VM_DEBUG
+                if (tag != ValueTag::Array) {
+                    throw std::runtime_error("Not an array value");
+                }
+                #endif
+
+                return value._array;
+            }
+
             static Value from_bool(bool value);
             static Value from_i32(i32 value);
             static Value from_i64(i64 value);
             static Value from_f32(f32 value);
             static Value from_f64(f64 value);
             /* static Value from_string(const std::string& str); */
+            static Value allocate_array(std::size_t size);
         };
 
         std::ostream& operator<<(std::ostream& out, const Value& value);

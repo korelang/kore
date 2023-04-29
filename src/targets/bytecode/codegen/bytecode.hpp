@@ -120,6 +120,17 @@ namespace kore {
         NeqF32,
         NeqF64,
 
+        // Arrays
+        AllocArray,
+        ArrayIndexGet,
+        ArrayIndexSet,
+
+        // Memory operations
+        RefInc,
+        RefDec,
+        Destroy,
+        Free,
+
         // Control flow
         Jump,
         JumpIf,

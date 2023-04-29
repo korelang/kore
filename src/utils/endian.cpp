@@ -91,4 +91,28 @@ namespace kore {
 
         os.write((char*)&value, 4);
     }
+
+    void write_le32(std::uint32_t value, std::vector<std::uint8_t>& buffer) {
+        if (!is_big_endian()) {
+            buffer.insert(
+                buffer.end(),
+                {
+                    static_cast<std::uint8_t>(value >> 24),
+                    static_cast<std::uint8_t>((value & 0xff00) << 8),
+                    static_cast<std::uint8_t>((value >> 8) & 0xff00),
+                    static_cast<std::uint8_t>(value << 24)
+                }
+            );
+        } else {
+            buffer.insert(
+                buffer.end(),
+                {
+                    static_cast<std::uint8_t>(value << 24),
+                    static_cast<std::uint8_t>((value & 0xff00) << 8),
+                    static_cast<std::uint8_t>((value >> 8) & 0xff00),
+                    static_cast<std::uint8_t>(value >> 24)
+                }
+            );
+        }
+    }
 }

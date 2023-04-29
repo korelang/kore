@@ -44,8 +44,14 @@ namespace kore {
     void validate_args(int argc, ParsedCommandLineArgs& args) {
         if (argc < 2) {
             args.error_message = "At least one argument is required";
-        } else if (!args.path.has_filename()) {
-            args.error_message = "Source file must be a file";
+        } else if (args.dump_kir != "adjacency") {
+            args.error_message = "Only the 'adjacency' format is currently supported";
+        }
+
+        for (const auto& path : args.paths) {
+            if (!path.has_filename()) {
+                args.error_message = "Source file must be a file";
+            }
         }
 
         return;
@@ -83,6 +89,12 @@ namespace kore {
                     parsed_args.dump_ast = true;
                 } else if (arg == "--dump-scan") {
                     parsed_args.dump_scan = true;
+                } else if (arg == "--dump-kir") {
+                    if (i + 1 < argc) {
+                        parsed_args.dump_kir = args[i + 1];
+                    } else {
+                        error("Expected argument after --dump-kir");
+                    }
                 } else if (arg == "--dump-codegen") {
                     parsed_args.dump_codegen = true;
                 } else if (arg == "--version") {
@@ -103,11 +115,7 @@ namespace kore {
                 }
             } else {
                 if (i != 0) {
-                    if (parsed_args.path.empty()) {
-                        parsed_args.path = arg;
-                    } else {
-                        parsed_args.error_message = "Only one filename can be supplied";
-                    }
+                    parsed_args.paths.push_back(arg);
                 }
             }
         }
