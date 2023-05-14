@@ -41,6 +41,25 @@ namespace kore {
         }
     }
 
+    std::uint32_t read_le32(std::istream& is) {
+        std::array<char, 4> data;
+        is.read(data.data(), 4);
+
+        if (is_big_endian()) {
+            return
+                (data[0] & 0xff) << 24 |
+                (data[1] & 0xff) << 16 |
+                (data[2] & 0xff) << 8 |
+                (data[3] & 0xff);
+        } else {
+            return
+                (data[3] & 0xff) << 24 |
+                (data[2] & 0xff) << 16 |
+                (data[1] & 0xff) << 8 |
+                (data[0] & 0xff);
+        }
+    }
+
     /* std::uint64_t read_be64(std::istream& is) { */
     /*     union endian_data { */
     /*         std::array<char, 8> data; */
@@ -92,27 +111,31 @@ namespace kore {
         os.write((char*)&value, 4);
     }
 
-    void write_le32(std::uint32_t value, std::vector<std::uint8_t>& buffer) {
-        if (!is_big_endian()) {
-            buffer.insert(
-                buffer.end(),
-                {
-                    static_cast<std::uint8_t>(value >> 24),
-                    static_cast<std::uint8_t>((value & 0xff00) << 8),
-                    static_cast<std::uint8_t>((value >> 8) & 0xff00),
-                    static_cast<std::uint8_t>(value << 24)
-                }
-            );
+    std::uint32_t read_le32(Buffer& buffer) {
+        if (is_big_endian()) {
+            return
+                (buffer[3] & 0xff) << 24 |
+                (buffer[2] & 0xff) << 16 |
+                (buffer[1] & 0xff) << 8 |
+                (buffer[0] & 0xff);
         } else {
-            buffer.insert(
-                buffer.end(),
-                {
-                    static_cast<std::uint8_t>(value << 24),
-                    static_cast<std::uint8_t>((value & 0xff00) << 8),
-                    static_cast<std::uint8_t>((value >> 8) & 0xff00),
-                    static_cast<std::uint8_t>(value >> 24)
-                }
-            );
+            return
+                (buffer[0] & 0xff) << 24 |
+                (buffer[1] & 0xff) << 16 |
+                (buffer[2] & 0xff) << 8 |
+                (buffer[3] & 0xff);
         }
+    }
+
+    void write_le32(std::uint32_t value, Buffer& buffer) {
+        buffer.insert(
+            buffer.end(),
+            {
+                static_cast<std::uint8_t>(value & 0xff),
+                static_cast<std::uint8_t>((value >> 8) & 0xff),
+                static_cast<std::uint8_t>((value >> 16) & 0xff),
+                static_cast<std::uint8_t>(value >> 24)
+            }
+        );
     }
 }

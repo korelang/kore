@@ -21,7 +21,7 @@ namespace kore {
                 virtual ~Kir();
 
                 int globals_count();
-                const ConstantTable<i32>& i32_constant_table();
+                /* const ConstantTable<i32>& i32_constant_table(); */
                 void add_module(Module& module);
                 Module& main_module();
                 void set_main_module(ModuleIndex idx);

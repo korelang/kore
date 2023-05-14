@@ -48,6 +48,7 @@ namespace kore {
             void write_bytes(std::initializer_list<std::uint8_t> bytes);
             void write_bytes();
             void write_string(const std::string& str);
+            void write_raw(std::uint32_t value);
             void write_le32(std::uint32_t value);
 
             /* template<typename... Args> */

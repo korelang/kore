@@ -19,6 +19,8 @@ namespace kore {
             BlockId id;
             std::vector<Instruction> instructions;
 
+            static BlockId StartBlockId;
+            static BlockId EndBlockId;
             static BlockId InvalidBlockId;
         };
     }

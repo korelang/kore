@@ -1,7 +1,8 @@
 #include "compiler/config.hpp"
 #include "compiler/passes/passes.hpp"
 #include "targets/bytecode/bytecode_format_writer.hpp"
-#include "targets/bytecode/codegen/bytecode_codegen.hpp"
+#include "targets/bytecode/codegen/bytecode_codegen2.hpp"
+#include "targets/bytecode/passes/kir_pass.hpp"
 #include "ast/parser/parser.hpp"
 #include "types/type_checker.hpp"
 #include "types/type_inferrer.hpp"
@@ -14,7 +15,7 @@ namespace kore {
                 Parser parser;
 
                 for (const auto& path : context.args.paths) {
-                    Ast ast;
+                    Ast ast{path};
                     parser.parse_file(path, &ast); 
                     context.asts.push_back(std::move(ast));
                 }
@@ -60,11 +61,9 @@ namespace kore {
         return Pass {
             "codegen:bytecode",
             [](PassContext& context) {
-                BytecodeGenerator code_generator;
+                BytecodeGenerator2 code_generator;
 
-                for (auto it = context.kir.begin(); it < context.kir.end(); ++it) {
-                    /* context.buffers.push_back(code_generator.generate(*it)); */
-                }
+                context.buffers.push_back(code_generator.generate(context.kir));
 
                 // Stop running passes here if --dump-kir was passed
                 return PassResult{ context.args.dump_kir.empty(), {} };
@@ -98,6 +97,7 @@ namespace kore {
             get_parser_pass(),
             get_type_inference_pass(),
             get_type_checking_pass(),
+            kir::get_kir_lowering_pass(),
             get_bytecode_codegen_pass(),
             get_bytecode_write_pass()
         };

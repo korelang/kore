@@ -3,11 +3,11 @@
 
 #include <ostream>
 
-#include "constant_table.hpp"
 #include "logging/color_attributes.hpp"
 #include "logging/colors.hpp"
 #include "logging/logging.hpp"
-#include "module.hpp"
+#include "targets/bytecode/constant_table.hpp"
+#include "targets/bytecode/module.hpp"
 
 namespace koredis {
     std::string constant_table_tag_to_string(kore::ConstantTableTag tag);

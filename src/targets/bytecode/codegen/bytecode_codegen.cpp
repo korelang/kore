@@ -15,7 +15,7 @@
         std::cerr << std::endl;\
     }
 #else
-    #define KORE_DEBUG_BYTECODE_GENERATOR_LOG(prefix)
+    #define KORE_DEBUG_BYTECODE_GENERATOR_LOG(prefix, msg)
 #endif
 
 namespace kore {
@@ -135,8 +135,8 @@ namespace kore {
         expr.left()->accept_visit_only(*this);
         expr.right()->accept_visit_only(*this);
 
-        int reg2 = get_register_operand();
-        int reg1 = get_register_operand();
+        Reg reg2 = get_register_operand();
+        Reg reg1 = get_register_operand();
 
         _writer.write_3address(
             get_binop_instruction(expr.type()->category(), expr.op()),
@@ -281,7 +281,7 @@ namespace kore {
             Label label;
 
             if (condition) {
-                branch->condition()->accept_visit_only(*this);
+                condition->accept_visit_only(*this);
                 Reg reg = get_register_operand();
                 label = _writer.write_jump(Bytecode::JumpIfNot, reg, obj);
             }

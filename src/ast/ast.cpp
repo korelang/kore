@@ -9,11 +9,19 @@ namespace kore {
         _statements(std::move(ast._statements)) {
     }
 
+    Ast::Ast(const fs::path& path)
+        : _module_path(path) {
+    }
+
     Ast::~Ast() {
     }
 
     std::string Ast::module_name() const {
         return _module_name;
+    }
+
+    fs::path Ast::path() const {
+        return _module_path;
     }
 
     bool Ast::is_main() const noexcept {

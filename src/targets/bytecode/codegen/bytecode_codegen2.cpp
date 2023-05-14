@@ -1,6 +1,7 @@
 #include <queue>
 
 #include "targets/bytecode/codegen/bytecode_codegen2.hpp"
+#include "targets/bytecode/codegen/kir/block_id.hpp"
 #include "targets/bytecode/codegen/kir/instruction.hpp"
 #include "targets/bytecode/register.hpp"
 #include "utils/endian.hpp"
@@ -114,15 +115,16 @@ namespace kore {
     std::vector<std::uint8_t> BytecodeGenerator2::generate(kir::Kir& kir) {
         _buffer.clear();
 
+        // Magic bytes + compiler and bytecode versions
         write_bytes("kore");
         write_bytes({ 1, 0, 0 });
         write_bytes({ 1, 0, 0 });
+
         write_le32(kir.globals_count());
-        /* write_constant_table<i32>(kir.i32_constant_table()); */
 
         auto main_module = kir.main_module();
         write_le32(main_module.index());
-        /* write_le32(main_module.main_function().index()); */
+        write_le32(main_module.main_function().index());
         write_le32(kir.module_count());
 
         for (auto& module : kir) {
@@ -137,6 +139,8 @@ namespace kore {
     void BytecodeGenerator2::generate_for_module(const kir::Module& module) {
         write_le32(module.index());
         write_string(module.path());
+        write_constant_table<i32>(module.i32_constant_table());
+        write_le32(module.function_count());
 
         for (int idx = 0; idx < module.function_count(); ++idx) {
             auto& func = module[idx];
@@ -164,21 +168,23 @@ namespace kore {
             return;
         }
 
-        auto source_block = graph[0];
-        std::queue<kir::BasicBlock> blocks;
-        blocks.push(source_block);
+        auto& source_block = graph[kir::BasicBlock::StartBlockId];
+        std::queue<kir::BlockId> block_ids;
+        block_ids.push(source_block.id);
 
-        while (blocks.size() > 0) {
-            auto block = blocks.front();
-            blocks.pop();
+        while (block_ids.size() > 0) {
+            auto block_id = block_ids.front();
+            block_ids.pop();
 
-            generate_for_block(block);
+            if (block_id != kir::BasicBlock::StartBlockId) {
+                generate_for_block(graph[block_id]);
+            }
 
-            auto begin = graph.successor_begin(block.id);
-            auto end = graph.successor_end(block.id);
+            auto begin = graph.successor_begin(block_id);
+            auto end = graph.successor_end(block_id);
 
             for (auto it = begin; it < end; ++it) {
-                blocks.push(*it);
+                block_ids.push(*it);
             }
         }
     }
@@ -197,7 +203,7 @@ namespace kore {
             case kir::InstructionType::LoadBool: {
                 bool value = instruction.expr_as<BoolExpression>()->bool_value();
 
-                write_le32(
+                write_raw(
                     KORE_MAKE_INSTRUCTION(
                         Bytecode::LoadBool,
                         instruction.reg1(),
@@ -210,7 +216,7 @@ namespace kore {
             case kir::InstructionType::LoadInteger: {
                 auto expr = instruction.expr_as<IntegerExpression>();
 
-                write_le32(
+                write_raw(
                     KORE_MAKE_INSTRUCTION(
                         Bytecode::CloadI32,
                         instruction.reg1(),
@@ -221,7 +227,7 @@ namespace kore {
             }
 
             case kir::InstructionType::LoadGlobal: {
-                write_le32(
+                write_raw(
                     KORE_MAKE_REG_VALUE_INSTRUCTION(
                         Bytecode::Gload,
                         instruction.reg1(),
@@ -232,7 +238,7 @@ namespace kore {
             }
 
             case kir::InstructionType::Move: {
-                write_le32(
+                write_raw(
                     KORE_MAKE_INSTRUCTION2(
                         Bytecode::Move,
                         instruction.reg1(),
@@ -249,7 +255,7 @@ namespace kore {
                     binexpr->op()
                 );
 
-                write_le32(
+                write_raw(
                     KORE_MAKE_INSTRUCTION3(
                         opcode,
                         instruction.reg1(),
@@ -264,7 +270,7 @@ namespace kore {
                 // We write the basic block IDs directly in the jump offsets
                 // now and patch them later when we know the offsets of all
                 // basic blocks
-                write_le32(
+                write_raw(
                     KORE_MAKE_INSTRUCTION(
                         Bytecode::JumpIfNot,
                         instruction.reg1(),
@@ -274,7 +280,7 @@ namespace kore {
 
                 _patch_locations.push_back(_buffer.size() - 1);
 
-                write_le32(
+                write_raw(
                     KORE_MAKE_VALUE_INSTRUCTION(Bytecode::Jump, instruction.bb2())
                 );
 
@@ -283,7 +289,7 @@ namespace kore {
             }
 
             case kir::InstructionType::AllocateArray: {
-                write_le32(
+                write_raw(
                     KORE_MAKE_INSTRUCTION(
                         Bytecode::AllocArray,
                         instruction.reg1(),
@@ -332,7 +338,25 @@ namespace kore {
         write_bytes(str);
     }
 
+    void BytecodeGenerator2::write_raw(std::uint32_t value) {
+        _buffer.insert(
+            _buffer.end(),
+            {
+                static_cast<std::uint8_t>((value >> 24) & 0xff),
+                static_cast<std::uint8_t>((value >> 16) & 0xff),
+                static_cast<std::uint8_t>((value >> 8) & 0xff),
+                static_cast<std::uint8_t>(value & 0xff)
+            }
+        );
+    }
+
     void BytecodeGenerator2::write_le32(std::uint32_t value) {
         ::kore::write_le32(value, _buffer);
     }
 }
+
+#undef KORE_MAKE_INSTRUCTION
+#undef KORE_MAKE_INSTRUCTION2
+#undef KORE_MAKE_INSTRUCTION3
+#undef KORE_MAKE_VALUE_INSTRUCTION
+#undef KORE_MAKE_REG_VALUE_INSTRUCTION

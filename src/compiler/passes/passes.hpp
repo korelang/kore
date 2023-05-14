@@ -4,6 +4,7 @@
 #include "compiler/passes/pass.hpp"
 
 namespace kore {
+    // Standard set of compiler passes (some are defined elsewhere)
     Pass get_parser_pass();
     Pass get_type_inference_pass();
     Pass get_type_checking_pass();

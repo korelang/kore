@@ -6,6 +6,8 @@
 #include <vector>
 
 namespace kore {
+    using Buffer = std::vector<std::uint8_t>;
+
     bool is_big_endian();
 
     template<typename T>
@@ -64,16 +66,20 @@ namespace kore {
     /*     } */
     /* } */
 
+    // TODO: Make these functions more generic!
+
     // Stream-based endian functions
     std::uint16_t read_be16(std::istream& is);
     std::uint32_t read_be32(std::istream& is);
+    std::uint32_t read_le32(std::istream& is);
     /* std::uint64_t read_be64(std::istream& is); */
     void write_be16(std::uint16_t value, std::ostream& os);
     void write_be32(std::uint32_t value, std::ostream& os);
     /* void write_be64(std::uint32_t value, std::ostream& os); */
 
     // Buffer-based endian functions
-    void write_le32(std::uint32_t value, std::vector<std::uint8_t>& buffer);
+    std::uint32_t read_le32(Buffer& buffer);
+    void write_le32(std::uint32_t value, Buffer& buffer);
 }
 
 #endif // KORE_ENDIAN_HPP

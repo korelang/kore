@@ -2,14 +2,18 @@
 #include "ast/statements/statements.hpp"
 #include "targets/bytecode/codegen/kir/function.hpp"
 #include "targets/bytecode/codegen/kir/instruction.hpp"
+#include "targets/bytecode/vm/config.hpp"
 #include "types/unknown_type.hpp"
 
 namespace kore {
     namespace kir {
-        Function::Function(FuncIndex index) : _index(index) {}
+        Function::Function(FuncIndex index)
+            : _index(index),
+              _func(nullptr),
+              _code_size(0) {}
 
         Function::Function(FuncIndex index, const kore::Function& func)
-            : _index(index), _func(&func) {}
+            : _index(index), _func(&func), _code_size(0) {}
 
         Function::~Function() {}
 
@@ -23,6 +27,7 @@ namespace kore {
 
         void Function::add_instruction(Instruction instruction) {
             _graph.current_block().instructions.push_back(instruction);
+            ++_code_size;
         }
 
         void Function::set_register_state(Reg reg, RegisterState state) {
@@ -30,8 +35,13 @@ namespace kore {
         }
 
         Reg Function::allocate_register() {
+            if (_reg_count >= vm::KORE_VM_MAX_REGISTERS) {
+                throw std::runtime_error("register overflow");
+            }
+
             Reg reg = _reg_count++;
             set_register_state(reg, RegisterState::Available);
+            _max_regs_used = std::max(_max_regs_used, _reg_count);
 
             return reg;
         }
@@ -90,34 +100,16 @@ namespace kore {
             }
         }
 
-        void Function::load_constant(BoolExpression& expr) {
-            add_instruction(
-                Instruction(
-                    InstructionType::LoadBool,
-                    allocate_register(),
-                    expr
-                )
-            );
+        Reg Function::load_constant(BoolExpression& expr) {
+            return load_constant(InstructionType::LoadBool, expr);
         }
 
-        void Function::load_constant(IntegerExpression& expr) {
-            add_instruction(
-                Instruction(
-                    InstructionType::LoadInteger,
-                    allocate_register(),
-                    expr
-                )
-            );
+        Reg Function::load_constant(IntegerExpression& expr) {
+            return load_constant(InstructionType::LoadInteger, expr);
         }
 
-        void Function::load_constant(FloatExpression& expr) {
-            add_instruction(
-                Instruction(
-                    InstructionType::LoadFloat,
-                    allocate_register(),
-                    expr
-                )
-            );
+        Reg Function::load_constant(FloatExpression& expr) {
+            return load_constant(InstructionType::LoadFloat, expr);
         }
 
         Reg Function::load_global(Identifier& expr, Reg gidx) {
@@ -204,10 +196,22 @@ namespace kore {
         }
 
         std::string Function::name() const {
+            // If the function is not backed by a syntactic function then it is
+            // a compiled-generated "main" function
+            if (!_func) {
+                return "<main>";
+            }
+
             return _func->name();
         }
 
         SourceLocation Function::location() const {
+            // If the function is not backed by a syntactic function then it is
+            // a compiled-generated "main" function
+            if (!_func) {
+                return SourceLocation::unknown;
+            }
+
             return _func->location();
         }
 
@@ -216,8 +220,16 @@ namespace kore {
         }
 
         int Function::code_size() const {
-            // TODO
-            return 0;
+            return _code_size;
         }
+
+        Reg Function::load_constant(InstructionType inst_type, Expression& expr) {
+            Reg reg = allocate_register();
+
+            add_instruction(Instruction(inst_type, reg, expr));
+
+            return reg;
+        }
+
     }
 }

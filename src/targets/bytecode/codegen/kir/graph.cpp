@@ -47,15 +47,15 @@ namespace kore {
 
         bool Graph::has_block(BlockId id) {
             // TODO: Perhaps use a u32 and use the max value for invalid blocks
-            return id > 0 && id < static_cast<BlockId>(_blocks.size());
+            return id >= 0 && id < static_cast<BlockId>(_blocks.size());
         }
 
         BasicBlock& Graph::operator[](BlockId id) {
             return _blocks[id];
         }
 
-        BasicBlock Graph::current_block() {
-            return _current_block;
+        BasicBlock& Graph::current_block() {
+            return _blocks[_current_block];
         }
 
         void Graph::set_current_block(BlockId id) {

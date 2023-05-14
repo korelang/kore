@@ -21,29 +21,29 @@ namespace kore {
                 /// Lower a fully type-checked AST to KIR
                 Module lower(const Ast& ast);
 
-                void visit_only(ArrayExpression& expr) override;
-                /* virtual void visit_only(ArrayFillExpression& expr); */
-                /* virtual void visit_only(ArrayRangeExpression& expr); */
-                void visit_only(BinaryExpression& expr) override;
-                void visit_only(BoolExpression& expr) override;
-                /* virtual void visit_only(CharExpression& expr); */
-                void visit_only(FloatExpression& expr) override;
-                void visit_only(Identifier& expr) override;
-                /* virtual void visit_only(Parameter& expr); */
-                void visit_only(IntegerExpression& expr) override;
-                /* virtual void visit_only(StringExpression& expr); */
-                /* void visit_only(UnaryExpression& expr) override; */
+                void visit(ArrayExpression& expr) override;
+                /* virtual void visit(ArrayFillExpression& expr); */
+                /* virtual void visit(ArrayRangeExpression& expr); */
+                void visit(BinaryExpression& expr) override;
+                void visit(BoolExpression& expr) override;
+                /* virtual void visit(CharExpression& expr); */
+                void visit(FloatExpression& expr) override;
+                void visit(Identifier& expr) override;
+                /* virtual void visit(Parameter& expr); */
+                void visit(IntegerExpression& expr) override;
+                /* virtual void visit(StringExpression& expr); */
+                /* void visit(UnaryExpression& expr) override; */
 
-                /* virtual void visit_only(Branch& statement); */
-                void visit_only(kore::Function& statement) override;
-                void visit_only(class Call& statement) override;
-                void visit_only(IfStatement& statement) override;
-                /* virtual void visit_only(ImportStatement& statement); */
-                /* virtual void visit_only(ModuleStatement& statement); */
-                void visit_only(Return& statement) override;
-                void visit_only(VariableAssignment& statement) override;
-                /* virtual void visit_only(VariableDeclaration& statement); */
-                /* virtual void visit_only(ExpressionStatement& exprstmt); */
+                /* virtual void visit(Branch& statement); */
+                void visit(kore::Function& statement) override;
+                void visit(class Call& statement) override;
+                void visit(IfStatement& statement) override;
+                /* virtual void visit(ImportStatement& statement); */
+                /* virtual void visit(ModuleStatement& statement); */
+                void visit(Return& statement) override;
+                void visit(VariableAssignment& statement) override;
+                /* virtual void visit(VariableDeclaration& statement); */
+                /* virtual void visit(ExpressionStatement& exprstmt); */
 
             private:
                 ScopeStack _scope_stack;

@@ -5,14 +5,13 @@
 
 #include "ast/statements/function.hpp"
 #include "targets/bytecode/constant_table.hpp"
+#include "targets/bytecode/module.hpp"
 #include "targets/bytecode/codegen/kir/function.hpp"
 
 namespace fs = std::filesystem;
 
 namespace kore {
     namespace kir {
-        using ModuleIndex = unsigned int;
-
         /// A KIR module consisting of functions and constant tables
         class Module final {
             public:

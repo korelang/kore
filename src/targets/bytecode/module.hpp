@@ -2,6 +2,7 @@
 #define KORE_MODULE_HPP
 
 #include <array>
+#include <filesystem>
 #include <unordered_map>
 #include <vector>
 
@@ -11,7 +12,10 @@
 #include "targets/bytecode/constant_table.hpp"
 #include "targets/bytecode/vm/value_type.hpp"
 
+namespace fs = std::filesystem;
+
 namespace kore {
+    using ModuleIndex = unsigned int;
     using function_map = std::unordered_map<std::string, CompiledObject*>;
 
     /// A module represents a kore module and is a collection of constants and
@@ -24,6 +28,7 @@ namespace kore {
         public:
             Module();
             Module(Module&& module) = default;
+            Module(ModuleIndex idx, const fs::path& path);
             virtual ~Module();
 
             Version get_compiler_version();
@@ -32,6 +37,7 @@ namespace kore {
             void set_bytecode_version(std::array<char, 3> version);
 
             std::string name() const;
+            ModuleIndex index() const;
             std::string path() const;
             int objects_count() const;
             int constants_count() const;
@@ -76,13 +82,15 @@ namespace kore {
             // The version of the bytecode format in this module
             Version _bytecode_version;
 
-            std::string _path;
+            ModuleIndex _idx;
+            fs::path _path;
             std::vector<CompiledObject::pointer> _objects;
 
             // Map a function name to its compiled code
             function_map _function_map;
 
             // Constant tables
+            // TODO: Make these figure out their tag at compile-time
             ConstantTable<i32> _i32_constants;
             ConstantTable<i64> _i64_constants;
             ConstantTable<f32> _f32_constants;

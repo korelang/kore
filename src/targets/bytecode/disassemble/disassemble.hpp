@@ -21,7 +21,9 @@ namespace koredis {
 
     void disassemble_functions(std::istream& is, kore::Module& module);
 
-    kore::Module disassemble_module_from_path(const fs::path& path);
+    kore::Module disassemble_module(std::istream& is);
+
+    kore::Module disassemble_modules_from_path(const fs::path& path);
 }
 
 #endif // KOREDIS_DISASSEMBLE_HPP

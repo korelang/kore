@@ -10,7 +10,7 @@ namespace koredis {
     std::array<char, 4> bytecode_magic {'k', 'o', 'r', 'e'};
 
     std::string read_string(std::istream& is) {
-        auto size = kore::read_be32(is);
+        auto size = kore::read_le32(is);
 
         // NOTE: Use std::byte if we end up using C++17
         std::vector<char> bytes(size);
@@ -49,19 +49,19 @@ namespace koredis {
     }
 
     void disassemble_constant_table(std::istream& is, kore::Module& module) {
-        auto constant_table_tag = kore::read_be32(is);
-        auto constant_table_size = kore::read_be32(is);
+        auto constant_table_tag = kore::read_le32(is);
+        auto constant_table_size = kore::read_le32(is);
 
         for (decltype(constant_table_size) i = 0; i < constant_table_size; ++i) {
             // TODO: Fix signedness of values
             switch (static_cast<kore::ConstantTableTag>(constant_table_tag)) {
                 case kore::ConstantTableTag::I32: {
-                    module.add_i32_constant(kore::read_be32(is));
+                    module.add_i32_constant(kore::read_le32(is));
                     break;
                 }
 
                 /* case kore::ConstantTableTag::I64: */
-                /*     module.add_i64_constant(kore::read_be32(ifs)); */
+                /*     module.add_i64_constant(kore::read_le32(ifs)); */
                 /*     break; */
 
                 default:
@@ -71,7 +71,7 @@ namespace koredis {
     }
 
     void disassemble_global_indices_count(std::istream& is, kore::Module& module) {
-        module.set_global_indices_count(kore::read_be32(is));
+        module.set_global_indices_count(kore::read_le32(is));
     }
 
     void disassemble_constant_tables(std::istream& is, kore::Module& module) {
@@ -82,31 +82,42 @@ namespace koredis {
     void disassemble_function(std::istream& is, kore::Module& module) {
         std::string name = read_string(is);
 
-        auto lnum = kore::read_be32(is);
-        auto start = kore::read_be32(is);
-        auto end = kore::read_be32(is);
-        auto func_index = kore::read_be32(is);
-        auto locals_count = kore::read_be32(is);
-        auto reg_count = kore::read_be32(is);
-        auto code_size = kore::read_be32(is);
+        auto lnum = kore::read_le32(is);
+        auto start = kore::read_le32(is);
+        auto end = kore::read_le32(is);
+        auto func_index = kore::read_le32(is);
+        /* auto locals_count = kore::read_le32(is); */
+        auto reg_count = kore::read_le32(is);
+        auto code_size = kore::read_le32(is);
         std::vector<kore::bytecode_type> instructions;
 
         for (decltype(code_size) i = 0; i < code_size; ++i) {
-            instructions.push_back(kore::read_be32(is));
+            instructions.push_back(kore::read_le32(is));
         }
 
-        module.add_function(name, lnum, start, end, func_index, locals_count, reg_count, instructions);
+        module.add_function(name, lnum, start, end, func_index, 0, reg_count, instructions);
     }
 
     void disassemble_functions(std::istream& is, kore::Module& module) {
-        std::uint32_t function_count = kore::read_be32(is);
+        std::uint32_t function_count = kore::read_le32(is);
 
         for (std::uint32_t i = 0; i < function_count; ++i) {
             disassemble_function(is, module);
         }
     }
 
-    kore::Module disassemble_module_from_path(const fs::path& path) {
+    kore::Module disassemble_module(std::istream& is) {
+        auto module_index = kore::read_le32(is);
+        auto module_path = read_string(is);
+        kore::Module module{module_index, module_path};
+
+        disassemble_constant_table(is, module);
+        disassemble_functions(is, module);
+
+        return module;
+    }
+
+    kore::Module disassemble_modules_from_path(const fs::path& path) {
         std::ifstream ifs{path};
 
         if (!ifs.is_open()) {
@@ -117,18 +128,27 @@ namespace koredis {
         read_magic(ifs);
 
         // Read compiler/bytecode versions
-        kore::Module module;
-        module.set_compiler_version(read_compiler_version(ifs));
-        module.set_bytecode_version(read_bytecode_version(ifs));
+        read_compiler_version(ifs);
+        read_bytecode_version(ifs);
 
-        koredis::disassemble_global_indices_count(ifs, module);
+        // Read global indices count
+        kore::read_le32(ifs);
+        /* koredis::disassemble_global_indices_count(ifs, module); */
 
-        // Read constant tables
-        disassemble_constant_tables(ifs, module);
+        // Read main module index
+        kore::read_le32(ifs);
 
-        // Read functions
-        disassemble_functions(ifs, module);
+        // Read main function index
+        kore::read_le32(ifs);
 
-        return module;
+        auto module_count = kore::read_le32(ifs);
+
+        if (module_count == 0) {
+            throw DisassembleError("zero modules in file", ifs.tellg());
+        } else if (module_count > 1) {
+            throw DisassembleError("only one module is currently supported", ifs.tellg());
+        }
+
+        return disassemble_module(ifs);
     }
 }

@@ -2,16 +2,21 @@
 #include "ast/statements/statements.hpp"
 #include "targets/bytecode/codegen/bytecode.hpp"
 #include "targets/bytecode/codegen/kir/kir_lowering_pass.hpp"
+#include "targets/bytecode/vm/builtins/builtins.hpp"
+#include "utils/unused_parameter.hpp"
 
 // TODO: Can this be moved into the ast visitor class instead?
 #if defined(KORE_DEBUG_KIR_LOWERING_PASS) || defined(KORE_DEBUG)
     #include "logging/logging.hpp"
 
     #define KORE_DEBUG_KIR_LOWERING_PASS_LOG(prefix, msg) {\
-        debug_group("compiler:kir", "%s (%s)", prefix.c_str(), msg.c_str());\
+        debug_group("compiler:kir", "%s (%s)", prefix, msg.c_str());\
     }
 #else
-    #define KORE_DEBUG_KIR_LOWERING_PASS_LOG(prefix, msg) {}
+    #define KORE_DEBUG_KIR_LOWERING_PASS_LOG(prefix, msg) {\
+        UNUSED_PARAM(prefix);\
+        UNUSED_PARAM(msg);\
+    }
 #endif
 
 namespace kore {
@@ -24,15 +29,17 @@ namespace kore {
 
             _func_index = 0;
             _module = &module;
-            _module->add_function(_func_index++);
 
-            auto graph = current_function().graph();
+            _module->add_function();
+            ++_func_index;
+
+            auto& graph = current_function().graph();
 
             // Add the source block
-            graph.set_current_block(graph.add_block(0));
+            graph.add_block(BasicBlock::StartBlockId);
 
             // Add the first block of this function and connect it to the source block
-            graph.add_edge(0, graph.add_block());
+            graph.add_edge(BasicBlock::StartBlockId, graph.add_block_as_current());
 
             for (auto const& statement : ast) {
                 statement->accept_visit_only(*this);
@@ -41,8 +48,8 @@ namespace kore {
             return module;
         }
 
-        void KirLoweringPass::visit_only(ArrayExpression& expr) {
-            KORE_DEBUG_KIR_LOWERING_PASS_LOG("array", expr.value());
+        void KirLoweringPass::visit(ArrayExpression& expr) {
+            KORE_DEBUG_KIR_LOWERING_PASS_LOG("array", std::to_string(expr.size()));
 
             std::vector<Reg> element_regs;
 
@@ -55,47 +62,45 @@ namespace kore {
             current_function().allocate_array(expr, element_regs);
         }
 
-        void KirLoweringPass::visit_only(BoolExpression& expr) {
+        void KirLoweringPass::visit(BoolExpression& expr) {
             KORE_DEBUG_KIR_LOWERING_PASS_LOG("bool", expr.value());
-            current_function().load_constant(expr);
+            _register_stack.push_back(current_function().load_constant(expr));
         }
 
-        /* void KirLoweringPass::visit_only(CharExpression& expr) { */
+        /* void KirLoweringPass::visit(CharExpression& expr) { */
         /*     KORE_DEBUG_KIR_LOWERING_PASS_LOG("char", expr.value()); */
         /*     current_function().load_constant(expr); */
         /* } */
 
-        void KirLoweringPass::visit_only(IntegerExpression& expr) {
-            /* int num_bits = expr.type()->category() == TypeCategory::Integer32 ? 32 : 64; */
-
+        void KirLoweringPass::visit(IntegerExpression& expr) {
             KORE_DEBUG_KIR_LOWERING_PASS_LOG(
-                "i" + std::to_string(num_bits),
-                expr.value()
+                expr.type()->name().c_str(),
+                std::to_string(expr.value())
             );
 
-            current_function().load_constant(expr);
+            // TODO: Save in module-level constant table first and then save
+            // the return value
+            _register_stack.push_back(current_function().load_constant(expr));
         }
 
-        void KirLoweringPass::visit_only(FloatExpression& expr) {
-            /* int num_bits = expr.type()->category() == TypeCategory::Float32 ? 32 : 64; */
-
+        void KirLoweringPass::visit(FloatExpression& expr) {
             KORE_DEBUG_KIR_LOWERING_PASS_LOG(
-                "f" + std::to_string(num_bits),
-                expr.value()
+                expr.type()->name().c_str(),
+                std::to_string(expr.value())
             );
 
-            current_function().load_constant(expr);
+            _register_stack.push_back(current_function().load_constant(expr));
         }
 
-        void KirLoweringPass::visit_only(BinaryExpression& expr) {
+        void KirLoweringPass::visit(BinaryExpression& expr) {
             Reg reg_left = visit_expression(expr.left());
             Reg reg_right = visit_expression(expr.right());
 
             current_function().binop(expr, reg_left, reg_right);
         }
 
-        void KirLoweringPass::visit_only(Identifier& expr) {
-            KORE_DEBUG_KIR_LOWERING_PASS_LOG("identifier", expr.value());
+        void KirLoweringPass::visit(Identifier& expr) {
+            KORE_DEBUG_KIR_LOWERING_PASS_LOG("identifier", expr.name());
 
             auto entry = _scope_stack.find(expr.name());
 
@@ -108,8 +113,13 @@ namespace kore {
             }
         }
 
-        void KirLoweringPass::visit_only(VariableAssignment& statement) {
-            auto func = current_function();
+        void KirLoweringPass::visit(VariableAssignment& statement) {
+            KORE_DEBUG_KIR_LOWERING_PASS_LOG(
+                "assignment",
+                statement.identifier()->name()
+            );
+
+            auto& func = current_function();
             auto entry = _scope_stack.find_inner(statement.identifier()->name());
             auto rhs = statement.expression();
             Reg src = visit_expression(rhs);
@@ -125,7 +135,6 @@ namespace kore {
                 func.free_register(dst);
             }
 
-            func.set_register_state(dst, RegisterState::Available);
             func.move(statement, dst, src);
 
             // If we reference a variable which is not a value type (e.g. an
@@ -137,9 +146,9 @@ namespace kore {
             }
         }
 
-        void KirLoweringPass::visit_only(IfStatement& ifstatement) {
-            auto func = current_function();
-            auto graph = func.graph();
+        void KirLoweringPass::visit(IfStatement& ifstatement) {
+            auto& func = current_function();
+            auto& graph = func.graph();
             auto after = graph.add_block();
             auto prev_block = BasicBlock::InvalidBlockId;
             auto prev_true_branch = BasicBlock::InvalidBlockId;
@@ -183,7 +192,7 @@ namespace kore {
             graph.set_current_block(after);
         }
 
-        void KirLoweringPass::visit_only(kore::Function& func) {
+        void KirLoweringPass::visit(kore::Function& func) {
             KORE_DEBUG_KIR_LOWERING_PASS_LOG("function", func.name());
 
             // Enter a new function scope and add all function arguments to
@@ -198,8 +207,9 @@ namespace kore {
         }
 
         void KirLoweringPass::visit_only(Return& ret) {
+        void KirLoweringPass::visit(Return& ret) {
             KORE_DEBUG_KIR_LOWERING_PASS_LOG("return", std::string())
-            auto func = current_function();
+            auto& func = current_function();
 
             // If the return statement returns an expression, generate code
             // for it, then get its register
@@ -216,7 +226,7 @@ namespace kore {
         }
 
         Function& KirLoweringPass::current_function() {
-            return (*_module)[_func_index];
+            return (*_module)[_func_index - 1];
         }
 
         void KirLoweringPass::enter_function(kore::Function& func) {
@@ -246,7 +256,7 @@ namespace kore {
         }
 
         void KirLoweringPass::check_register_state(Identifier& expr, Reg reg) {
-            auto func = current_function();
+            auto& func = current_function();
 
             if (func.register_state(reg) != RegisterState::Available) {
                 // TODO: Move push_error into a separate class or Error class

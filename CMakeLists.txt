@@ -97,6 +97,7 @@ set(KORE_KIR_SOURCES
     ${PROJECT_SOURCE_DIR}/src/targets/bytecode/codegen/kir/kir.cpp
     ${PROJECT_SOURCE_DIR}/src/targets/bytecode/codegen/kir/kir_lowering_pass.cpp
     ${PROJECT_SOURCE_DIR}/src/targets/bytecode/codegen/kir/module.cpp
+    ${PROJECT_SOURCE_DIR}/src/targets/bytecode/passes/kir_pass.cpp
 )
 
 set(KORE_COMPILER_SOURCES
@@ -142,7 +143,7 @@ set(KORE_SHARED_COMPILE_FLAGS -Wall -Wextra -pedantic -Werror)
 #   - Disassembler (koredis)
 #   - Virtual machine (kore)
 add_subdirectory("./src/bin/korec")
-# add_subdirectory("./src/bin/koredis")
+add_subdirectory("./src/bin/koredis")
 # add_subdirectory("./src/bin/kore")
 
 # Build tests

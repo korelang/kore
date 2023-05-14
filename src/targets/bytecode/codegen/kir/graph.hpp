@@ -25,7 +25,7 @@ namespace kore {
                 BlockId add_block(BasicBlock& bb);
                 bool has_block(BlockId id);
                 BasicBlock& operator[](BlockId id);
-                BasicBlock current_block();
+                BasicBlock& current_block();
                 void set_current_block(BlockId id);
                 std::size_t size() const;
 

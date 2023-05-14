@@ -4,6 +4,7 @@
 #include "ast/expressions/expressions.hpp"
 #include "ast/statements/function.hpp"
 #include "targets/bytecode/codegen/kir/graph.hpp"
+#include "targets/bytecode/codegen/kir/instruction.hpp"
 #include "targets/bytecode/codegen/kir/register_state.hpp"
 #include "targets/bytecode/register.hpp"
 
@@ -30,10 +31,10 @@ namespace kore {
                 RegisterState register_state(Reg reg);
                 const Type* register_type(Reg reg);
 
-                void load_constant(BoolExpression& expr);
+                Reg load_constant(BoolExpression& expr);
                 /* void load_constant(CharExpression& expr); */
-                void load_constant(IntegerExpression& expr);
-                void load_constant(FloatExpression& expr);
+                Reg load_constant(IntegerExpression& expr);
+                Reg load_constant(FloatExpression& expr);
                 Reg load_global(Identifier& expr, Reg gidx);
                 void binop(BinaryExpression& expr, Reg left, Reg right);
                 void move(VariableAssignment& assign, Reg src, Reg dst);
@@ -53,9 +54,13 @@ namespace kore {
                 int code_size() const;
 
             private:
+                Reg load_constant(InstructionType inst_type, Expression& expr);
+
+            private:
                 FuncIndex _index;
                 const kore::Function* _func;
                 Graph _graph;
+                int _code_size;
 
                 // For now, we just use a very simple per-function register
                 // allocator with a maximum of 256 registers that just bumps a

@@ -1,12 +1,12 @@
 #include <iostream>
 #include <string>
 
-#include "disassemble.hpp"
-#include "disassemble_error.hpp"
-#include "module.hpp"
-#include "output_module.hpp"
 #include "logging/logging.hpp"
 #include "options.hpp"
+#include "output_module.hpp"
+#include "targets/bytecode/disassemble/disassemble.hpp"
+#include "targets/bytecode/disassemble/disassemble_error.hpp"
+#include "targets/bytecode/module.hpp"
 #include "version.hpp"
 
 namespace koredis {
@@ -33,11 +33,11 @@ namespace koredis {
             }
 
             try {
-                kore::Module module = disassemble_module_from_path(path);
+                kore::Module module = disassemble_modules_from_path(path);
 
                 output_module(std::cout, module, args.colors, args.porcelain, args.verbosity);
             } catch (DisassembleError& ex) {
-                kore::error("disassemble failed: %s: %s", path.c_str(), ex.what());
+                kore::error("disassembly of '%s' failed: %s", path.c_str(), ex.what());
             }
         }
 

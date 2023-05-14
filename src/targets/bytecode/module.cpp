@@ -1,8 +1,12 @@
 #include "module.hpp"
 
 namespace kore {
-    Module::Module()
-        : _i32_constants(ConstantTableTag::I32),
+    Module::Module() : Module(0, "") {}
+
+    Module::Module(ModuleIndex idx, const fs::path& path)
+        : _idx(idx),
+          _path(path),
+          _i32_constants(ConstantTableTag::I32),
           _i64_constants(ConstantTableTag::I64),
           _f32_constants(ConstantTableTag::F32),
           _f64_constants(ConstantTableTag::F64),
@@ -33,6 +37,10 @@ namespace kore {
     std::string Module::name() const {
         // TODO
         return "main";
+    }
+
+    ModuleIndex Module::index() const {
+        return _idx;
     }
 
     std::string Module::path() const {

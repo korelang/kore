@@ -4,11 +4,10 @@
 #include "logging/color_attributes.hpp"
 #include "logging/colors.hpp"
 #include "logging/logging.hpp"
+#include "output_module.hpp"
+#include "targets/bytecode/disassemble/decode_instruction.hpp"
 #include "utils/unused_parameter.hpp"
 #include "version.hpp"
-
-#include "decode_instruction.hpp"
-#include "output_module.hpp"
 
 namespace koredis {
     std::string constant_table_tag_to_string(kore::ConstantTableTag tag) {
