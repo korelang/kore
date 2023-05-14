@@ -127,18 +127,24 @@ int main(int argc, char** argv) {
         for (auto& path : args.paths) {
             kore::dump_tokens(args.execute, args.expr, path);
         }
+
+        return 0;
     } else if (args.dump_parse) {
         kore::debug_group("scan", "dumping raw parse");
 
         for (auto& path : args.paths) {
             kore::dump_parse_raw(args.execute, args.expr, path);
         }
+
+        return 0;
     } else if (args.dump_ast) {
         kore::debug_group("scan", "dumping parse");
 
         for (auto& path : args.paths) {
             kore::dump_parse(args.execute, args.expr, path);
         }
+
+        return 0;
     }
 
     try {
