@@ -6,6 +6,14 @@
 #include "targets/bytecode/register.hpp"
 #include "utils/endian.hpp"
 
+#define KORE_MAKE_INSTRUCTION0(opcode) (\
+    ((opcode & OPCODE_BITMASK) << OPCODE_SHIFT)\
+)
+
+#define KORE_ADD_REG(instruction, reg, position) (\
+    (instruction) & ((reg & 0xff) << (16 - position * 8))\
+)
+
 #define KORE_MAKE_INSTRUCTION(opcode, reg, value) (\
     ((opcode & OPCODE_BITMASK) << OPCODE_SHIFT) |\
     ((reg & 0xff) << REG1_SHIFT) |\
@@ -143,25 +151,24 @@ namespace kore {
         write_le32(module.function_count());
 
         for (int idx = 0; idx < module.function_count(); ++idx) {
-            auto& func = module[idx];
-            write_string(func.name());
-
-            auto location = func.location();
-            /* write_string(location.path()); */
-            write_le32(location.lnum());
-            write_le32(location.start());
-            write_le32(location.end());
-
-            write_le32(func.index());
-            /* write_le32(func.locals_count()); */
-            write_le32(func.max_regs_used());
-            write_le32(func.code_size());
-
-            generate_for_function(func);
+            generate_for_function(module[idx]);
         }
     }
 
     void BytecodeGenerator2::generate_for_function(const kir::Function& function) {
+        write_string(function.name());
+
+        auto location = function.location();
+        /* write_string(location.path()); */
+        write_le32(location.lnum());
+        write_le32(location.start());
+        write_le32(location.end());
+
+        write_le32(function.index());
+        /* write_le32(function.locals_count()); */
+        write_le32(function.max_regs_used());
+        write_le32(function.code_size());
+
         auto graph = function.graph();
 
         if (graph.size() == 0) {
@@ -203,7 +210,7 @@ namespace kore {
             case kir::InstructionType::LoadBool: {
                 bool value = instruction.expr_as<BoolExpression>()->bool_value();
 
-                write_raw(
+                write_le32(
                     KORE_MAKE_INSTRUCTION(
                         Bytecode::LoadBool,
                         instruction.reg1(),
@@ -214,20 +221,18 @@ namespace kore {
             }
 
             case kir::InstructionType::LoadInteger: {
-                auto expr = instruction.expr_as<IntegerExpression>();
-
-                write_raw(
+                write_le32(
                     KORE_MAKE_INSTRUCTION(
                         Bytecode::CloadI32,
                         instruction.reg1(),
-                        expr->value()
+                        instruction.value()
                     )
                 );
                 break;
             }
 
             case kir::InstructionType::LoadGlobal: {
-                write_raw(
+                write_le32(
                     KORE_MAKE_REG_VALUE_INSTRUCTION(
                         Bytecode::Gload,
                         instruction.reg1(),
@@ -238,7 +243,7 @@ namespace kore {
             }
 
             case kir::InstructionType::Move: {
-                write_raw(
+                write_le32(
                     KORE_MAKE_INSTRUCTION2(
                         Bytecode::Move,
                         instruction.reg1(),
@@ -255,7 +260,7 @@ namespace kore {
                     binexpr->op()
                 );
 
-                write_raw(
+                write_le32(
                     KORE_MAKE_INSTRUCTION3(
                         opcode,
                         instruction.reg1(),
@@ -268,40 +273,79 @@ namespace kore {
 
             case kir::InstructionType::Branch: {
                 // We write the basic block IDs directly in the jump offsets
-                // now and patch them later when we know the offsets of all
-                // basic blocks
-                write_raw(
+                // now and patch them later when we know the instruction
+                // offsets of all basic blocks
+                write_le32(
                     KORE_MAKE_INSTRUCTION(
                         Bytecode::JumpIfNot,
                         instruction.reg1(),
                         instruction.bb1()
                     )
                 );
+                save_patch_location();
 
-                _patch_locations.push_back(_buffer.size() - 1);
-
-                write_raw(
+                write_le32(
                     KORE_MAKE_VALUE_INSTRUCTION(Bytecode::Jump, instruction.bb2())
                 );
 
-                _patch_locations.push_back(_buffer.size() - 1);
+                save_patch_location();
                 break;
             }
 
             case kir::InstructionType::AllocateArray: {
-                write_raw(
+                write_le32(
                     KORE_MAKE_INSTRUCTION(
                         Bytecode::AllocArray,
                         instruction.reg1(),
                         instruction.value()
                     )
                 );
+                break;
+            }
+
+            case kir::InstructionType::BuiltinFunctionCall: {
+                write_le32(
+                    KORE_MAKE_INSTRUCTION3(
+                        Bytecode::BuiltinCall,
+                        instruction.reg1(),
+                        instruction.reg2(),
+                        instruction.reg3()
+                    )
+                );
+                break;
+            }
+
+            case kir::InstructionType::Call: {
+                write_le32(
+                    KORE_MAKE_INSTRUCTION3(
+                        Bytecode::Call,
+                        instruction.reg1(),
+                        instruction.reg2(),
+                        instruction.reg3()
+                    )
+                );
+                break;
             }
 
             case kir::InstructionType::LoadFloat: {
                 break;
             }
+
+            case kir::InstructionType::Raw: {
+                auto registers = instruction.registers();
+                auto ins = KORE_MAKE_INSTRUCTION0(instruction.opcode());
+
+                for (size_t i = 0; i < registers.size(); ++i) {
+                    ins = KORE_ADD_REG(ins, registers[i], i + 1);
+                }
+
+                break;
+            }
         }
+    }
+
+    void BytecodeGenerator2::save_patch_location() {
+        _patch_locations.push_back(_buffer.size() - 1);
     }
 
     void BytecodeGenerator2::patch_jumps() {

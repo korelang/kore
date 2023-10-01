@@ -6,6 +6,7 @@ namespace kore {
 
     Ast::Ast(Ast&& ast)
         : _module_name(ast._module_name),
+        _module_path(ast._module_path),
         _statements(std::move(ast._statements)) {
     }
 

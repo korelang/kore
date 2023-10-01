@@ -15,12 +15,14 @@ namespace kore {
             AllocateArray = 0,
             Binop,
             BuiltinFunctionCall,
+            Call,
             LoadBool,
             LoadInteger,
             LoadFloat,
             LoadGlobal,
             Move,
             Branch,
+            Raw,
         };
 
         /// A KIR instruction. Whereas instructions emitted by code generation are
@@ -38,8 +40,10 @@ namespace kore {
                 Instruction(InstructionType type);
                 Instruction(InstructionType type, Expression& expr);
                 Instruction(InstructionType type, kore::Reg reg1, Expression& expr);
+                Instruction(InstructionType type, kore::Reg reg1, Expression& expr, int value);
                 Instruction(InstructionType type, kore::Reg reg, const std::vector<Reg>& registers, Expression& expr);
                 Instruction(InstructionType type, kore::Reg reg1, kore::Reg reg2, Expression& expr);
+                Instruction(InstructionType type, kore::Reg reg1, kore::Reg reg2, kore::Reg reg3, Expression& expr);
                 Instruction(InstructionType type, kore::Reg reg1, kore::Reg reg2, Statement& statement);
                 Instruction(InstructionType type, kore::Reg reg, BlockId bb1, BlockId bb2);
                 Instruction(Bytecode opcode);
@@ -70,8 +74,8 @@ namespace kore {
                 kore::Reg reg3() const;
                 kore::Reg& operator[](int index);
 
-                BlockId bb1();
-                BlockId bb2();
+                BlockId bb1() const;
+                BlockId bb2() const;
 
                 template<typename T>
                 const T* expr_as() const {
@@ -88,6 +92,7 @@ namespace kore {
                 const Expression* expr() const;
                 const Statement* statement() const;
                 int value() const noexcept;
+                Bytecode opcode() const;
                 std::vector<kore::Reg> registers() const;
                 std::string registers_as_string() const;
 

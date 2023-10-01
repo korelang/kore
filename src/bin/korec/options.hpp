@@ -12,6 +12,7 @@ namespace kore {
         // Why parsing failed, empty if successful
         std::string error_message;
 
+        // TODO: Change dump args to --dump (scan|parse|ast|kir)?
         bool timings;
         bool execute;
         bool dump_scan;
@@ -20,7 +21,7 @@ namespace kore {
         std::string dump_kir;
         bool dump_codegen;
         bool disassemble;
-        bool backend;
+        std::string target;
         bool version;
         bool version_only;
         bool help;

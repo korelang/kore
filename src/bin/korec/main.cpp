@@ -62,7 +62,7 @@ namespace kore {
         fs::path& path,
         AstWriter& writer
     ) {
-        Ast ast;
+        Ast ast{path};
         Parser parser;
         auto group = "parse";
 
@@ -99,7 +99,13 @@ namespace kore {
     void dump_kir(const kir::Kir& kir) {
         for (auto module = kir.cbegin(); module < kir.cend(); ++module) {
             for (auto func = module->cbegin(); func < module->cend(); ++func) {
-                debug_group("kir", "module at %s", module->path().c_str());
+                debug_group(
+                    "kir",
+                    "function %s of module %d at %s",
+                    func->name().c_str(),
+                    module->index(),
+                    module->path().c_str()
+                );
                 func->graph().write_adjacency_lists(std::cerr);
                 std::cerr << std::endl;
             }
@@ -138,7 +144,7 @@ int main(int argc, char** argv) {
 
         return 0;
     } else if (args.dump_ast) {
-        kore::debug_group("scan", "dumping parse");
+        kore::debug_group("parse", "dumping parse");
 
         for (auto& path : args.paths) {
             kore::dump_parse(args.execute, args.expr, path);
@@ -153,7 +159,7 @@ int main(int argc, char** argv) {
         auto ret_code = compiler.run_passes();
 
         if (!args.dump_kir.empty()) {
-            kore::debug_group("kir", "dumping kir graph");
+            kore::debug_group("kir", "dumping kir graph (%s)", args.dump_kir.c_str());
             kore::dump_kir(compiler.context().kir);
         }
 

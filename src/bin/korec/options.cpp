@@ -20,7 +20,7 @@ namespace kore {
                                     and typechecking.
         -d, --disassemble           Disassemble a compiled bytecode file.
         -x, --execute=<expr>        Parse and run an expression or statement.
-        -b, --backend=<bytecode>    Select a code generation backend [bytecode].
+        -t, --target=<bytecode>     Select a code generation target [bytecode].
         -v, --verbose               Increase the amount of program debugging
                                     output. Can be supplied multiple times to a
                                     level of three. Repetitions beyond three are
@@ -28,22 +28,29 @@ namespace kore {
         --env-vars                  List all available environment variables.
         --colors, --colours         Control colored output.
         --c, --compile-only         Only compile to bytecode, do not run. Only
-                                    applicable when --backend is 'bytecode'.
+                                    applicable when --target is 'bytecode'.
         --typecheck-only            Only perform type checking, then exit.
         -m, --mem-stats             Show useful memory statistics while running.
 
         Debugging options:
 
             --dump-scan       Only perform a scan of the input file for tokens and
-                            dump the tokens to stderr.
+                              dump the tokens to stderr.
             --dump-parse      Dump the parse tree elements to stderr.
             --dump-ast        Dump the parsed abstract syntax tree to stderr.
+            --dump-kir        Dump kore's intermediate representation to stderr.
             --dump-codegen    Dump generated code to stderr.
     )";
 
     void validate_args(int argc, ParsedCommandLineArgs& args) {
         if (argc < 2) {
             args.error_message = "At least one argument is required";
+        } else if (args.target != "bytecode") {
+            if (args.target == "") {
+                args.target = "bytecode";
+            } else {
+                args.error_message = "Only 'bytecode' is currently supported as a target";
+            }
         } else if (args.dump_kir != "adjacency") {
             args.error_message = "Only the 'adjacency' format is currently supported";
         }
@@ -64,7 +71,7 @@ namespace kore {
             return parsed_args;
         }
 
-        for (int i = 0; i < argc; ++i) {
+        for (int i = 0; i < argc;) {
             std::string arg = args[i];
 
             if (arg[0] == '-') {
@@ -92,6 +99,7 @@ namespace kore {
                 } else if (arg == "--dump-kir") {
                     if (i + 1 < argc) {
                         parsed_args.dump_kir = args[i + 1];
+                        ++i;
                     } else {
                         error("Expected argument after --dump-kir");
                     }
@@ -107,6 +115,13 @@ namespace kore {
                     parsed_args.colors = true;
                 } else if (arg == "--typecheck-only") {
                     parsed_args.typecheck_only = true;
+                } else if (arg == "--target") {
+                    if (i + 1 < argc) {
+                        parsed_args.target = args[i + 1];
+                        ++i;
+                    } else {
+                        error("Expected argument after -t, --target");
+                    }
                 } else if (arg == "-v" || arg == "--verbose") {
                     ++parsed_args.verbosity;
                 } else {
@@ -118,6 +133,8 @@ namespace kore {
                     parsed_args.paths.push_back(arg);
                 }
             }
+
+            ++i;
         }
 
         validate_args(argc, parsed_args);

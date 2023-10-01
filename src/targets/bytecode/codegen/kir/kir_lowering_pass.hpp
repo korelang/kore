@@ -57,12 +57,15 @@ namespace kore {
 
             private:
                 Function& current_function();
+                Module& current_module();
                 void enter_function(kore::Function& func);
                 void exit_function();
+                void add_kir_function(kore::Function* function);
 
                 Reg visit_expression(Expression* expr);
                 void check_register_state(Identifier& expr, Reg reg);
                 void push_register(Reg reg);
+                void push_register(Reg reg, const Type* type);
         };
     }
 }

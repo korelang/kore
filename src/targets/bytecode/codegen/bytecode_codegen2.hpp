@@ -42,6 +42,7 @@ namespace kore {
             void generate_for_block(kir::BasicBlock& block);
             void generate_for_instruction(kir::Instruction& instruction);
 
+            void save_patch_location();
             void patch_jumps();
 
             void write_bytes(const std::string& str);

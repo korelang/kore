@@ -33,7 +33,7 @@ namespace kore {
                 const_iterator cend() const;
 
             private:
-                ModuleIndex _main_module_index;
+                ModuleIndex _main_module_index = 0;
                 std::vector<Module> _modules;
                 /* ConstantTable<i32> _i32_table; */
         };

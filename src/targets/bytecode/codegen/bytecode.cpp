@@ -71,6 +71,7 @@ namespace kore {
             case JumpIf:         return "jumpif";
             case JumpIfNot:      return "jumpifnot";
             case Call:           return "call";
+            case BuiltinCall:    return "builtin_call";
             case Ret:            return "return";
         }
     }

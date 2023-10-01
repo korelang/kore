@@ -412,7 +412,6 @@ namespace kore {
         KORE_DEBUG_PARSER_LOG_TOKEN("if")
 
         if (expect_keyword(Keyword::If)) {
-            // TODO: This will not be cleaned up if something throws
             auto if_statement = Statement::make_statement<IfStatement>();
             auto condition = parse_expression(operator_base_precedence());
 
@@ -448,7 +447,7 @@ namespace kore {
     }
 
     void Parser::parse_toplevel(Statement* const parent) {
-        parse_module();
+        /* parse_module(); */
 
         while (expect_keyword(Keyword::Import)) {
             // TODO: How to require newline after each import?

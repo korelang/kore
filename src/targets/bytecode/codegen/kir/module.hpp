@@ -26,7 +26,7 @@ namespace kore {
                 ModuleIndex index() const noexcept;
 
                 void add_function();
-                void add_function(const kore::Function& function);
+                void add_function(const kore::Function* function);
                 Function& operator[](int index);
                 const Function& operator[](int index) const;
                 Function& main_function();
@@ -39,6 +39,12 @@ namespace kore {
                 iterator end();
                 const_iterator cbegin() const;
                 const_iterator cend() const;
+
+                ConstantTable<i32>& i32_constant_table();
+                ConstantTable<i64>& i64_constant_table();
+                ConstantTable<f32>& f32_constant_table();
+                ConstantTable<f64>& f64_constant_table();
+                ConstantTable<std::string>& str_constant_table();
 
                 const ConstantTable<i32>& i32_constant_table() const;
                 const ConstantTable<i64>& i64_constant_table() const;

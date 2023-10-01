@@ -18,13 +18,14 @@ namespace kore {
         class Function final {
             public:
                 Function(FuncIndex index);
-                Function(FuncIndex index, const kore::Function& func);
+                Function(FuncIndex index, const kore::Function* func);
                 virtual ~Function();
 
                 Graph& graph();
                 const Graph& graph() const;
                 void add_instruction(Instruction instruction);
                 void set_register_state(Reg reg, RegisterState state);
+                void set_register_type(Reg reg, const Type* type);
                 Reg allocate_register();
                 void free_register(Reg reg);
                 void free_registers();
@@ -33,13 +34,13 @@ namespace kore {
 
                 Reg load_constant(BoolExpression& expr);
                 /* void load_constant(CharExpression& expr); */
-                Reg load_constant(IntegerExpression& expr);
-                Reg load_constant(FloatExpression& expr);
+                Reg load_constant(IntegerExpression& expr, int index);
+                Reg load_constant(FloatExpression& expr, int index);
                 Reg load_global(Identifier& expr, Reg gidx);
-                void binop(BinaryExpression& expr, Reg left, Reg right);
+                Reg binop(BinaryExpression& expr, Reg left, Reg right);
                 void move(VariableAssignment& assign, Reg src, Reg dst);
                 void branch(Reg condition, BlockId true_block, BlockId false_block);
-                void allocate_array(ArrayExpression& expr, const std::vector<Reg> element_regs);
+                Reg allocate_array(ArrayExpression& expr, const std::vector<Reg> element_regs);
                 void destroy(Reg reg);
                 /* void destroy(Expression& expr, Reg reg); */
                 void refinc(Reg reg);
@@ -54,7 +55,7 @@ namespace kore {
                 int code_size() const;
 
             private:
-                Reg load_constant(InstructionType inst_type, Expression& expr);
+                Reg load_constant(InstructionType inst_type, Expression& expr, int index);
 
             private:
                 FuncIndex _index;

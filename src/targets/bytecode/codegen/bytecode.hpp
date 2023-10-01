@@ -66,7 +66,7 @@ namespace kore {
         CloadF32,
         CloadF64,
 
-        // Load locals
+        // Load locals (TODO: Remove?)
         LloadI32,
         LloadI64,
         LloadF32,
@@ -138,6 +138,7 @@ namespace kore {
 
         // Function calls
         Call,
+        BuiltinCall,
         Ret
     };
 

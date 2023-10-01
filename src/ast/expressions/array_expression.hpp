@@ -27,7 +27,7 @@ namespace kore {
 
         private:
             SourceLocation _start, _end;
-            std::vector<pointer> _elements;
+            std::vector<Owned<Expression>> _elements;
             ArrayType* _type;
     };
 }

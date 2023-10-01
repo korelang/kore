@@ -29,8 +29,10 @@ namespace kore {
                 void set_current_block(BlockId id);
                 std::size_t size() const;
 
+                bool has_predecessors(BlockId id) const;
                 iterator predecessor_begin(BlockId id);
                 iterator predecessor_end(BlockId id);
+                bool has_successors(BlockId id) const;
                 iterator successor_begin(BlockId id);
                 iterator successor_end(BlockId id);
                 const_iterator successor_cbegin(BlockId id) const;

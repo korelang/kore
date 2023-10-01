@@ -1,0 +1,56 @@
+cmake_minimum_required(VERSION 3.8)
+
+project(kore)
+set(CMAKE_CXX_STANDARD 17)
+
+set(KORE_COMPILER_NAME "korec")
+
+set(_KORE_COMPILER_SOURCES
+    ${KORE_AST_SOURCES}
+    ${KORE_AST_EXPRESSION_SOURCES}
+    ${KORE_AST_STATEMENT_SOURCES}
+    ${KORE_SCANNER_SOURCES}
+    ${KORE_PARSER_SOURCES}
+    ${KORE_TYPE_SOURCES}
+    ${KORE_TOP_LEVEL_SOURCES}
+    ${KORE_LOGGING_SOURCES}
+    ${KORE_KIR_SOURCES}
+    ${KORE_COMPILER_SOURCES}
+    ${KORE_ERRORS_SOURCES}
+    ${KORE_UTILS_SOURCES}
+    ${KORE_UTF8_SOURCES}
+    ${KORE_TARGETS_BYTECODE_SOURCES}
+
+    options.cpp
+    main.cpp
+)
+
+# set(COMPILER_SOURCES
+#     ${COMPILER_SOURCES}
+#     src/bin/korec/options.cpp
+#     src/bin/korec/main.cpp
+# )
+
+add_definitions("-DNDEBUG -g3 -O1")
+
+add_executable(${KORE_COMPILER_NAME} ${_KORE_COMPILER_SOURCES})
+
+include_directories(${KORE_COMPILER_NAME} ${KORE_INCLUDE_DIRS})
+
+target_compile_options(${KORE_COMPILER_NAME} PUBLIC ${KORE_SHARED_COMPILE_FLAGS})
+
+# TODO: Make this configurable via the command line
+target_compile_definitions(${KORE_COMPILER_NAME}
+    PRIVATE
+    KORE_DEBUG_PARSER=0
+    KORE_DEBUG_TYPECHECKER=0
+    KORE_DEBUG_TYPEINFERRER=0
+    KORE_DEBUG_BYTECODE_GENERATOR=0
+    KORE_DEBUG_KIR_LOWERING_PASS=1
+)
+
+set_target_properties(
+    ${KORE_COMPILER_NAME}
+    PROPERTIES RUNTIME_OUTPUT_DIRECTORY
+    "${CMAKE_BINARY_DIR}/bin"
+)

@@ -1,4 +1,5 @@
 #include "targets/bytecode/codegen/kir/instruction.hpp"
+#include <ios>
 #include "utils/unused_parameter.hpp"
 
 namespace kore {
@@ -10,6 +11,12 @@ namespace kore {
 
         Instruction::Instruction(InstructionType type, Expression& expr)
             : _type(type), _expr(&expr) {}
+
+        Instruction::Instruction(InstructionType type, kore::Reg reg1, Expression& expr, int value)
+                : Instruction(type, expr) {
+            _value = value;
+            _registers.push_back(reg1);
+        }
 
         Instruction::Instruction(InstructionType type, kore::Reg reg1, Expression& expr)
                 : Instruction(type, expr) {
@@ -25,6 +32,13 @@ namespace kore {
                 : Instruction(type, expr) {
             _registers.push_back(reg1);
             _registers.push_back(reg2);
+        }
+
+        Instruction::Instruction(InstructionType type, kore::Reg reg1, kore::Reg reg2, kore::Reg reg3, Expression& expr)
+                : Instruction(type, expr) {
+            _registers.push_back(reg1);
+            _registers.push_back(reg2);
+            _registers.push_back(reg3);
         }
 
         Instruction::Instruction(InstructionType type, kore::Reg reg1, kore::Reg reg2, Statement& statement)
@@ -44,7 +58,8 @@ namespace kore {
             _bb2 = bb2;
         }
 
-        Instruction::Instruction(Bytecode opcode) : _opcode(opcode) {
+        Instruction::Instruction(Bytecode opcode)
+            : _type(InstructionType::Raw), _opcode(opcode) {
         }
 
         Instruction::Instruction(Bytecode opcode, kore::Reg reg) : Instruction(opcode) {
@@ -73,11 +88,11 @@ namespace kore {
             return _registers[index];
         }
 
-        BlockId Instruction::bb1() {
+        BlockId Instruction::bb1() const {
             return _bb1;
         }
 
-        BlockId Instruction::bb2() {
+        BlockId Instruction::bb2() const {
             return _bb2;
         }
 
@@ -93,13 +108,111 @@ namespace kore {
             return _value;
         }
 
+        Bytecode Instruction::opcode() const {
+            return _opcode;
+        }
+
         std::vector<kore::Reg> Instruction::registers() const {
             return _registers;
         }
 
         std::ostream& operator<<(std::ostream& os, const Instruction instruction) {
-            UNUSED_PARAM(instruction);
-            os << "instruction";
+            switch (instruction.type()) {
+                case kir::InstructionType::LoadBool: {
+                    bool value = instruction.expr_as<BoolExpression>()->bool_value();
+
+                    os << bytecode_to_string(Bytecode::LoadBool) << " "
+                       << instruction.reg1() << " "
+                       << std::boolalpha << value << std::noboolalpha;
+                    break;
+                }
+
+                case kir::InstructionType::LoadInteger: {
+                    auto expr = instruction.expr_as<IntegerExpression>();
+
+                    os << bytecode_to_string(Bytecode::CloadI32) << " "
+                       << instruction.reg1() << " "
+                       << expr->value();
+                    break;
+                }
+
+                case kir::InstructionType::LoadGlobal: {
+                    os << bytecode_to_string(Bytecode::Gload) << " "
+                       << instruction.reg1() << " "
+                       << instruction.value();
+                    break;
+                }
+
+                case kir::InstructionType::Move: {
+                    os << bytecode_to_string(Bytecode::Move) << " "
+                       << instruction.reg1() << " "
+                       << instruction.reg2();
+                    break;
+                }
+
+                case kir::InstructionType::Binop: {
+                    /* auto binexpr = instruction.expr_as<BinaryExpression>(); */
+                    /* auto opcode = get_binop_instruction( */
+                    /*     binexpr->type()->category(), */
+                    /*     binexpr->op() */
+                    /* ); */
+
+                    // TODO
+                    os << bytecode_to_string(Bytecode::AddI32) << " "
+                       << instruction.reg1() << " "
+                       << instruction.reg2() << " "
+                       << instruction.reg3();
+                    break;
+                }
+
+                case kir::InstructionType::Branch: {
+                    // When dumping kir, jump offsets are still basic block IDs
+                    // (they get patched to instruction offsets in the code
+                    // generator)
+                    os << bytecode_to_string(Bytecode::JumpIfNot) << " "
+                       << instruction.reg1() << " "
+                       << "bb" << instruction.bb1() << " "
+                       << "bb" << instruction.bb2();
+                    break;
+                }
+
+                case kir::InstructionType::AllocateArray: {
+                    os << bytecode_to_string(Bytecode::AllocArray) << " "
+                       << instruction.reg1() << " "
+                       << instruction.value();
+                    break;
+                }
+
+                case kir::InstructionType::BuiltinFunctionCall: {
+                    os << bytecode_to_string(Bytecode::BuiltinCall) << " "
+                       << instruction.reg1() << " "
+                       << instruction.reg2() << " "
+                       << instruction.reg3();
+                    break;
+                }
+
+                case kir::InstructionType::Call: {
+                    os << bytecode_to_string(Bytecode::Call) << " "
+                       << instruction.reg1() << " "
+                       << instruction.reg2() << " "
+                       << instruction.reg3();
+                    break;
+                }
+
+                case kir::InstructionType::LoadFloat: {
+                    break;
+                }
+
+                case kir::InstructionType::Raw: {
+                    os << bytecode_to_string(instruction.opcode());
+                    auto registers = instruction.registers();
+
+                    for (size_t i = 0; i < registers.size(); ++i) {
+                        os << " " << registers[i];
+                    }
+                    break;
+                }
+            }
 
             return os;
         }

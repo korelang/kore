@@ -66,12 +66,20 @@ namespace kore {
             return _blocks.size();
         }
 
+        bool Graph::has_predecessors(BlockId id) const {
+            return _predecessors.find(id) != _predecessors.cend();
+        }
+
         Graph::iterator Graph::predecessor_begin(BlockId id) {
             return _predecessors[id].begin();
         }
 
         Graph::iterator Graph::predecessor_end(BlockId id) {
             return _predecessors[id].end();
+        }
+
+        bool Graph::has_successors(BlockId id) const {
+            return _successors.find(id) != _successors.cend();
         }
 
         Graph::iterator Graph::successor_begin(BlockId id) {
@@ -93,21 +101,33 @@ namespace kore {
         void Graph::write_adjacency_lists(std::ostream& os) const {
             // Write the instructions in each basic block
             for (auto& bb : _blocks) {
-                for (auto& instruction : bb.instructions) {
-                    os << instruction << std::endl;
+                if (bb.id == BasicBlock::StartBlockId) {// || bb.id == BasicBlock::EndBlockId) {
+                    continue;
+                }
+
+                if (bb.instructions.size() > 0) {
+                    os << "instructions for bb" << bb.id << std::endl;
+
+                    for (auto& instruction : bb.instructions) {
+                        os << instruction << std::endl;
+                    }
+                } else {
+                    os << "no instructions in bb" << bb.id;
                 }
 
                 os << std::endl;
             }
 
-            os << std::endl;
-
             // Write the adjacency list
             for (auto& bb : _blocks) {
-                os << bb.id << ": ";
+                os << "bb" << bb.id << ": ";
 
-                for (auto succ = successor_cbegin(bb.id); succ < successor_cend(bb.id); ++succ) {
-                    os << *succ << " ";
+                if (has_successors(bb.id)) {
+                    for (auto succ = successor_cbegin(bb.id); succ < successor_cend(bb.id); ++succ) {
+                        os << "bb" << *succ << " ";
+                    }
+                } else {
+                    os << "no successors";
                 }
 
                 os << std::endl;

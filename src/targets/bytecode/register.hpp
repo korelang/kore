@@ -5,6 +5,8 @@ namespace kore {
     // Type alias for registers ('register' is a reserved keyword)
     using Reg = int;
 
+    constexpr Reg INVALID_REGISTER = -1;
+
     // Handy macros for getting different registers in an instruction
     #define GET_REG1(instruction) (instruction >> 16 & 0xff)
     #define GET_REG2(instruction) (instruction >> 8 & 0xff)

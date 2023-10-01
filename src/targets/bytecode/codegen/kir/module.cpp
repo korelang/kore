@@ -28,7 +28,7 @@ namespace kore {
             _functions.push_back(Function(_functions.size()));
         }
 
-        void Module::add_function(const kore::Function& function) {
+        void Module::add_function(const kore::Function* function) {
             _functions.push_back(Function(_functions.size(), function));
         }
 
@@ -70,6 +70,26 @@ namespace kore {
 
         Module::const_iterator Module::cend() const {
             return _functions.cend();
+        }
+
+        ConstantTable<i32>& Module::i32_constant_table() {
+            return _i32_constants;
+        }
+
+        ConstantTable<i64>& Module::i64_constant_table() {
+            return _i64_constants;
+        }
+
+        ConstantTable<f32>& Module::f32_constant_table() {
+            return _f32_constants;
+        }
+
+        ConstantTable<f64>& Module::f64_constant_table() {
+            return _f64_constants;
+        }
+
+        ConstantTable<std::string>& Module::str_constant_table() {
+            return _str_constants;
         }
 
         const ConstantTable<i32>& Module::i32_constant_table() const {

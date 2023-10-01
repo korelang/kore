@@ -12,8 +12,8 @@ namespace kore {
               _func(nullptr),
               _code_size(0) {}
 
-        Function::Function(FuncIndex index, const kore::Function& func)
-            : _index(index), _func(&func), _code_size(0) {}
+        Function::Function(FuncIndex index, const kore::Function* func)
+            : _index(index), _func(func), _code_size(0) {}
 
         Function::~Function() {}
 
@@ -32,6 +32,10 @@ namespace kore {
 
         void Function::set_register_state(Reg reg, RegisterState state) {
             _register_states[_graph.current_block().id][reg] = state;
+        }
+
+        void Function::set_register_type(Reg reg, const Type* type) {
+            _register_types[reg] = type;
         }
 
         Reg Function::allocate_register() {
@@ -79,15 +83,14 @@ namespace kore {
         }
 
         void Function::free_registers() {
-            // Destroy registers the in reverse order of how they were
-            // introduced
+            // Destroy registers in the reverse order of how they were introduced
             for (int reg = _reg_count - 1; reg >= 0; --reg) {
                 switch (register_state(reg)) {
                     case RegisterState::Moved:
                         break;
 
                     case RegisterState::Available: {
-                        if (register_type(reg)->is_value_type()) {
+                        if (!register_type(reg)->is_value_type()) {
                             destroy(reg);
                         }
                         break;
@@ -101,15 +104,18 @@ namespace kore {
         }
 
         Reg Function::load_constant(BoolExpression& expr) {
-            return load_constant(InstructionType::LoadBool, expr);
+            Reg reg = allocate_register();
+            add_instruction(Instruction(InstructionType::LoadBool, reg, expr));
+
+            return reg;
         }
 
-        Reg Function::load_constant(IntegerExpression& expr) {
-            return load_constant(InstructionType::LoadInteger, expr);
+        Reg Function::load_constant(IntegerExpression& expr, int index) {
+            return load_constant(InstructionType::LoadInteger, expr, index);
         }
 
-        Reg Function::load_constant(FloatExpression& expr) {
-            return load_constant(InstructionType::LoadFloat, expr);
+        Reg Function::load_constant(FloatExpression& expr, int index) {
+            return load_constant(InstructionType::LoadFloat, expr, index);
         }
 
         Reg Function::load_global(Identifier& expr, Reg gidx) {
@@ -131,22 +137,27 @@ namespace kore {
             add_instruction(
                 Instruction(
                     InstructionType::Move,
-                    src,
                     dst,
+                    src,
                     assign
                 )
             );
         }
 
-        void Function::binop(BinaryExpression& expr, Reg left, Reg right) {
+        Reg Function::binop(BinaryExpression& expr, Reg left, Reg right) {
+            auto reg = allocate_register();
+
             add_instruction(
                 Instruction(
                     InstructionType::Binop,
+                    reg,
                     left,
                     right,
                     expr
                 )
             );
+
+            return reg;
         }
 
         void Function::branch(Reg condition, BlockId true_block, BlockId false_block) {
@@ -160,15 +171,19 @@ namespace kore {
             );
         }
 
-        void Function::allocate_array(ArrayExpression& expr, const std::vector<Reg> element_regs) {
+        Reg Function::allocate_array(ArrayExpression& expr, const std::vector<Reg> element_regs) {
+            auto reg = allocate_register();
+
             add_instruction(
                 Instruction(
                     InstructionType::AllocateArray,
-                    allocate_register(),
+                    reg,
                     element_regs,
                     expr
                 )
             );
+
+            return reg;
         }
 
         void Function::destroy(Reg reg) {
@@ -223,10 +238,15 @@ namespace kore {
             return _code_size;
         }
 
-        Reg Function::load_constant(InstructionType inst_type, Expression& expr) {
+        Reg Function::load_constant(
+            InstructionType inst_type,
+            Expression& expr,
+            int index
+        ) {
             Reg reg = allocate_register();
 
-            add_instruction(Instruction(inst_type, reg, expr));
+            add_instruction(Instruction(inst_type, reg, expr, index));
+            set_register_type(reg, expr.type());
 
             return reg;
         }
