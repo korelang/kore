@@ -25,8 +25,8 @@ namespace kore {
                 std::string path() const;
                 ModuleIndex index() const noexcept;
 
-                void add_function();
-                void add_function(const kore::Function* function);
+                int add_function();
+                int add_function(const kore::Function* function);
                 Function& operator[](int index);
                 const Function& operator[](int index) const;
                 Function& main_function();

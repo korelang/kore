@@ -194,16 +194,30 @@ namespace kore {
             add_instruction(Instruction(Bytecode::RefInc, reg));
         }
 
+        void Function::refdec(Reg reg) {
+            add_instruction(Instruction(Bytecode::RefDec, reg));
+        }
+
+        void Function::call(
+            kore::Bytecode opcode,
+            Expression& expr,
+            const std::vector<kore::Reg>& return_registers,
+            const std::vector<kore::Reg>& arg_registers
+        ) {
+            add_instruction(Instruction::call(opcode, expr, arg_registers, return_registers));
+        }
+
         void Function::_return() {
             add_instruction(Instruction(Bytecode::Ret));
         }
 
         void Function::_return(Reg retreg) {
-            add_instruction(Instruction(Bytecode::Ret, retreg));
-        }
+            /* add_instruction(Instruction::ret(return_registers)); */
 
-        void Function::refdec(Reg reg) {
-            add_instruction(Instruction(Bytecode::RefDec, reg));
+            // TODO: Support multiple return values
+            std::vector<Reg> registers{ 1, retreg };
+
+            add_instruction(Instruction(Bytecode::Ret, registers));
         }
 
         FuncIndex Function::index() const noexcept {

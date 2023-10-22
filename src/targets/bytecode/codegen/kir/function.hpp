@@ -45,6 +45,12 @@ namespace kore {
                 /* void destroy(Expression& expr, Reg reg); */
                 void refinc(Reg reg);
                 void refdec(Reg reg);
+                void call(
+                    kore::Bytecode opcode,
+                    Expression& expr, // TODO: This doesn't need to be mutable
+                    const std::vector<kore::Reg>& return_registers,
+                    const std::vector<kore::Reg>& arg_registers
+                );
                 void _return();
                 void _return(Reg retreg);
 

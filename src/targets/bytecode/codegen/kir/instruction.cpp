@@ -66,7 +66,32 @@ namespace kore {
             _registers.push_back(reg);
         }
 
+        Instruction::Instruction(Bytecode opcode, const std::vector<Reg>& registers)
+            : _type(InstructionType::Raw), _opcode(opcode), _registers(registers) {
+        }
+
         Instruction::~Instruction() {}
+
+        Instruction Instruction::call(
+            kore::Bytecode opcode,
+            Expression& expr,
+            const std::vector<kore::Reg>& return_registers,
+            const std::vector<kore::Reg>& arg_registers
+        ) {
+            Instruction instruction;
+
+            instruction._type = InstructionType::Call;
+            instruction._opcode = opcode;
+            instruction._expr = &expr;
+
+            // Save the number of arguments so we know where the return registers begin
+            instruction._value = arg_registers.size();
+
+            instruction._registers.insert(instruction._registers.end(), arg_registers.cbegin(), arg_registers.cend());
+            instruction._registers.insert(instruction._registers.end(), return_registers.cbegin(), return_registers.cend());
+
+            return instruction;
+        }
 
         InstructionType Instruction::type() const noexcept {
             return _type;

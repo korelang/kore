@@ -48,7 +48,7 @@ namespace kore {
             private:
                 ScopeStack _scope_stack;
                 Module* _module;
-                int _func_index;
+                std::stack<int> _func_index_stack;
                 std::vector<errors::Error> _errors;
                 std::vector<Reg> _register_stack;
 

@@ -7,6 +7,7 @@ namespace kore {
             const fs::path& path
         ) : _index(index),
             _path(path),
+            _global_indices(0),
             _i32_constants(ConstantTableTag::I32),
             _i64_constants(ConstantTableTag::I64),
             _f32_constants(ConstantTableTag::F32),
@@ -24,12 +25,15 @@ namespace kore {
             return _index;
         }
 
-        void Module::add_function() {
-            _functions.push_back(Function(_functions.size()));
+        int Module::add_function() {
+            return add_function(nullptr);
         }
 
-        void Module::add_function(const kore::Function* function) {
-            _functions.push_back(Function(_functions.size(), function));
+        int Module::add_function(const kore::Function* function) {
+            auto func_index = _functions.size();
+            _functions.push_back(Function(func_index, function));
+
+            return func_index;
         }
 
         Function& Module::operator[](int index) {

@@ -38,6 +38,8 @@ namespace kore {
             public:
                 Instruction();
                 Instruction(InstructionType type);
+                // TODO: Specialise these constructors into static calls if they
+                // are only used once
                 Instruction(InstructionType type, Expression& expr);
                 Instruction(InstructionType type, kore::Reg reg1, Expression& expr);
                 Instruction(InstructionType type, kore::Reg reg1, Expression& expr, int value);
@@ -48,24 +50,16 @@ namespace kore {
                 Instruction(InstructionType type, kore::Reg reg, BlockId bb1, BlockId bb2);
                 Instruction(Bytecode opcode);
                 Instruction(Bytecode opcode, kore::Reg reg);
+                Instruction(Bytecode opcode, const std::vector<Reg>& registers);
                 virtual ~Instruction();
 
                 static Instruction with_offset(kore::Bytecode opcode, int pos, int reg1, int offset);
                 static Instruction call(
-                        kore::Bytecode opcode,
-                        int pos,
-                        int func_index,
-                        int return_count,
-                        int arg_count,
-                        const std::vector<kore::Reg>& return_registers,
-                        const std::vector<kore::Reg>& arg_registers
-                        );
-                static Instruction ret(
-                        kore::Bytecode opcode,
-                        int pos,
-                        int return_count,
-                        const std::vector<kore::Reg>& return_registers
-                        );
+                    kore::Bytecode opcode,
+                    Expression& expr,
+                    const std::vector<kore::Reg>& return_registers,
+                    const std::vector<kore::Reg>& arg_registers
+                );
 
                 InstructionType type() const noexcept;
                 /* short register_count() const; */
@@ -93,7 +87,7 @@ namespace kore {
                 const Statement* statement() const;
                 int value() const noexcept;
                 Bytecode opcode() const;
-                std::vector<kore::Reg> registers() const;
+                std::vector<kore::Reg> registers() const; // TODO: Make this return a const reference
                 std::string registers_as_string() const;
 
             private:

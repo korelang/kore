@@ -26,7 +26,6 @@ namespace kore {
         Module KirLoweringPass::lower(const Ast& ast) {
             Module module(0, ast.path());
 
-            _func_index = 0;
             _module = &module;
 
             add_kir_function(nullptr);
@@ -34,6 +33,9 @@ namespace kore {
             for (auto const& statement : ast) {
                 statement->accept_visit_only(*this);
             }
+
+            _func_index_stack.pop();
+            assert(_func_index_stack.size() == 0);
 
             return module;
         }
@@ -246,9 +248,25 @@ namespace kore {
         void KirLoweringPass::visit(class Call& call) {
             KORE_DEBUG_KIR_LOWERING_PASS_LOG("call", call.name());
 
-            for (int i = 0; i < call.arg_count(); ++i) {
-                call.arg(i)->accept_visit_only(*this);
+            auto& func = current_function();
+            std::vector<Reg> arg_registers;
+
+            for (int idx = 0; idx < call.arg_count(); ++idx) {
+                arg_registers.push_back(visit_expression(call.arg(idx)));
             }
+
+            // TODO: Support multiple return values
+            std::vector<Reg> return_registers{ func.allocate_register() };
+
+            // We pass the called function instead of a function index because
+            // the function might not have been visited yet and we do not want
+            // to enforce an ordering of function. We determine the function
+            // index later when generating code.
+            //
+            // TODO: This will not work once we have modules as the same
+            // function name can be used in different modules. Perhaps pass a
+            // name like "module::function" where "::" is a scope delimiter
+            func.call(Bytecode::Call, call, arg_registers, return_registers);
 
             /* // TODO: Or maybe move this into a separate AST node? */
             /* auto [idx, builtin_func_ptr] = vm::get_builtin_function_by_name(call.name()); */
@@ -277,7 +295,7 @@ namespace kore {
         }
 
         Function& KirLoweringPass::current_function() {
-            return (*_module)[_func_index - 1];
+            return (*_module)[_func_index_stack.top()];
         }
 
         Module& KirLoweringPass::current_module() {
@@ -295,19 +313,21 @@ namespace kore {
         }
 
         void KirLoweringPass::exit_function() {
-            // TODO: Add exit block here
-            --_func_index;
+            _func_index_stack.pop();
             _scope_stack.leave_function_scope();
         }
 
         void KirLoweringPass::add_kir_function(kore::Function* function) {
-            _module->add_function(function);
-            ++_func_index;
+            _func_index_stack.push(_module->add_function(function));
 
             auto& graph = current_function().graph();
 
-            // Add the source block
+            // Add the start block
             graph.add_block(BasicBlock::StartBlockId);
+
+            // Add the end block
+            // TODO: Connect this as the function's AST is traversed
+            graph.add_block(BasicBlock::EndBlockId);
 
             // Add the first block of this function and connect it to the source block
             graph.add_edge(BasicBlock::StartBlockId, graph.add_block_as_current());
