@@ -11,7 +11,7 @@
 )
 
 #define KORE_ADD_REG(instruction, reg, position) (\
-    (instruction) & ((reg & 0xff) << (16 - position * 8))\
+    (instruction) | ((reg & 0xff) << (16 - position * 8))\
 )
 
 #define KORE_MAKE_INSTRUCTION(opcode, reg, value) (\
