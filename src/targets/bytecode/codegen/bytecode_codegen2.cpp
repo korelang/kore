@@ -128,12 +128,12 @@ namespace kore {
         write_bytes({ 1, 0, 0 });
         write_bytes({ 1, 0, 0 });
 
-        write_le32(kir.globals_count());
+        write_be32(kir.globals_count());
 
         auto main_module = kir.main_module();
-        write_le32(main_module.index());
-        write_le32(main_module.main_function().index());
-        write_le32(kir.module_count());
+        write_be32(main_module.index());
+        write_be32(main_module.main_function().index());
+        write_be32(kir.module_count());
 
         for (auto& module : kir) {
             generate_for_module(module);
@@ -145,10 +145,10 @@ namespace kore {
     }
 
     void BytecodeGenerator2::generate_for_module(const kir::Module& module) {
-        write_le32(module.index());
+        write_be32(module.index());
         write_string(module.path());
         write_constant_table<i32>(module.i32_constant_table());
-        write_le32(module.function_count());
+        write_be32(module.function_count());
 
         for (int idx = 0; idx < module.function_count(); ++idx) {
             generate_for_function(module[idx]);
@@ -160,14 +160,14 @@ namespace kore {
 
         auto location = function.location();
         /* write_string(location.path()); */
-        write_le32(location.lnum());
-        write_le32(location.start());
-        write_le32(location.end());
+        write_be32(location.lnum());
+        write_be32(location.start());
+        write_be32(location.end());
 
-        write_le32(function.index());
-        /* write_le32(function.locals_count()); */
-        write_le32(function.max_regs_used());
-        write_le32(function.code_size());
+        write_be32(function.index());
+        /* write_be32(function.locals_count()); */
+        write_be32(function.max_regs_used());
+        write_be32(function.code_size());
 
         auto graph = function.graph();
 
@@ -210,7 +210,7 @@ namespace kore {
             case kir::InstructionType::LoadBool: {
                 bool value = instruction.expr_as<BoolExpression>()->bool_value();
 
-                write_le32(
+                write_be32(
                     KORE_MAKE_INSTRUCTION(
                         Bytecode::LoadBool,
                         instruction.reg1(),
@@ -221,7 +221,7 @@ namespace kore {
             }
 
             case kir::InstructionType::LoadInteger: {
-                write_le32(
+                write_be32(
                     KORE_MAKE_INSTRUCTION(
                         Bytecode::CloadI32,
                         instruction.reg1(),
@@ -232,7 +232,7 @@ namespace kore {
             }
 
             case kir::InstructionType::LoadGlobal: {
-                write_le32(
+                write_be32(
                     KORE_MAKE_REG_VALUE_INSTRUCTION(
                         Bytecode::Gload,
                         instruction.reg1(),
@@ -243,7 +243,7 @@ namespace kore {
             }
 
             case kir::InstructionType::Move: {
-                write_le32(
+                write_be32(
                     KORE_MAKE_INSTRUCTION2(
                         Bytecode::Move,
                         instruction.reg1(),
@@ -260,7 +260,7 @@ namespace kore {
                     binexpr->op()
                 );
 
-                write_le32(
+                write_be32(
                     KORE_MAKE_INSTRUCTION3(
                         opcode,
                         instruction.reg1(),
@@ -275,7 +275,7 @@ namespace kore {
                 // We write the basic block IDs directly in the jump offsets
                 // now and patch them later when we know the instruction
                 // offsets of all basic blocks
-                write_le32(
+                write_be32(
                     KORE_MAKE_INSTRUCTION(
                         Bytecode::JumpIfNot,
                         instruction.reg1(),
@@ -284,7 +284,7 @@ namespace kore {
                 );
                 save_patch_location();
 
-                write_le32(
+                write_be32(
                     KORE_MAKE_VALUE_INSTRUCTION(Bytecode::Jump, instruction.bb2())
                 );
 
@@ -293,7 +293,7 @@ namespace kore {
             }
 
             case kir::InstructionType::AllocateArray: {
-                write_le32(
+                write_be32(
                     KORE_MAKE_INSTRUCTION(
                         Bytecode::AllocArray,
                         instruction.reg1(),
@@ -304,7 +304,7 @@ namespace kore {
             }
 
             case kir::InstructionType::BuiltinFunctionCall: {
-                write_le32(
+                write_be32(
                     KORE_MAKE_INSTRUCTION3(
                         Bytecode::BuiltinCall,
                         instruction.reg1(),
@@ -316,14 +316,39 @@ namespace kore {
             }
 
             case kir::InstructionType::Call: {
-                write_le32(
-                    KORE_MAKE_INSTRUCTION3(
-                        Bytecode::Call,
-                        instruction.reg1(),
-                        instruction.reg2(),
-                        instruction.reg3()
-                    )
-                );
+                // TODO: This should probably be a register containing the function index instead
+                auto func_index = 0;
+
+                auto arg_count = instruction.value();
+                auto registers = instruction.registers();
+                auto ret_count = registers.size() - arg_count;
+
+                // TODO: Use return count of called function here (what about
+                // variadic functions?)
+                std::vector<std::uint8_t> bytes{
+                    Bytecode::Call,
+                    static_cast<std::uint8_t>(func_index),
+                    static_cast<std::uint8_t>(arg_count),
+                    static_cast<std::uint8_t>(ret_count),
+                };
+
+                if (arg_count > 0) {
+                    bytes.insert(
+                        bytes.end(),
+                        registers.cbegin(),
+                        registers.cbegin() + arg_count
+                    );
+                }
+
+                if (ret_count > 0) {
+                    bytes.insert(
+                        bytes.end(),
+                        registers.cbegin() + arg_count,
+                        registers.cend()
+                    );
+                }
+
+                write_bytes(bytes);
                 break;
             }
 
@@ -336,8 +361,10 @@ namespace kore {
                 auto ins = KORE_MAKE_INSTRUCTION0(instruction.opcode());
 
                 for (size_t i = 0; i < registers.size(); ++i) {
-                    ins = KORE_ADD_REG(ins, registers[i], i + 1);
+                    ins = KORE_ADD_REG(ins, registers[i], i);
                 }
+
+                write_be32(ins);
 
                 break;
             }
@@ -361,6 +388,10 @@ namespace kore {
         _buffer.insert(_buffer.end(), str.cbegin(), str.cend());
     }
 
+    void BytecodeGenerator2::write_bytes(std::vector<std::uint8_t>& bytes) {
+        _buffer.insert(_buffer.end(), bytes.cbegin(), bytes.cend());
+    }
+
     void BytecodeGenerator2::write_bytes(std::initializer_list<std::uint8_t> bytes) {
         _buffer.insert(_buffer.end(), bytes);
     }
@@ -375,7 +406,7 @@ namespace kore {
             throw std::runtime_error("Can only write strings less than");
         }
 
-        write_le32(str.size());
+        write_be32(str.size());
 
         // TODO: Will this work for utf-8 strings?
         // Do not include the null-terminator
@@ -394,8 +425,8 @@ namespace kore {
         );
     }
 
-    void BytecodeGenerator2::write_le32(std::uint32_t value) {
-        ::kore::write_le32(value, _buffer);
+    void BytecodeGenerator2::write_be32(std::uint32_t value) {
+        ::kore::write_be32(value, _buffer);
     }
 }
 

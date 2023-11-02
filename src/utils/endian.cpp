@@ -43,7 +43,15 @@ namespace kore {
 
     std::uint32_t read_le32(std::istream& is) {
         std::array<char, 4> data;
-        is.read(data.data(), 4);
+        auto bytes_read = is.read(data.data(), 4).gcount();
+
+        if (bytes_read != 4) {
+            if (is.eof()) {
+                throw new std::runtime_error("Prematurely reached end of stream");
+            } else {
+                throw new std::runtime_error("Failed to read from stream");
+            }
+        }
 
         if (is_big_endian()) {
             return
@@ -111,6 +119,18 @@ namespace kore {
         os.write((char*)&value, 4);
     }
 
+    void write_le32(std::uint32_t value, std::ostream& os) {
+        if (is_big_endian()) {
+            value =
+                (value << 24) |
+                ((value & 0xff00) << 8) |
+                ((value >> 8) & 0xff00) |
+                (value >> 24);
+        }
+
+        os.write((char*)&value, 4);
+    }
+
     std::uint32_t read_le32(Buffer& buffer) {
         if (is_big_endian()) {
             return
@@ -150,4 +170,40 @@ namespace kore {
             );
         }
     }
+
+    void write_be32(std::uint32_t value, Buffer& buffer) {
+        if (is_big_endian()) {
+            buffer.insert(
+                buffer.end(),
+                {
+                    static_cast<std::uint8_t>(value & 0xff),
+                    static_cast<std::uint8_t>((value >> 8) & 0xff),
+                    static_cast<std::uint8_t>((value >> 16) & 0xff),
+                    static_cast<std::uint8_t>(value >> 24)
+                }
+            );
+        } else {
+            buffer.insert(
+                buffer.end(),
+                {
+                    static_cast<std::uint8_t>(value >> 24),
+                    static_cast<std::uint8_t>((value >> 16) & 0xff),
+                    static_cast<std::uint8_t>((value >> 8) & 0xff),
+                    static_cast<std::uint8_t>(value & 0xff)
+                }
+            );
+        }
+    }
+
+    void read_be32_bytes(std::istream& is, std::size_t count, std::vector<std::uint32_t>& buffer) {
+        for (std::size_t i = 0; i < count; ++i) {
+            buffer.push_back(kore::read_be32(is));
+        }
+    }
+
+    /* void write_le32_bytes(std::vector<std::uint32_t>& buffer) { */
+    /*     for (auto value : buffer) { */
+    /*         kore::write_le32(value, buffer); */
+    /*     } */
+    /* } */
 }

@@ -10,6 +10,41 @@ namespace kore {
 
     bool is_big_endian();
 
+    template<unsigned int N>
+    void read_le(std::istream& is) {
+        static_assert(N % 8 == 0, "N must be divisble by 8");
+        static_assert(N >= 16 && N <= 64, "N must be 16, 32, or 64");
+
+        constexpr decltype(N) byte_count = N / 8;
+        std::array<char, byte_count> data;
+        auto bytes_read = is.read(data.data(), N).gcount();
+
+        if (bytes_read != byte_count) {
+            if (is.eof()) {
+                throw new std::runtime_error("Prematurely reached end of stream");
+            } else {
+                throw new std::runtime_error("Failed to read from stream");
+            }
+        }
+
+        // 1 2 3 4
+        // Saved on LE: 4 3 2 1
+        // Saved on BE: 1 2 3 4 => 4 3 2 1
+
+        // Saved on LE: 1 2 3 4 => 4 3 2 1 => 1 2 3 4
+        // Saved on BE: 1 2 3 4 => 4 3 2 1
+
+        decltype(N) result = 0;
+
+        if (!is_big_endian()) {
+            return data.data();
+        } else {
+            for (int i = 0; i < N / 8; ++i) {
+
+            }
+        }
+    }
+
     template<typename T>
     void write_big_endian(T value, std::ostream& os) {
         constexpr auto size = sizeof(T);
@@ -75,11 +110,16 @@ namespace kore {
     /* std::uint64_t read_be64(std::istream& is); */
     void write_be16(std::uint16_t value, std::ostream& os);
     void write_be32(std::uint32_t value, std::ostream& os);
+    void write_le32(std::uint32_t value, std::ostream& os);
     /* void write_be64(std::uint32_t value, std::ostream& os); */
 
     // Buffer-based endian functions
     std::uint32_t read_le32(Buffer& buffer);
     void write_le32(std::uint32_t value, Buffer& buffer);
+    void write_be32(std::uint32_t value, Buffer& buffer);
+
+    void read_be32_bytes(std::istream& is, std::size_t count, std::vector<std::uint32_t>& buffer);
+    void write_le32_bytes(std::vector<std::uint32_t>& buffer);
 }
 
 #endif // KORE_ENDIAN_HPP

@@ -28,7 +28,7 @@ namespace koredis {
 
     Instruction decode_instruction(int& pos, const kore::CompiledObject& obj) {
         kore::bytecode_type instruction = obj[pos];
-        auto opcode = static_cast<kore::Bytecode>(instruction >> 24 & 0xff);
+        auto opcode = GET_OPCODE(instruction);
 
         switch (opcode) {
             case kore::Bytecode::Noop:
@@ -39,8 +39,6 @@ namespace koredis {
             case kore::Bytecode::CloadI64:
             case kore::Bytecode::CloadF32:
             case kore::Bytecode::CloadF64:
-                return Instruction::load(opcode, pos++, GET_REG1(instruction), GET_VALUE(instruction));
-
             case kore::Bytecode::Gload:
                 return Instruction::load(opcode, pos++, GET_REG1(instruction), GET_VALUE(instruction));
 
@@ -113,6 +111,15 @@ namespace koredis {
             case kore::Bytecode::Jump:
                 return Instruction(opcode, pos++, GET_REG1(instruction));
 
+            case kore::Bytecode::JumpIf:
+            case kore::Bytecode::JumpIfNot:
+                return Instruction::with_offset(
+                    opcode,
+                    pos++,
+                    GET_REG1(instruction),
+                    GET_OFFSET(instruction)
+                );
+
             case kore::Bytecode::Call: {
                 int func_reg = GET_REG1(instruction);
                 int arg_count = GET_REG2(instruction);
@@ -140,15 +147,6 @@ namespace koredis {
                     arg_regs
                 );
             }
-
-            case kore::Bytecode::JumpIf:
-            case kore::Bytecode::JumpIfNot:
-                return Instruction::with_offset(
-                    opcode,
-                    pos++,
-                    GET_REG1(instruction),
-                    GET_OFFSET(instruction)
-                );
 
             case kore::Bytecode::Ret: {
                 int regs = GET_REG1(instruction);

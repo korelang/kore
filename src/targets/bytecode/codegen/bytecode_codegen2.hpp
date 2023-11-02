@@ -46,11 +46,12 @@ namespace kore {
             void patch_jumps();
 
             void write_bytes(const std::string& str);
+            void write_bytes(std::vector<std::uint8_t>& bytes);
             void write_bytes(std::initializer_list<std::uint8_t> bytes);
             void write_bytes();
             void write_string(const std::string& str);
             void write_raw(std::uint32_t value);
-            void write_le32(std::uint32_t value);
+            void write_be32(std::uint32_t value);
 
             /* template<typename... Args> */
             /* void write_bytes(Args&&... args) { */
@@ -59,16 +60,16 @@ namespace kore {
 
             template<typename T>
             void write_constant_table(const ConstantTable<T>& table) {
-                write_le32(static_cast<T>(table.tag()));
+                write_be32(static_cast<T>(table.tag()));
 
                 if (table.size() > UINT32_MAX) {
                     // TOOD: How do we handle errors in code generation?
                 }
 
-                write_le32(static_cast<T>(table.size()));
+                write_be32(static_cast<T>(table.size()));
 
                 for (auto it = table.sorted_cbegin(); it != table.sorted_cend(); ++it) {
-                    write_le32(*it);
+                    write_be32(*it);
                 }
             }
     };

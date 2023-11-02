@@ -12,7 +12,7 @@ namespace kore {
     #define GET_REG2(instruction) (instruction >> 8 & 0xff)
     #define GET_REG3(instruction) (instruction & 0xff)
     #define GET_REG(instruction, pos) ((instruction >> ((3 - pos) * 8)) & 0xff)
-    #define GET_OPCODE(instruction) static_cast<Bytecode>(instruction >> 24)
+    #define GET_OPCODE(instruction) static_cast<kore::Bytecode>(instruction >> 24)
     #define GET_OFFSET(instruction) (instruction & 0xffff)
     #define GET_ARG_COUNT(instruction) GET_REG2(instruction)
     #define GET_RET_REG(instruction) GET_REG3(instruction)

@@ -9,6 +9,11 @@ namespace koredis {
         public:
             DisassembleError(const std::string& message);
             DisassembleError(const std::string& message, std::streampos pos);
+            DisassembleError(
+                const std::string& message,
+                std::streampos pos,
+                int unknown_opcode
+            );
             virtual ~DisassembleError();
 
             const char* what() const noexcept override;

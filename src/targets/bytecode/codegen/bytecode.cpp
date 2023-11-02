@@ -1,4 +1,5 @@
 #include "targets/bytecode/codegen/bytecode.hpp"
+#include "targets/bytecode/register.hpp"
 
 namespace kore {
     std::string bytecode_to_string(Bytecode bytecode) {
@@ -78,6 +79,21 @@ namespace kore {
 
     Bytecode int_to_bytecode(int opcode) {
         return static_cast<kore::Bytecode>(opcode);
+    }
+
+    bool is_variable_length(Bytecode bytecode) {
+        switch (bytecode) {
+            case Call:
+            case Ret:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    bool is_variable_length(bytecode_type instruction) {
+        return is_variable_length(GET_OPCODE(instruction));
     }
 
     std::ostream& operator<<(std::ostream& os, const Bytecode bytecode) {

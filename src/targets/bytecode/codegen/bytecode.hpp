@@ -40,6 +40,7 @@ namespace kore {
     /// +----------+-----------+-----------+-----------+
     /// |  opcode  | operand 1 | operand 2 | operand 3 |
     /// +----------+-----------+-----------+-----------+
+    // TODO: Change this name to 'instruction'
     using bytecode_type = std::uint32_t;
 
     /// For example the following statement
@@ -145,6 +146,9 @@ namespace kore {
     std::string bytecode_to_string(Bytecode bytecode);
 
     Bytecode int_to_bytecode(int opcode);
+
+    bool is_variable_length(Bytecode bytecode);
+    bool is_variable_length(bytecode_type instruction);
 
     std::ostream& operator<<(std::ostream& os, const Bytecode bytecode);
 }

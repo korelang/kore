@@ -268,6 +268,9 @@ namespace kore {
             // name like "module::function" where "::" is a scope delimiter
             func.call(Bytecode::Call, call, arg_registers, return_registers);
 
+            // Push single destination (return) register
+            push_register(return_registers[0]);
+
             /* // TODO: Or maybe move this into a separate AST node? */
             /* auto [idx, builtin_func_ptr] = vm::get_builtin_function_by_name(call.name()); */
 
@@ -335,6 +338,10 @@ namespace kore {
 
         Reg KirLoweringPass::visit_expression(Expression* expr) {
             expr->accept_visit_only(*this);
+
+            if (_register_stack.empty()) {
+                throw std::runtime_error("No destination register was pushed when visiting expression");
+            }
 
             auto reg = _register_stack.back();
             _register_stack.pop_back();
