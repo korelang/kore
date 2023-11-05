@@ -6,34 +6,14 @@
 #include "ast/statements/variable_assignment.hpp"
 #include "ast/statements/variable_declaration.hpp"
 #include "errors/errors.hpp"
+#include "logging/logging.hpp"
 #include "types/function_type.hpp"
 #include "types/scope.hpp"
-#include "utils/unused_parameter.hpp"
 
 #include <sstream>
 
-#if defined(KORE_DEBUG_TYPECHECKER) || defined(KORE_DEBUG)
-    #include <iostream>
-
-    #define KORE_DEBUG_TYPECHECKER_LOG(prefix, typename1, typename2) {\
-        std::cerr << "[type checker] " << prefix;\
-        \
-        if (!typename1.empty()) {\
-            std::cerr << ": " << typename1;\
-        }\
-        \
-        if (!typename2.empty()) {\
-            std::cerr << ", " << typename2;\
-        }\
-        \
-        std::cerr << std::endl;\
-    }
-#else
-    #define KORE_DEBUG_TYPECHECKER_LOG(prefix, type1, type2)
-#endif
-
 namespace kore {
-    TypeChecker::TypeChecker() {}
+    TypeChecker::TypeChecker(const ParsedCommandLineArgs& args) : _args(&args) {}
 
     TypeChecker::~TypeChecker() {}
 
@@ -45,6 +25,27 @@ namespace kore {
         }
 
         return _errors.size();
+    }
+
+    void TypeChecker::trace_type_checker(
+        const std::string& name,
+        const Type* type1,
+        const Type* type2
+    ) {
+        if (_args && _args->trace == TraceOption::TypeCheck) {
+            std::string msg = name;
+            const std::string group = "type_check";
+
+            if (type1) {
+                msg += ": " + type1->name();
+            }
+
+            if (type2) {
+                msg += ", " + type2->name();
+            }
+
+            debug_group(group, "%s", msg.c_str());
+        }
     }
 
     std::vector<errors::Error> TypeChecker::errors() {
@@ -63,11 +64,7 @@ namespace kore {
         auto entry = _scope_stack.find(identifier.name());
 
         if (entry) {
-            KORE_DEBUG_TYPECHECKER_LOG(
-                "identifier",
-                entry->identifier->type()->name(),
-                std::string()
-            )
+            trace_type_checker("identifier", entry->identifier->type());
 
             identifier.set_type(entry->identifier->type());
         } else {
@@ -76,16 +73,12 @@ namespace kore {
     }
 
     void TypeChecker::visit(VariableAssignment& assignment) {
+        assignment.expression()->accept_visit_only(*this);
+
         auto declared_type = assignment.declared_type();
         auto expr_type = assignment.expression()->type();
 
-        KORE_DEBUG_TYPECHECKER_LOG(
-            "assignment",
-            declared_type->name(),
-            expr_type->name()
-        )
-
-        assignment.expression()->accept_visit_only(*this);
+        trace_type_checker("assignment", declared_type, expr_type);
 
         // If the variable was not given an explicit type, rely on inferred
         // type instead
@@ -136,6 +129,8 @@ namespace kore {
     }
 
     void TypeChecker::visit(class Call& call) {
+        trace_type_checker("call", call.type());
+
         // Find an scoped entry in the current or enclosing scopes for a
         // function definition
         auto entry = _scope_stack.find(call.name());
@@ -163,7 +158,7 @@ namespace kore {
             return;
         }
 
-        KORE_DEBUG_TYPECHECKER_LOG("call", func_type->name(), std::string());
+        trace_type_checker("call", func_type);
 
         // TODO: Move into Call class
         for (int i = 0; i < call.arg_count(); ++i) {
@@ -214,16 +209,11 @@ namespace kore {
             }
         }
 
-        KORE_DEBUG_TYPECHECKER_LOG(
-            "binop",
-            left->type()->name(),
-            right->type()->name()
-        )
+        trace_type_checker("binop", left->type(), right->type());
     }
 
     void TypeChecker::visit(Branch& branch) {
-        KORE_DEBUG_TYPECHECKER_LOG("branch", std::string(), std::string())
-        UNUSED_PARAM(branch);
+        trace_type_checker("branch");
 
         _scope_stack.enter();
 
@@ -239,8 +229,7 @@ namespace kore {
     }
 
     void TypeChecker::visit(Function& func) {
-        KORE_DEBUG_TYPECHECKER_LOG("function", std::string(), std::string())
-        UNUSED_PARAM(func);
+        trace_type_checker("function", func.type());
 
         // Enter a new function scope and add all function
         // arguments to that scope
@@ -264,7 +253,7 @@ namespace kore {
     }
 
     void TypeChecker::visit(Return& ret) {
-        KORE_DEBUG_TYPECHECKER_LOG("return", std::string(), std::string())
+        trace_type_checker("return");
 
         auto func = _scope_stack.enclosing_function();
 
@@ -283,5 +272,3 @@ namespace kore {
         }
     }
 }
-
-#undef KORE_DEBUG_TYPECHECKER_LOG

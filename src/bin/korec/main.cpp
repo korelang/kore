@@ -60,16 +60,17 @@ namespace kore {
         bool execute,
         const std::string& expr,
         fs::path& path,
-        AstWriter& writer
+        AstWriter& writer,
+        const ParsedCommandLineArgs& args
     ) {
         Ast ast{path};
         Parser parser;
         auto group = "parse";
 
         if (execute) {
-            debug_time(group, [&expr, &ast, &parser](){ parser.parse_non_module(expr, &ast); });
+            debug_time(group, [&expr, &ast, &parser, &args](){ parser.parse_non_module(expr, &ast, args); });
         } else {
-            debug_time(group, [&path, &ast, &parser](){ parser.parse_file(path, &ast); });
+            debug_time(group, [&path, &ast, &parser, &args](){ parser.parse_file(path, &ast, args); });
         }
 
         if (!parser.failed()) {
@@ -82,18 +83,18 @@ namespace kore {
         return 0;
     }
 
-    int dump_parse(bool execute, const std::string& expr, fs::path& path) {
+    int dump_parse(bool execute, const std::string& expr, fs::path& path, const ParsedCommandLineArgs& args) {
         debug_group("parse", "dumping ast");
         AstStreamWriter stream_writer{std::cerr};
 
-        return dump_parse_helper(execute, expr, path, stream_writer);
+        return dump_parse_helper(execute, expr, path, stream_writer, args);
     }
 
-    int dump_parse_raw(bool execute, const std::string& expr, fs::path& path) {
+    int dump_parse_raw(bool execute, const std::string& expr, fs::path& path, const ParsedCommandLineArgs& args) {
         debug_group("parse", "dumping parse");
         AstElementStreamWriter stream_writer{std::cerr};
 
-        return dump_parse_helper(execute, expr, path, stream_writer);
+        return dump_parse_helper(execute, expr, path, stream_writer, args);
     }
 
     void dump_kir(const kir::Kir& kir) {
@@ -139,7 +140,7 @@ int main(int argc, char** argv) {
         kore::debug_group("scan", "dumping raw parse");
 
         for (auto& path : args.paths) {
-            kore::dump_parse_raw(args.execute, args.expr, path);
+            kore::dump_parse_raw(args.execute, args.expr, path, args);
         }
 
         return 0;
@@ -147,7 +148,7 @@ int main(int argc, char** argv) {
         kore::debug_group("parse", "dumping parse");
 
         for (auto& path : args.paths) {
-            kore::dump_parse(args.execute, args.expr, path);
+            kore::dump_parse(args.execute, args.expr, path, args);
         }
 
         return 0;

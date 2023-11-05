@@ -1,27 +1,15 @@
 #include "ast/expressions/integer_expression.hpp"
 #include "ast/statements/statements.hpp"
+#include "bin/korec/options.hpp"
+#include "logging/logging.hpp"
 #include "targets/bytecode/codegen/bytecode.hpp"
 #include "targets/bytecode/codegen/kir/kir_lowering_pass.hpp"
 #include "targets/bytecode/vm/builtins/builtins.hpp"
 #include "utils/unused_parameter.hpp"
 
-// TODO: Can this be moved into the ast visitor class instead?
-#if defined(KORE_DEBUG_KIR_LOWERING_PASS) || defined(KORE_DEBUG)
-    #include "logging/logging.hpp"
-
-    #define KORE_DEBUG_KIR_LOWERING_PASS_LOG(prefix, msg) {\
-        debug_group("compiler:kir", "%s (%s)", prefix, msg.c_str());\
-    }
-#else
-    #define KORE_DEBUG_KIR_LOWERING_PASS_LOG(prefix, msg) {\
-        UNUSED_PARAM(prefix);\
-        UNUSED_PARAM(msg);\
-    }
-#endif
-
 namespace kore {
     namespace kir {
-        KirLoweringPass::KirLoweringPass() {}
+        KirLoweringPass::KirLoweringPass(const ParsedCommandLineArgs& args) : _args(&args) {}
 
         Module KirLoweringPass::lower(const Ast& ast) {
             Module module(0, ast.path());
@@ -41,7 +29,7 @@ namespace kore {
         }
 
         void KirLoweringPass::visit(ArrayExpression& expr) {
-            KORE_DEBUG_KIR_LOWERING_PASS_LOG("array", std::to_string(expr.size()));
+            trace_kir("array", std::to_string(expr.size()));
 
             std::vector<Reg> element_regs;
 
@@ -58,20 +46,17 @@ namespace kore {
         }
 
         void KirLoweringPass::visit(BoolExpression& expr) {
-            KORE_DEBUG_KIR_LOWERING_PASS_LOG("bool", expr.value());
+            trace_kir("bool", expr.value());
             push_register(current_function().load_constant(expr), expr.type());
         }
 
         /* void KirLoweringPass::visit(CharExpression& expr) { */
-        /*     KORE_DEBUG_KIR_LOWERING_PASS_LOG("char", expr.value()); */
+        /*     trace_kir("char", expr.value()); */
         /*     current_function().load_constant(expr); */
         /* } */
 
         void KirLoweringPass::visit(IntegerExpression& expr) {
-            KORE_DEBUG_KIR_LOWERING_PASS_LOG(
-                expr.type()->name().c_str(),
-                std::to_string(expr.value())
-            );
+            trace_kir(expr.type()->name().c_str(), std::to_string(expr.value()));
 
             int index;
             int num_bits = expr.type()->category() == TypeCategory::Integer32 ? 32 : 64;
@@ -89,10 +74,7 @@ namespace kore {
         }
 
         void KirLoweringPass::visit(FloatExpression& expr) {
-            KORE_DEBUG_KIR_LOWERING_PASS_LOG(
-                expr.type()->name().c_str(),
-                std::to_string(expr.value())
-            );
+            trace_kir(expr.type()->name().c_str(), std::to_string(expr.value()));
 
             int index;
             int num_bits = expr.type()->category() == TypeCategory::Float32 ? 32 : 64;
@@ -108,12 +90,14 @@ namespace kore {
         }
 
         /* void KirLoweringPass::visit(StringExpression& expr) { */
-        /*     KORE_DEBUG_KIR_LOWERING_PASS_LOG("str", expr.value()); */
+        /*     trace_kir("str", expr.value()); */
 
         /*     push_register(current_object()->allocate_register()); */
         /* } */
 
         void KirLoweringPass::visit(BinaryExpression& expr) {
+            trace_kir("binop", expr.op_string());
+
             Reg reg_left = visit_expression(expr.left());
             Reg reg_right = visit_expression(expr.right());
 
@@ -124,7 +108,7 @@ namespace kore {
         }
 
         void KirLoweringPass::visit(Identifier& expr) {
-            KORE_DEBUG_KIR_LOWERING_PASS_LOG("identifier", expr.name());
+            trace_kir("identifier", expr.name());
 
             auto entry = _scope_stack.find(expr.name());
 
@@ -138,10 +122,7 @@ namespace kore {
         }
 
         void KirLoweringPass::visit(VariableAssignment& statement) {
-            KORE_DEBUG_KIR_LOWERING_PASS_LOG(
-                "assignment",
-                statement.identifier()->name()
-            );
+            trace_kir("assignment", statement.identifier()->name());
 
             auto& func = current_function();
             auto entry = _scope_stack.find_inner(statement.identifier()->name());
@@ -171,7 +152,7 @@ namespace kore {
         }
 
         void KirLoweringPass::visit(IfStatement& ifstatement) {
-            KORE_DEBUG_KIR_LOWERING_PASS_LOG("if", std::to_string(ifstatement.branch_count()));
+            trace_kir("if", std::to_string(ifstatement.branch_count()));
 
             auto& func = current_function();
             auto& graph = func.graph();
@@ -232,7 +213,7 @@ namespace kore {
         }
 
         void KirLoweringPass::visit(kore::Function& func) {
-            KORE_DEBUG_KIR_LOWERING_PASS_LOG("function", func.name());
+            trace_kir("function", func.name());
 
             // Enter a new function scope and add all function arguments to
             // that scope
@@ -246,7 +227,7 @@ namespace kore {
         }
 
         void KirLoweringPass::visit(class Call& call) {
-            KORE_DEBUG_KIR_LOWERING_PASS_LOG("call", call.name());
+            trace_kir("call", call.name());
 
             auto& func = current_function();
             std::vector<Reg> arg_registers;
@@ -280,7 +261,7 @@ namespace kore {
         }
 
         void KirLoweringPass::visit(Return& ret) {
-            KORE_DEBUG_KIR_LOWERING_PASS_LOG("return", std::string())
+            trace_kir("return");
             auto& func = current_function();
 
             // If the return statement returns an expression, generate code
@@ -295,6 +276,18 @@ namespace kore {
             }
 
             func.free_registers();
+        }
+
+        void KirLoweringPass::trace_kir(const std::string& name, const std::string& msg) {
+            if (_args && _args->trace == TraceOption::Kir) {
+                std::string message = name;
+
+                if (!msg.empty()) {
+                    message += " (" + msg + ")";
+                }
+
+                debug_group("kir", "%s", message.c_str());
+            }
         }
 
         Function& KirLoweringPass::current_function() {
@@ -368,5 +361,3 @@ namespace kore {
         }
     }
 }
-
-#undef KORE_DEBUG_KIR_LOWERING_PASS_LOG

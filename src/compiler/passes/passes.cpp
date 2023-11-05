@@ -16,7 +16,7 @@ namespace kore {
 
                 for (const auto& path : context.args.paths) {
                     Ast ast{path};
-                    parser.parse_file(path, &ast); 
+                    parser.parse_file(path, &ast, context.args); 
                     context.asts.push_back(std::move(ast));
                 }
 
@@ -30,7 +30,7 @@ namespace kore {
         return Pass{
             "type inference",
             [](PassContext& context) {
-                TypeInferrer type_inferrer;
+                TypeInferrer type_inferrer(context.args);
 
                 for (auto& ast : context.asts) {
                     type_inferrer.infer(ast); 
@@ -45,7 +45,7 @@ namespace kore {
         return Pass{
             "type checking",
             [](PassContext& context) {
-                TypeChecker type_checker;
+                TypeChecker type_checker(context.args);
                 int error_count = 0;
 
                 for (auto& ast : context.asts) {
@@ -81,10 +81,7 @@ namespace kore {
                     auto& buffer = context.buffers[idx];
                     std::ofstream ofs(target_path, std::ios::out | std::ios::binary);
 
-                    ofs.write(
-                        reinterpret_cast<const char*>(buffer.data()),
-                        buffer.size()
-                    );
+                    ofs.write(reinterpret_cast<const char*>(buffer.data()), buffer.size());
                 }
 
                 return PassResult{ true, {} };

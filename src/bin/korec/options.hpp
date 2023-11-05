@@ -8,29 +8,50 @@
 namespace fs = std::filesystem;
 
 namespace kore {
+    enum class TraceOption {
+        None = 0,
+        Scan,
+        Parse,
+        TypeInference,
+        TypeCheck,
+        Kir,
+        Codegen,
+    };
+
+    enum class DumpOption {
+        None = 0,
+        Scan,
+        Parse,
+        Ast,
+        Kir,
+        Codegen,
+    };
+
     struct ParsedCommandLineArgs {
         // Why parsing failed, empty if successful
         std::string error_message;
 
         // TODO: Change dump args to --dump (scan|parse|ast|kir)?
-        bool timings;
-        bool execute;
-        bool dump_scan;
-        bool dump_parse;
-        bool dump_ast;
+        bool timings = false;
+        bool execute = false;
+        TraceOption trace = TraceOption::None;
+        DumpOption dump = DumpOption::None;
+        bool dump_scan = false;
+        bool dump_parse = false;
+        bool dump_ast = false;
         std::string dump_kir;
-        bool dump_codegen;
-        bool disassemble;
+        bool dump_codegen = false;
+        bool disassemble = false;
         std::string target;
-        bool version;
-        bool version_only;
-        bool help;
-        int verbosity;
-        bool env_vars;
-        bool colors;
-        bool compile_only;
-        bool typecheck_only;
-        bool mem_stats;
+        bool version = false;
+        bool version_only = false;
+        bool help = false;
+        int verbosity = 0;
+        bool env_vars = false;
+        bool colors = false;
+        bool compile_only = false;
+        bool typecheck_only = false;
+        bool mem_stats = false;
 
         std::string expr;
         std::vector<fs::path> paths;

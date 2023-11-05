@@ -1,29 +1,13 @@
 #include "type_inferrer.hpp"
 #include "ast/expressions/expression.hpp"
 #include "ast/expressions/binary_expression.hpp"
+#include "bin/korec/options.hpp"
+#include "logging/logging.hpp"
 #include "types/function_type.hpp"
 #include "types/unknown_type.hpp"
-#include "utils/unused_parameter.hpp"
-
-#if defined(KORE_DEBUG_TYPEINFERRER) || defined(KORE_DEBUG)
-    #include <iostream>
-
-    #define KORE_DEBUG_TYPEINFERRER_LOG(prefix) {\
-        std::cerr << "[type inferrer] " << prefix << std::endl;\
-    }
-
-    #define KORE_DEBUG_TYPEINFERRER_LOG_TYPE(prefix, type) {\
-        std::cerr\
-            << "[type inferrer] " << prefix\
-            << ": " << type->name() << std::endl;\
-    }
-#else
-    #define KORE_DEBUG_TYPEINFERRER_LOG(prefix)
-    #define KORE_DEBUG_TYPEINFERRER_LOG_TYPE(prefix, type)
-#endif
 
 namespace kore {
-    TypeInferrer::TypeInferrer() {}
+    TypeInferrer::TypeInferrer(const ParsedCommandLineArgs& args) : _args(&args) {}
 
     TypeInferrer::~TypeInferrer() {}
 
@@ -33,12 +17,28 @@ namespace kore {
         }
     }
 
+    void TypeInferrer::trace_type_inference(
+        const std::string& name,
+        const Type* type
+    ) {
+        if (_args && _args->trace == TraceOption::TypeInference) {
+            const std::string group = "type_inference";
+
+            if (type) {
+                debug_group(group, "%s (type: %s)", name.c_str(), type->name().c_str());
+            } else {
+                debug_group(group, "%s", name.c_str());
+            }
+        }
+    }
+
     void TypeInferrer::visit(BinaryExpression& expr) {
         expr.left()->accept_visit_only(*this);
         expr.right()->accept_visit_only(*this);
         expr.set_type(expr.left()->type()->unify(expr.right()->type()));
 
-        KORE_DEBUG_TYPEINFERRER_LOG_TYPE("binop", expr.type())
+        // TODO: Should expression have names or a ostream operator instead?
+        trace_type_inference("binop", expr.type());
     }
 
     void TypeInferrer::visit(class Call& call) {
@@ -60,7 +60,7 @@ namespace kore {
             call.set_type(Type::unknown());
         }
 
-        KORE_DEBUG_TYPEINFERRER_LOG_TYPE("call " + call.name(), call.type())
+        trace_type_inference("call to " + call.name(), call.type());
     }
 
     void TypeInferrer::visit(Identifier& expr) {
@@ -74,17 +74,14 @@ namespace kore {
             expr.set_type(Type::unknown());
         }
 
-        KORE_DEBUG_TYPEINFERRER_LOG_TYPE(
-            "identifier " + expr.name(),
-            expr.type()
-        )
+        trace_type_inference("identifier " + expr.name(), expr.type());
     }
 
     void TypeInferrer::visit(UnaryExpression& expr) {
         expr.expr()->accept_visit_only(*this);
         expr.set_type(expr.expr()->type());
 
-        KORE_DEBUG_TYPEINFERRER_LOG_TYPE("unary expression", expr.type())
+        trace_type_inference("unary expression", expr.type());
     }
 
     void TypeInferrer::visit(VariableAssignment& statement) {
@@ -101,7 +98,7 @@ namespace kore {
         statement.set_type(expr_type);
         _scope_stack.insert(statement.identifier());
 
-        KORE_DEBUG_TYPEINFERRER_LOG_TYPE("assignment", statement.type())
+        trace_type_inference("assignment", statement.type());
     }
 
     /* void TypeInferrer::visit(Function& statement) { */
@@ -113,8 +110,7 @@ namespace kore {
     /* } */
 
     void TypeInferrer::visit(Function& func) {
-        KORE_DEBUG_TYPEINFERRER_LOG("function")
-        UNUSED_PARAM(func);
+        trace_type_inference("function " + func.name(), func.type());
 
         // Enter a new function scope and add all function
         // arguments to that scope
@@ -139,7 +135,7 @@ namespace kore {
     }
 
     void TypeInferrer::visit(Return& ret) {
-        KORE_DEBUG_TYPEINFERRER_LOG("return")
+        trace_type_inference("return");
 
         if (ret.expr()) {
             ret.expr()->accept_visit_only(*this);
@@ -147,8 +143,7 @@ namespace kore {
     }
 
     void TypeInferrer::visit(Branch& branch) {
-        KORE_DEBUG_TYPEINFERRER_LOG("branch")
-        UNUSED_PARAM(branch);
+        trace_type_inference("branch");
 
         _scope_stack.enter();
 
@@ -163,6 +158,3 @@ namespace kore {
         _scope_stack.leave();
     }
 }
-
-#undef KORE_DEBUG_TYPEINFERRER_LOG
-#undef KORE_DEBUG_TYPEINFERRER_LOG_TYPE

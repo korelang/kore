@@ -4,20 +4,23 @@
 #include "ast/ast.hpp"
 #include "ast/ast_visitor.hpp"
 #include "ast/statements/variable_assignment.hpp"
+#include "bin/korec/options.hpp"
 #include "types/scope.hpp"
 
 namespace kore {
     /// Class that tries to infer the types of nodes in an AST
     class TypeInferrer final : public AstVisitor {
         public:
-            TypeInferrer();
+            TypeInferrer(const ParsedCommandLineArgs& args);
             virtual ~TypeInferrer();
 
             void infer(Ast& ast);
 
         private:
-            // We need a symbol table for inference of the types of variables
+            const ParsedCommandLineArgs* _args;
             ScopeStack _scope_stack;
+
+            void trace_type_inference(const std::string& name, const Type* type = nullptr);
 
             void visit(BinaryExpression& expr) override;
             void visit(class Call& call) override;

@@ -12,6 +12,7 @@
 #include "ast/scanner/keywords.hpp"
 #include "ast/scanner/scanner.hpp"
 #include "ast/scanner/token.hpp"
+#include "bin/korec/options.hpp"
 
 namespace kore {
     using IdentifierList = std::vector<Owned<Identifier>>;
@@ -34,13 +35,13 @@ namespace kore {
             /// Parse a non-module string without requiring a module declaration
             /// and normal program structure. This is used to parse expressions
             /// and statements given on the command line or in the REPL
-            void parse_non_module(const std::string& value, Ast* ast);
+            void parse_non_module(const std::string& value, Ast* ast, const ParsedCommandLineArgs& args);
 
             /// Parse a program in a string 
-            void parse_string(const std::string& value, Ast* ast);
+            void parse_string(const std::string& value, Ast* ast, const ParsedCommandLineArgs& args);
 
             /// Parse a program in a file
-            void parse_file(const std::string& path, Ast* ast);
+            void parse_file(const std::string& path, Ast* ast, const ParsedCommandLineArgs& args);
 
         private:
             std::string _module_name;
@@ -51,6 +52,9 @@ namespace kore {
             bool _did_peek;
             Token _peek_token;
             Ast* _ast;
+            const ParsedCommandLineArgs* _args;
+
+            void trace_parser(const std::string& name);
 
             /* std::vector<ParserWarnings> _warnings; */
             /* std::vector<ParserError> _errors; */

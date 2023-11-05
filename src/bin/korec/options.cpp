@@ -1,4 +1,6 @@
 #include <iostream>
+#include <optional>
+#include <map>
 
 #include "logging/logging.hpp"
 #include "bin/korec/options.hpp"
@@ -34,13 +36,41 @@ namespace kore {
 
         Debugging options:
 
-            --dump-scan       Only perform a scan of the input file for tokens and
-                              dump the tokens to stderr.
-            --dump-parse      Dump the parse tree elements to stderr.
-            --dump-ast        Dump the parsed abstract syntax tree to stderr.
-            --dump-kir        Dump kore's intermediate representation to stderr.
-            --dump-codegen    Dump generated code to stderr.
+            --trace=<pass>    Output trace information for a compiler pass. Accepted
+                              values are:
+
+                                * scan REMOVE THIS?
+                                * parse
+                                * type_inference
+                                * type_check
+                                * codegen
+
+            --dump=<pass>     Stop at and dump information from various steps of
+                              the compilation process to stderr. Accepted values are:
+
+                                * scan     Only perform scanning and dump scanned tokens
+                                * parse    Only parse and dump parsed ast elements
+                                * ast      Only parse and dump parsed ast
+                                * kir      Dump intermediate representation
+                                * codegen  Dump generated code for target
     )";
+
+    std::map<std::string, TraceOption> arg_to_trace_option{
+        { "scan",           TraceOption::Scan },
+        { "parse",          TraceOption::Parse },
+        { "type_inference", TraceOption::TypeInference },
+        { "type_check",     TraceOption::TypeCheck },
+        { "kir",            TraceOption::Kir },
+        { "codegen",        TraceOption::Codegen },
+    };
+
+    std::map<std::string, DumpOption> arg_to_dump_option{
+        { "scan",    DumpOption::Scan },
+        { "parse",   DumpOption::Parse },
+        { "ast",     DumpOption::Ast },
+        { "kir",     DumpOption::Kir },
+        { "codegen", DumpOption::Codegen },
+    };
 
     void validate_args(int argc, ParsedCommandLineArgs& args) {
         if (argc < 2) {
@@ -57,21 +87,35 @@ namespace kore {
 
         for (const auto& path : args.paths) {
             if (!path.has_filename()) {
-                args.error_message = "Source file must be a file";
+                args.error_message = "Source file must be a file: '" + path.string() + "'";
             }
         }
 
         return;
     }
 
-    ParsedCommandLineArgs parse_commandline(int argc, char** args) {
+    std::optional<std::string> get_argument(
+        std::size_t pos,
+        const std::vector<std::string>& args
+    ) {
+        if (pos + 1 < args.size()) {
+            return args[pos + 1];
+        } else {
+            error("Expected argument after %s", args[pos].c_str());
+            return std::nullopt;
+        }
+    }
+
+    ParsedCommandLineArgs parse_commandline(int argc, char** argv) {
         auto parsed_args = ParsedCommandLineArgs{};
 
-        if (!args) {
+        if (!argv) {
             return parsed_args;
         }
 
-        for (int i = 0; i < argc;) {
+        std::vector<std::string> args(argv + 1, argv + argc);
+
+        for (std::size_t i = 0; i < args.size();) {
             std::string arg = args[i];
 
             if (arg[0] == '-') {
@@ -84,12 +128,28 @@ namespace kore {
                     parsed_args.timings = true;
                 } else if (arg == "-x" || arg == "--execute") {
                     parsed_args.execute = true;
+                    auto option_arg = get_argument(i, args);
+                    parsed_args.expr = option_arg.value_or("");
 
-                    if (i + 1 < argc) {
-                        parsed_args.expr = args[i + 1];
-                    } else {
-                        error("Expected argument after -x, --execute");
+                    if (!option_arg) {
+                        break;
                     }
+                    ++i;
+                } else if (arg == "--trace") {
+                    auto option_arg = get_argument(i, args);
+                    auto trace_option = option_arg.value_or("");
+
+                    if (!option_arg) {
+                        break;
+                    }
+
+                    if (arg_to_trace_option.find(trace_option) == arg_to_trace_option.end()) {
+                        parsed_args.error_message = "Unknown trace option '" + trace_option + "'";
+                        break;
+                    }
+
+                    parsed_args.trace = arg_to_trace_option[trace_option];
+                    ++i;
                 } else if (arg == "--dump-parse") {
                     parsed_args.dump_parse = true;
                 } else if (arg == "--dump-ast") {
@@ -97,12 +157,20 @@ namespace kore {
                 } else if (arg == "--dump-scan") {
                     parsed_args.dump_scan = true;
                 } else if (arg == "--dump-kir") {
-                    if (i + 1 < argc) {
-                        parsed_args.dump_kir = args[i + 1];
-                        ++i;
-                    } else {
-                        error("Expected argument after --dump-kir");
+                    auto option_arg = get_argument(i, args);
+                    auto dump_option = option_arg.value_or("");
+
+                    if (!option_arg) {
+                        break;
                     }
+
+                    if (arg_to_trace_option.find(dump_option) == arg_to_trace_option.end()) {
+                        parsed_args.error_message = "Unknown dump option '" + dump_option + "'";
+                        break;
+                    }
+
+                    parsed_args.dump = arg_to_dump_option[dump_option];
+                    ++i;
                 } else if (arg == "--dump-codegen") {
                     parsed_args.dump_codegen = true;
                 } else if (arg == "--version") {
@@ -116,7 +184,7 @@ namespace kore {
                 } else if (arg == "--typecheck-only") {
                     parsed_args.typecheck_only = true;
                 } else if (arg == "--target") {
-                    if (i + 1 < argc) {
+                    if (i + 1 < args.size()) {
                         parsed_args.target = args[i + 1];
                         ++i;
                     } else {

@@ -39,16 +39,6 @@ include_directories(${KORE_COMPILER_NAME} ${KORE_INCLUDE_DIRS})
 
 target_compile_options(${KORE_COMPILER_NAME} PUBLIC ${KORE_SHARED_COMPILE_FLAGS})
 
-# TODO: Make this configurable via the command line
-target_compile_definitions(${KORE_COMPILER_NAME}
-    PRIVATE
-    KORE_DEBUG_PARSER=0
-    KORE_DEBUG_TYPECHECKER=0
-    KORE_DEBUG_TYPEINFERRER=0
-    KORE_DEBUG_BYTECODE_GENERATOR=0
-    KORE_DEBUG_KIR_LOWERING_PASS=1
-)
-
 set_target_properties(
     ${KORE_COMPILER_NAME}
     PROPERTIES RUNTIME_OUTPUT_DIRECTORY

@@ -5,6 +5,7 @@
 
 #include "ast/ast.hpp"
 #include "ast/ast_visitor.hpp"
+#include "bin/korec/options.hpp"
 #include "errors/error.hpp"
 #include "types/scope.hpp"
 
@@ -15,7 +16,7 @@ namespace kore {
 
     class TypeChecker final : public AstVisitor {
         public:
-            TypeChecker();
+            TypeChecker(const ParsedCommandLineArgs& args);
             virtual ~TypeChecker();
 
             /// Typecheck an AST
@@ -26,12 +27,19 @@ namespace kore {
         private:
             static constexpr int _NO_ERROR_THRESHOLD = -1;
 
+            const ParsedCommandLineArgs* _args;
             ScopeStack _scope_stack;
 
             // How many errors to tolerate before bailing out
             int _error_threshold = _NO_ERROR_THRESHOLD;
 
             std::vector<errors::Error> _errors;
+
+            void trace_type_checker(
+                const std::string& name,
+                const Type* type1 = nullptr,
+                const Type* type2 = nullptr
+            );
 
             void push_error(errors::Error error);
             void visit(BinaryExpression& binexpr) override;

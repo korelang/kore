@@ -28,24 +28,6 @@
 #include "operator.hpp"
 #include "parser.hpp"
 
-#ifdef KORE_DEBUG_PARSER
-    #define KORE_DEBUG_PARSER_LOG_TOKEN(prefix) {\
-        auto token = current_token();\
-        \
-        if (token) {\
-            std::cerr << prefix << ": " << *token << std::endl;\
-        } else {\
-            std::cerr\
-                << "Attempt to log null current token at "\
-                << __LINE__\
-                << ": " << __FILE__\
-                << std::endl;\
-        }\
-    }
-#else
-    #define KORE_DEBUG_PARSER_LOG_TOKEN(prefix)
-#endif
-
 namespace kore {
     Parser::Parser()
         : _failed(false),
@@ -62,6 +44,22 @@ namespace kore {
 
     int Parser::error_count() const noexcept {
         return _error_count;
+    }
+
+    void Parser::trace_parser(const std::string& name) {
+        if (_args && _args->trace == TraceOption::Parse) {
+            const std::string group = "parse";
+            auto token = current_token();
+            
+            if (token) {
+                std::ostringstream oss;
+                oss << *token;
+
+                debug_group(group, "%s: %s", name.c_str(), oss.str().c_str());
+            } else {
+                error_group(group, "Attempt to log null current token (%s)", name.c_str());
+            }
+        }
     }
 
     const Token* Parser::current_token() {
@@ -184,7 +182,7 @@ namespace kore {
     }
 
     void Parser::parse_statement(Statement* const parent) {
-        KORE_DEBUG_PARSER_LOG_TOKEN("statement")
+        trace_parser("statement");
 
         auto token = current_token();
 
@@ -211,7 +209,7 @@ namespace kore {
     }
 
     void Parser::parse_statement_list(Statement* const parent) {
-        KORE_DEBUG_PARSER_LOG_TOKEN("statement list")
+        trace_parser("statement list");
 
         while (valid_statement_start(current_token())) {
             parse_statement(parent);
@@ -219,7 +217,7 @@ namespace kore {
     }
 
     void Parser::advance_to_next_statement_boundary() {
-        KORE_DEBUG_PARSER_LOG_TOKEN("advance to next statement boundary")
+        trace_parser("advance to next statement boundary");
 
         while (!_scanner.eof()) {
             auto token = current_token();
@@ -248,7 +246,7 @@ namespace kore {
     }
 
     void Parser::parse_module() {
-        KORE_DEBUG_PARSER_LOG_TOKEN("module")
+        trace_parser("module");
 
         auto token = current_token();
 
@@ -346,7 +344,7 @@ namespace kore {
     /* } */
 
     void Parser::parse_declaration(Statement* const parent) {
-        KORE_DEBUG_PARSER_LOG_TOKEN("declaration")
+        trace_parser("declaration");
 
         /* if (expect_keyword(Keyword::Type)) { */
         /*     parse_type_alias(parent); */
@@ -365,7 +363,7 @@ namespace kore {
             token = next_token();
         }
 
-        KORE_DEBUG_PARSER_LOG_TOKEN("identifier")
+        trace_parser("identifier");
         auto identifier_token = *token;
         token = next_token();
 
@@ -409,7 +407,7 @@ namespace kore {
     }
 
     void Parser::parse_if_statement(Statement* const parent) {
-        KORE_DEBUG_PARSER_LOG_TOKEN("if")
+        trace_parser("if");
 
         if (expect_keyword(Keyword::If)) {
             auto if_statement = Statement::make_statement<IfStatement>();
@@ -474,7 +472,7 @@ namespace kore {
     }
 
     void Parser::parse_function(Statement* const parent) {
-        KORE_DEBUG_PARSER_LOG_TOKEN("function")
+        trace_parser("function");
 
         bool exported = expect_keyword(Keyword::Export);
         bool is_func = expect_keyword(Keyword::Func);
@@ -497,7 +495,7 @@ namespace kore {
             return;
         }
 
-        KORE_DEBUG_PARSER_LOG_TOKEN("function name")
+        trace_parser("function name");
         const Token func_name(*token);
         next_token();
 
@@ -510,7 +508,7 @@ namespace kore {
     }
 
     void Parser::parse_function_signature(Function* const func) {
-        KORE_DEBUG_PARSER_LOG_TOKEN("function signature")
+        trace_parser("function signature");
 
         if (expect_token_type(TokenType::lparen)) {
             if (!expect_token_type(TokenType::rparen)) {
@@ -526,7 +524,7 @@ namespace kore {
     }
 
     void Parser::parse_function_parameters(Function* const func) {
-        KORE_DEBUG_PARSER_LOG_TOKEN("function parameters")
+        trace_parser("function parameters");
 
         auto token = current_token();
 
@@ -541,7 +539,7 @@ namespace kore {
     }
 
     bool Parser::parse_parameter_decl(Function* const func) {
-        KORE_DEBUG_PARSER_LOG_TOKEN("parameter declaration")
+        trace_parser("parameter declaration");
 
         auto token = *current_token();
 
@@ -566,7 +564,7 @@ namespace kore {
     }
 
     void Parser::parse_parameter_list(Function* const func) {
-        KORE_DEBUG_PARSER_LOG_TOKEN("parameter list")
+        trace_parser("parameter list");
 
         auto token = current_token();
         SourceLocation loc = token->location();
@@ -579,7 +577,7 @@ namespace kore {
     }
 
     void Parser::parse_return(Statement* const parent) {
-        KORE_DEBUG_PARSER_LOG_TOKEN("return")
+        trace_parser("return");
 
         if (expect_keyword(Keyword::Return)) {
             // TODO: Should be an expression list in the future
@@ -615,7 +613,7 @@ namespace kore {
     }
 
     void Parser::parse_block(Statement* const parent) {
-        KORE_DEBUG_PARSER_LOG_TOKEN("block")
+        trace_parser("block");
 
         if (expect_token_type(TokenType::lbrace)) {
             parse_statement_list(parent);
@@ -627,7 +625,7 @@ namespace kore {
     }
 
     const Type* Parser::parse_type() {
-        KORE_DEBUG_PARSER_LOG_TOKEN("type")
+        trace_parser("type");
 
         auto token = current_token();
 
@@ -661,7 +659,7 @@ namespace kore {
     }
 
     Owned<Expression> Parser::parse_literal() {
-        KORE_DEBUG_PARSER_LOG_TOKEN("literal")
+        trace_parser("literal");
 
         auto token = current_token();
         Owned<Expression> result = nullptr;
@@ -712,7 +710,7 @@ namespace kore {
     }
 
     Owned<Expression> Parser::parse_array(const Token* const lbracket_token) {
-        KORE_DEBUG_PARSER_LOG_TOKEN("array")
+        trace_parser("array");
 
         next_token();
         auto first_expr = parse_expression(operator_base_precedence());
@@ -733,7 +731,7 @@ namespace kore {
         const Token* const lbracket_token,
         Owned<Expression> size_expr
     ) {
-        KORE_DEBUG_PARSER_LOG_TOKEN("array fill")
+        trace_parser("array fill");
         auto fill_expr = parse_expression(operator_base_precedence());
 
         if (!expect_token_type(TokenType::rbracket)) {
@@ -751,7 +749,7 @@ namespace kore {
         const Token* const lbracket_token,
         Owned<Expression> first_elem_expr
     ) {
-        KORE_DEBUG_PARSER_LOG_TOKEN("normal array")
+        trace_parser("normal array");
 
         auto array_expr = Expression::make_expression<ArrayExpression>();
         array_expr->add_element(std::move(first_elem_expr));
@@ -776,7 +774,7 @@ namespace kore {
     }
 
     Owned<Expression> Parser::parse_array_range_expression(const Token* const lbracket_token) {
-        KORE_DEBUG_PARSER_LOG_TOKEN("normal array")
+        trace_parser("normal array");
 
         int base_precedence = operator_base_precedence();
         auto start_expr = parse_expression(base_precedence);
@@ -795,7 +793,7 @@ namespace kore {
     }
 
     Owned<Identifier> Parser::parse_maybe_qualified_identifier() {
-        KORE_DEBUG_PARSER_LOG_TOKEN("identifier")
+        trace_parser("identifier");
 
         std::vector<std::string> identifier;
         auto token = current_token();
@@ -821,7 +819,7 @@ namespace kore {
     }
 
     Owned<Expression> Parser::parse_unary_expression() {
-        KORE_DEBUG_PARSER_LOG_TOKEN("unary expression")
+        trace_parser("unary expression");
         auto expr = parse_subexpr();
 
         if (expr && !expr->is_error()) {
@@ -873,7 +871,7 @@ namespace kore {
     }
 
     Owned<Expression> Parser::parse_subexpr() {
-        KORE_DEBUG_PARSER_LOG_TOKEN("subexpr")
+        trace_parser("subexpr");
         auto expr = parse_operand();
 
         if (expr && expr->is_identifier()) {
@@ -892,7 +890,7 @@ namespace kore {
     }
 
     Owned<Expression> Parser::parse_operand() {
-        KORE_DEBUG_PARSER_LOG_TOKEN("operand")
+        trace_parser("operand");
         auto expr = parse_literal();
 
         if (expr && !expr->is_error()) {
@@ -903,7 +901,7 @@ namespace kore {
     }
 
     Owned<Expression> Parser::parse_function_call(Owned<Expression> func_name) {
-        KORE_DEBUG_PARSER_LOG_TOKEN("call");
+        trace_parser("call");;
 
         // TODO: We can probably just return the vector here and use its move constructor
         std::vector<Owned<Expression>> expr_list;
@@ -921,7 +919,7 @@ namespace kore {
     }
 
     Owned<Expression> Parser::parse_expression_list(std::vector<Owned<Expression>>& expr_list) {
-        KORE_DEBUG_PARSER_LOG_TOKEN("exprlist")
+        trace_parser("exprlist");
 
         if (!expect_token_type(TokenType::lparen)) {
             return nullptr;
@@ -934,7 +932,7 @@ namespace kore {
         Owned<Expression> expr = nullptr;
 
         while ((expr = parse_expression(precedence))) {
-            KORE_DEBUG_PARSER_LOG_TOKEN("exprlist:expr")
+            trace_parser("exprlist:expr");
             expr_list.push_back(std::move(expr));
 
             if (expect_token_type(TokenType::rparen)) {
@@ -948,7 +946,7 @@ namespace kore {
     }
 
     Owned<Expression> Parser::parse_parenthesised_expression() {
-        KORE_DEBUG_PARSER_LOG_TOKEN("parenthesised expression")
+        trace_parser("parenthesised expression");
         Owned<Expression> expr = parse_expression(operator_base_precedence());
 
         if (expect_token_type(TokenType::rparen)) {
@@ -960,7 +958,7 @@ namespace kore {
     }
 
     Owned<Expression> Parser::parse_expression(int precedence) {
-        KORE_DEBUG_PARSER_LOG_TOKEN("expression")
+        trace_parser("expression");;
         auto left = parse_unary_expression();
 
         if (left->is_error()) {
@@ -1008,26 +1006,30 @@ namespace kore {
         return left;
     }
 
-    void Parser::parse_non_module(const std::string& value, Ast* ast) {
+    void Parser::parse_non_module(const std::string& value, Ast* ast, const ParsedCommandLineArgs& args) {
         _ast = ast;
         _scanner.scan_string(value);
         parse_declaration(nullptr);
         _ast = nullptr;
+        _args = &args;
     }
 
-    void Parser::parse_string(const std::string& value, Ast* ast) {
+    void Parser::parse_string(const std::string& value, Ast* ast, const ParsedCommandLineArgs& args) {
         _ast = ast;
         _scanner.scan_string(value);
 
         next_token();
-
         parse_toplevel(nullptr);
+
         _ast = nullptr;
+        _args = &args;
     }
 
-    void Parser::parse_file(const std::string& path, Ast* ast) {
+    void Parser::parse_file(const std::string& path, Ast* ast, const ParsedCommandLineArgs& args) {
+        // TODO: Make this return an ast instead
         if (_scanner.open_file(path)) {
             _ast = ast;
+            _args = &args;
 
             // Get the first token
             next_token();
@@ -1039,5 +1041,3 @@ namespace kore {
         }
     }
 }
-
-#undef KORE_DEBUG_PARSER_LOG_TOKEN

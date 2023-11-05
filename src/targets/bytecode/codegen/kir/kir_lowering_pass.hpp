@@ -3,6 +3,7 @@
 
 #include "ast/ast.hpp"
 #include "ast/ast_visitor.hpp"
+#include "bin/korec/options.hpp"
 #include "errors/errors.hpp"
 #include "targets/bytecode/codegen/kir/function.hpp"
 #include "targets/bytecode/codegen/kir/module.hpp"
@@ -16,7 +17,7 @@ namespace kore {
         /// which in turn is inspired by rust's MIR
         class KirLoweringPass final : public AstVisitor {
             public:
-                KirLoweringPass();
+                KirLoweringPass(const ParsedCommandLineArgs& args);
 
                 /// Lower a fully type-checked AST to KIR
                 Module lower(const Ast& ast);
@@ -46,6 +47,7 @@ namespace kore {
                 /* virtual void visit(ExpressionStatement& exprstmt); */
 
             private:
+                const ParsedCommandLineArgs* _args;
                 ScopeStack _scope_stack;
                 Module* _module;
                 std::stack<int> _func_index_stack;
@@ -56,6 +58,7 @@ namespace kore {
                 std::unordered_map<std::string, Reg> _var_to_reg;
 
             private:
+                void trace_kir(const std::string& name, const std::string& msg = "");
                 Function& current_function();
                 Module& current_module();
                 void enter_function(kore::Function& func);
