@@ -22,7 +22,6 @@ namespace kore {
         None = 0,
         Scan,
         Parse,
-        Ast,
         Kir,
         Codegen,
     };
@@ -36,11 +35,6 @@ namespace kore {
         bool execute = false;
         TraceOption trace = TraceOption::None;
         DumpOption dump = DumpOption::None;
-        bool dump_scan = false;
-        bool dump_parse = false;
-        bool dump_ast = false;
-        std::string dump_kir;
-        bool dump_codegen = false;
         bool disassemble = false;
         std::string target;
         bool version = false;

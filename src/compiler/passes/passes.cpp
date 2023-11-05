@@ -1,3 +1,4 @@
+#include "bin/korec/options.hpp"
 #include "compiler/config.hpp"
 #include "compiler/passes/passes.hpp"
 #include "targets/bytecode/bytecode_format_writer.hpp"
@@ -65,8 +66,8 @@ namespace kore {
 
                 context.buffers.push_back(code_generator.generate(context.kir));
 
-                // Stop running passes here if --dump-kir was passed
-                return PassResult{ context.args.dump_kir.empty(), {} };
+                // Stop running passes here if we are dumping kir
+                return PassResult{ context.args.dump == DumpOption::Kir, {} };
             }
         };
     }

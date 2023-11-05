@@ -67,7 +67,6 @@ namespace kore {
     std::map<std::string, DumpOption> arg_to_dump_option{
         { "scan",    DumpOption::Scan },
         { "parse",   DumpOption::Parse },
-        { "ast",     DumpOption::Ast },
         { "kir",     DumpOption::Kir },
         { "codegen", DumpOption::Codegen },
     };
@@ -81,8 +80,6 @@ namespace kore {
             } else {
                 args.error_message = "Only 'bytecode' is currently supported as a target";
             }
-        } else if (args.dump_kir != "adjacency") {
-            args.error_message = "Only the 'adjacency' format is currently supported";
         }
 
         for (const auto& path : args.paths) {
@@ -150,13 +147,7 @@ namespace kore {
 
                     parsed_args.trace = arg_to_trace_option[trace_option];
                     ++i;
-                } else if (arg == "--dump-parse") {
-                    parsed_args.dump_parse = true;
-                } else if (arg == "--dump-ast") {
-                    parsed_args.dump_ast = true;
-                } else if (arg == "--dump-scan") {
-                    parsed_args.dump_scan = true;
-                } else if (arg == "--dump-kir") {
+                } else if (arg == "--dump") {
                     auto option_arg = get_argument(i, args);
                     auto dump_option = option_arg.value_or("");
 
@@ -171,8 +162,6 @@ namespace kore {
 
                     parsed_args.dump = arg_to_dump_option[dump_option];
                     ++i;
-                } else if (arg == "--dump-codegen") {
-                    parsed_args.dump_codegen = true;
                 } else if (arg == "--version") {
                     parsed_args.version = true;
                     return parsed_args;

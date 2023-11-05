@@ -84,14 +84,12 @@ namespace kore {
     }
 
     int dump_parse(bool execute, const std::string& expr, fs::path& path, const ParsedCommandLineArgs& args) {
-        debug_group("parse", "dumping ast");
         AstStreamWriter stream_writer{std::cerr};
 
         return dump_parse_helper(execute, expr, path, stream_writer, args);
     }
 
     int dump_parse_raw(bool execute, const std::string& expr, fs::path& path, const ParsedCommandLineArgs& args) {
-        debug_group("parse", "dumping parse");
         AstElementStreamWriter stream_writer{std::cerr};
 
         return dump_parse_helper(execute, expr, path, stream_writer, args);
@@ -128,7 +126,7 @@ int main(int argc, char** argv) {
     } else if (args.help) {
         kore::print_help_message();
         return 0;
-    } else if (args.dump_scan) {
+    } else if (args.dump == kore::DumpOption::Scan) {
         kore::debug_group("scan", "dumping scanned tokens");
 
         for (auto& path : args.paths) {
@@ -136,19 +134,11 @@ int main(int argc, char** argv) {
         }
 
         return 0;
-    } else if (args.dump_parse) {
-        kore::debug_group("scan", "dumping raw parse");
+    } else if (args.dump == kore::DumpOption::Parse) {
+        kore::debug_group("scan", "dumping parse");
 
         for (auto& path : args.paths) {
             kore::dump_parse_raw(args.execute, args.expr, path, args);
-        }
-
-        return 0;
-    } else if (args.dump_ast) {
-        kore::debug_group("parse", "dumping parse");
-
-        for (auto& path : args.paths) {
-            kore::dump_parse(args.execute, args.expr, path, args);
         }
 
         return 0;
@@ -159,8 +149,8 @@ int main(int argc, char** argv) {
 
         auto ret_code = compiler.run_passes();
 
-        if (!args.dump_kir.empty()) {
-            kore::debug_group("kir", "dumping kir graph (%s)", args.dump_kir.c_str());
+        if (args.dump == kore::DumpOption::Kir) {
+            kore::debug_group("kir", "dumping kir graph");
             kore::dump_kir(compiler.context().kir);
         }
 
