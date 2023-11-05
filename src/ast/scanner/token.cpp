@@ -224,7 +224,7 @@ namespace kore {
 
     std::ostream& Token::ostream_value(std::ostream& os) const {
         if (type() == TokenType::integer) {
-            os << _internal_value.str;
+            os << _internal_value.integer;
         } else if (type() == TokenType::floatp) {
             os << _internal_value.float32;
         } else {
