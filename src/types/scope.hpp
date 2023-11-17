@@ -32,6 +32,8 @@ namespace kore {
         };
     }
 
+    // TODO: Convert to a linked list of scopes instead?
+
     /// A (lexical) scope keeps track of all variables at each level
     class ScopeStack final {
         public:
@@ -50,10 +52,13 @@ namespace kore {
             void insert(const Identifier* identifier);
             void insert(const Identifier* identifier, Reg reg);
             bool is_global_scope() const;
+            bool in_function_scope() const;
             void clear();
 
         private:
+            int _scope_level = 0;
             std::vector<Scope> _scopes;
+            std::vector<Function*> _functions;
 
             ScopeEntry* find_in_range(
                 const std::string& name,

@@ -136,7 +136,7 @@ set(KORE_TARGETS_BYTECODE_SOURCES
     ${PROJECT_SOURCE_DIR}/src/targets/bytecode/vm/vm.cpp
 )
 
-set(KORE_SHARED_COMPILE_FLAGS -Wall -Wextra -pedantic -Werror)
+set(KORE_SHARED_COMPILE_FLAGS -Wall -Wextra -pedantic -Werror)# -g -O0)
 
 # Build main executables:
 #   - Bytecode compiler (korec)

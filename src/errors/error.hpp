@@ -5,6 +5,7 @@
 
 namespace kore {
     namespace errors {
+        // TODO: Change this to Diagnostic so we can use it as a warning as well
         enum class ErrorType {
             General,
             Scan,

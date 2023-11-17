@@ -6,6 +6,7 @@
 #include "ast/statements/variable_assignment.hpp"
 #include "ast/statements/variable_declaration.hpp"
 #include "errors/errors.hpp"
+/* #include "targets/bytecode/vm/builtins/builtins.hpp" */
 #include "logging/logging.hpp"
 #include "types/function_type.hpp"
 #include "types/scope.hpp"
@@ -135,10 +136,16 @@ namespace kore {
         // function definition
         auto entry = _scope_stack.find(call.name());
 
-        if (!entry) {
-            push_error(errors::typing::unknown_call(call));
-            return;
-        }
+        /* if (!entry) { */
+        /*     auto [idx, ptr] = vm::get_builtin_function_by_name(call.name()); */
+
+        /*     if (!ptr) { */
+        /*         push_error(errors::typing::unknown_call(call)); */
+        /*         return; */
+        /*     } */
+
+        /*     // TODO: Typecheck builtin function calls */
+        /* } */
 
         auto type = entry->identifier->type();
 

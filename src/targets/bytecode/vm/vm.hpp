@@ -94,6 +94,9 @@ namespace kore {
                 /// Reserve local stack space for the called function
                 void allocate_local_stack(const CompiledObject* const obj);
 
+                /// Deallocate local stack space for a call frame
+                void deallocate_local_stack(const CallFrame& call_frame);
+
                 [[noreturn]] void throw_vm_error(const std::string& message);
 
                 void throw_unknown_opcode(Bytecode opcode);

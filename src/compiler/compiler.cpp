@@ -12,9 +12,9 @@ namespace kore {
         auto verbosity = _context.args.verbosity;
 
         for (auto& pass : _passes) {
-            kore::info_group(1, verbosity, "compiler", "starting pass '%s'", pass.name.c_str());
+            /* kore::info_group(1, verbosity, "compiler", "starting pass '%s'", pass.name.c_str()); */
             auto result = pass.run(_context);
-            kore::info_group(1, verbosity, "compiler", "end of pass '%s'", pass.name.c_str());
+            /* kore::info_group(1, verbosity, "compiler", "end of pass '%s'", pass.name.c_str()); */
 
             // TODO: We can do per-pass timings here
             if (!result.proceed && result.errors.size() > 0) {

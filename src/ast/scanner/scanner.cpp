@@ -134,6 +134,9 @@ namespace kore {
         stream = std::make_unique<std::ifstream>(path);
         read_line();
 
+        // Get the first token
+        /* next_token(); */
+
         return ifs.is_open();
     }
 

@@ -155,13 +155,15 @@ namespace koredis {
             }
 
             case kore::Bytecode::Jump: {
-                oss << " " << value();
+                auto target_pos = byte_position() + value();
+                oss << " " << value() << " [target: " << target_pos << "]";
                 return oss.str();
             }
 
             case kore::Bytecode::JumpIf:
             case kore::Bytecode::JumpIfNot: {
-                oss << " @" << reg1() << " " << value();
+                auto target_pos = byte_position() + value();
+                oss << " @" << reg1() << " " << value() << " [target: " << target_pos << "]";
                 return oss.str();
             }
 

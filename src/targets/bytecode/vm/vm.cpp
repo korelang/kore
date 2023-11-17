@@ -89,7 +89,6 @@ namespace kore {
         }
 
         void Context::restore(const CallFrame& call_frame) {
-            this->sp -= call_frame.reg_count;
             this->fp = call_frame.old_fp;
             this->pc = call_frame.old_pc;
         }
@@ -271,6 +270,10 @@ namespace kore {
             _context.sp += reg_count;
         }
 
+        void Vm::deallocate_local_stack(const CallFrame& call_frame) {
+            _context.sp -= call_frame.reg_count;
+        }
+
         void Vm::throw_vm_error(const std::string& message) {
             throw std::runtime_error(message);
         }
@@ -405,6 +408,7 @@ namespace kore {
             // Reset the stack pointer to the base of the current call frame
             // and beyond the old frame pointer and program counter. Restore
             // the old frame pointer and program counter
+            deallocate_local_stack(frame);
             _context.restore(frame);
 
             _call_frames.pop_back();
@@ -437,5 +441,4 @@ namespace kore {
 #undef BINARY_OP_CASES
 #undef RELOP_OPCODE
 #undef RELOP_CASES
-#undef _KORE_DEBUG_VM
 #undef KORE_DEBUG_VM_LOG

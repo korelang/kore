@@ -28,7 +28,6 @@ namespace koredis {
         kore::section("function", kore::Color::Magenta, kore::ColorAttribute::Bold, 0, obj.name().c_str());
         auto attr = kore::ColorAttribute::Reset;
 
-        os << color << "  " << attr << "locals   : " << obj.locals_count() << std::endl;
         os << color << "  " << attr << "registers: " << obj.reg_count() << std::endl;
         os << color << "  " << attr << "code size: " << obj.code_size() << std::endl;
         os << color << "" << attr << std::endl;
