@@ -38,8 +38,9 @@ namespace kore {
                 Reg load_constant(FloatExpression& expr, int index);
                 Reg load_global(Identifier& expr, Reg gidx);
                 Reg binop(BinaryExpression& expr, Reg left, Reg right);
+                void unconditional_jump(BlockId target_block_id);
                 void move(VariableAssignment& assign, Reg src, Reg dst);
-                void branch(Reg condition, BlockId true_block, BlockId false_block);
+                void conditional_jump(Bytecode opcode, Reg condition, BlockId target_block_id);
                 Reg allocate_array(ArrayExpression& expr, const std::vector<Reg> element_regs);
                 void destroy(Reg reg);
                 /* void destroy(Expression& expr, Reg reg); */

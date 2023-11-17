@@ -19,10 +19,13 @@ namespace kore {
             BlockId id;
             std::vector<Instruction> instructions;
 
+            bool is_start_or_end_block() const;
+
             static BlockId StartBlockId;
             static BlockId EndBlockId;
             static BlockId InvalidBlockId;
         };
+
     }
 }
 

@@ -3,6 +3,7 @@
 
 #include "targets/bytecode/codegen/bytecode.hpp"
 #include "targets/bytecode/disassemble/decode_instruction.hpp"
+#include "targets/bytecode/disassemble/disassemble_error.hpp"
 #include "targets/bytecode/disassemble/instruction.hpp"
 #include "targets/bytecode/register.hpp"
 #include "utils/unused_parameter.hpp"
@@ -26,31 +27,51 @@ namespace koredis {
         return registers;
     }
 
-    Instruction decode_instruction(int& pos, const kore::CompiledObject& obj) {
+    Instruction decode_instruction(
+        int& pos,
+        int& byte_pos,
+        const kore::CompiledObject& obj
+    ) {
         kore::bytecode_type instruction = obj[pos];
         auto opcode = GET_OPCODE(instruction);
+        Instruction decoded_instruction;
 
         switch (opcode) {
-            case kore::Bytecode::Noop:
-                return Instruction(opcode, pos++);
+            case kore::Bytecode::Noop: {
+                decoded_instruction = Instruction(opcode, pos++, byte_pos);
+                byte_pos += 4;
+                break;
+            }
 
             case kore::Bytecode::LoadBool:
             case kore::Bytecode::CloadI32:
             case kore::Bytecode::CloadI64:
             case kore::Bytecode::CloadF32:
             case kore::Bytecode::CloadF64:
-            case kore::Bytecode::Gload:
-                return Instruction::load(opcode, pos++, GET_REG1(instruction), GET_VALUE(instruction));
+            case kore::Bytecode::Gload: {
+                decoded_instruction = Instruction::load(
+                    opcode,
+                    pos++,
+                    byte_pos,
+                    GET_REG1(instruction),
+                    GET_VALUE(instruction)
+                );
+                byte_pos += 4;
+                break;
+            }
 
             case kore::Bytecode::Move:
             case kore::Bytecode::Gstore:
             case kore::Bytecode::AllocArray: {
-                return Instruction(
+                decoded_instruction = Instruction(
                     opcode,
                     pos++,
+                    byte_pos,
                     GET_REG1(instruction),
                     GET_REG2(instruction)
                 );
+                byte_pos += 4;
+                break;
             }
 
             case kore::Bytecode::AddI32:
@@ -99,33 +120,47 @@ namespace koredis {
             case kore::Bytecode::NeqF64:
             case kore::Bytecode::ArrayIndexGet:
             case kore::Bytecode::ArrayIndexSet: {
-                return Instruction(
+                decoded_instruction = Instruction(
                     opcode,
                     pos++,
+                    byte_pos,
                     GET_REG1(instruction),
                     GET_REG2(instruction),
                     GET_REG3(instruction)
                 );
+                byte_pos += 4;
+                break;
             }
 
-            case kore::Bytecode::Jump:
-                return Instruction(opcode, pos++, GET_REG1(instruction));
-
-            case kore::Bytecode::JumpIf:
-            case kore::Bytecode::JumpIfNot:
-                return Instruction::with_offset(
+            case kore::Bytecode::Jump: {
+                decoded_instruction = Instruction::with_offset(
                     opcode,
                     pos++,
+                    byte_pos,
+                    GET_OFFSET(instruction)
+                );
+                byte_pos += 4;
+                break;
+            }
+
+            case kore::Bytecode::JumpIf:
+            case kore::Bytecode::JumpIfNot: {
+                decoded_instruction = Instruction::with_offset(
+                    opcode,
+                    pos++,
+                    byte_pos,
                     GET_REG1(instruction),
                     GET_OFFSET(instruction)
                 );
+                byte_pos += 4;
+                break;
+            }
 
             case kore::Bytecode::Call: {
                 int func_reg = GET_REG1(instruction);
                 int arg_count = GET_REG2(instruction);
                 int return_count = GET_REG3(instruction);
                 int start_pos = pos;
-                ++pos;
                 int byte_offset = 0;
                 std::vector<kore::Reg> arg_regs;
                 std::vector<kore::Reg> ret_regs;
@@ -137,15 +172,19 @@ namespace koredis {
                     ++pos;
                 }
 
-                return Instruction::call(
+                decoded_instruction = Instruction::call(
                     opcode,
                     start_pos,
+                    byte_pos,
                     func_reg,
                     return_count,
                     arg_count,
                     ret_regs,
                     arg_regs
                 );
+
+                byte_pos += 4 + byte_offset;
+                break;
             }
 
             case kore::Bytecode::Ret: {
@@ -153,12 +192,16 @@ namespace koredis {
                 int byte_offset = 2;
                 auto ret_regs = decode_registers(pos, byte_offset, regs, obj);
 
-                return Instruction::ret(opcode, pos++, regs, ret_regs);
+                decoded_instruction = Instruction::ret(opcode, pos++, byte_pos, regs, ret_regs);
+                byte_pos += std::max(byte_offset, 4);
+                break;
             }
 
             default:
-                return Instruction(kore::Bytecode::Noop, pos++);
+                throw DisassembleError("Failed to decode instruction", pos);
         }
+
+        return decoded_instruction;
     }
 
     /* void decode_instruction(std::ostream& os, Instruction ins, int pos, int register_count) { */
@@ -174,8 +217,8 @@ namespace koredis {
     std::vector<Instruction> decode_instructions(const kore::CompiledObject compiled_object) {
         std::vector<Instruction> instructions;
 
-        for (int pos = 0; pos < compiled_object.code_size();) {
-            instructions.push_back(decode_instruction(pos, compiled_object));
+        for (int pos = 0, byte_pos = 0; pos < compiled_object.code_size();) {
+            instructions.push_back(decode_instruction(pos, byte_pos, compiled_object));
         }
 
         return instructions;

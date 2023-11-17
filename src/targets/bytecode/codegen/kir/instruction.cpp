@@ -12,6 +12,17 @@ namespace kore {
         Instruction::Instruction(InstructionType type, Expression& expr)
             : _type(type), _expr(&expr) {}
 
+        Instruction::Instruction(InstructionType type, Bytecode opcode, int value) : Instruction(type) {
+            _value = value;
+            _opcode = opcode;
+        }
+
+        Instruction::Instruction(InstructionType type, Bytecode opcode, Reg reg, int value) : Instruction(type) {
+            _value = value;
+            _opcode = opcode;
+            _registers.push_back(reg);
+        }
+
         Instruction::Instruction(InstructionType type, kore::Reg reg1, Expression& expr, int value)
                 : Instruction(type, expr) {
             _value = value;
@@ -187,6 +198,14 @@ namespace kore {
                        << instruction.reg1() << " "
                        << instruction.reg2() << " "
                        << instruction.reg3();
+                    break;
+                }
+
+                case kir::InstructionType::Value: {
+                    os << bytecode_to_string(instruction.opcode()) << " "
+                       << instruction.reg1() << " "
+                       << "bb" << instruction.bb1() << " "
+                       << "bb" << instruction.bb2();
                     break;
                 }
 

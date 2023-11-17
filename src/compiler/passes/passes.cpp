@@ -66,8 +66,10 @@ namespace kore {
 
                 context.buffers.push_back(code_generator.generate(context.kir));
 
+                bool proceed = context.args.dump == DumpOption::None || context.args.dump != DumpOption::Kir;
+
                 // Stop running passes here if we are dumping kir
-                return PassResult{ context.args.dump == DumpOption::Kir, {} };
+                return PassResult{ proceed, {} };
             }
         };
     }

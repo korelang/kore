@@ -16,7 +16,7 @@ namespace kore {
         namespace typing {
             Error cannot_assign(const Type* lhs, const Type* rhs, const SourceLocation& location);
             Error incompatible_binop(const Type* left, const Type* right, BinOp op, const SourceLocation& location);
-            Error binop_numeric_operands(const Type* left, const Type* right, BinOp op, const SourceLocation& location);
+            Error binop_operand(const Type* type, BinOp op, const std::string& which, const SourceLocation& location);
             Error variable_shadows(const Identifier* identifier, const Identifier* shadowed, const SourceLocation& location, const SourceLocation& prev_location);
             Error redeclaration_constant_variable(const Identifier& identifier, const SourceLocation& location, const Identifier& prev_declared);
             Error cannot_declare_mutable_global(const Identifier& identifier, const SourceLocation& location);

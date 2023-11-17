@@ -41,7 +41,7 @@ namespace kore {
         error_group(pass.name, "%d %serrors", result.errors.size(), "");
 
         for (const auto& error : result.errors) {
-            section_error(pass.name, error, 1);
+            section_error(error.location.colon_format(), error, 1);
         }
     }
 }

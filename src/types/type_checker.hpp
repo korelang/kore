@@ -45,7 +45,7 @@ namespace kore {
             void visit(BinaryExpression& binexpr) override;
             void visit(Identifier& identifier) override;
 
-            /* void visit(IfStatement& statement) override; */
+            void visit(IfStatement& statement) override;
             void visit(VariableAssignment& assignment) override;
             void visit(class Call& call) override;
             void visit(Branch& branch) override;

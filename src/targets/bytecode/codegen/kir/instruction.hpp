@@ -23,7 +23,10 @@ namespace kore {
             Move,
             Branch,
             Raw,
+            Value,
         };
+
+        // FIX: Convert this to use std::variant
 
         /// A KIR instruction. Whereas instructions emitted by code generation are
         /// actual (lower-level) executable instructions, KIR instructions are at
@@ -42,6 +45,8 @@ namespace kore {
                 // are only used once
                 Instruction(InstructionType type, Expression& expr);
                 Instruction(InstructionType type, kore::Reg reg1, Expression& expr);
+                Instruction(InstructionType type, Bytecode opcode, int value);
+                Instruction(InstructionType type, Bytecode opcode, Reg reg, int value);
                 Instruction(InstructionType type, kore::Reg reg1, Expression& expr, int value);
                 Instruction(InstructionType type, kore::Reg reg, const std::vector<Reg>& registers, Expression& expr);
                 Instruction(InstructionType type, kore::Reg reg1, kore::Reg reg2, Expression& expr);

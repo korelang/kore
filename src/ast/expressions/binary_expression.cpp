@@ -61,6 +61,103 @@ namespace kore {
         }
     }
 
+    std::string operand_types_string(BinOp binop) {
+        switch (binop) {
+            case BinOp::Plus:
+            case BinOp::Minus:
+            case BinOp::Mult:
+            case BinOp::Div:
+            case BinOp::Mod:
+            case BinOp::Remainder:
+            case BinOp::Lt:
+            case BinOp::Le:
+            case BinOp::Gt:
+            case BinOp::Ge:
+            case BinOp::BinOr:
+            case BinOp::BinAnd:
+            case BinOp::BinXor:
+            case BinOp::BinLeftShift:
+            case BinOp::BinRightShift: {
+                return "numeric";
+            }
+
+            case BinOp::Equal:
+            case BinOp::NotEqual: {
+                // We can always compare any type
+                return "";
+            }
+
+            case BinOp::Or:
+            case BinOp::And:
+            case BinOp::Not: {
+                return "bool";
+            }
+
+            default:
+                return "";
+        }
+
+        return "";
+    }
+
+    bool compatible_binop_type(BinOp binop, const Type* const type) {
+        switch (binop) {
+            case BinOp::Plus:
+            case BinOp::Minus:
+            case BinOp::Mult:
+            case BinOp::Div:
+            case BinOp::Mod:
+            case BinOp::Remainder:
+            case BinOp::Lt:
+            case BinOp::Le:
+            case BinOp::Gt:
+            case BinOp::Ge:
+            case BinOp::BinOr:
+            case BinOp::BinAnd:
+            case BinOp::BinXor:
+            case BinOp::BinLeftShift:
+            case BinOp::BinRightShift: {
+                return type->is_numeric();
+            }
+
+            case BinOp::Equal:
+            case BinOp::NotEqual: {
+                // We can always compare any type
+                return true;
+            }
+
+            case BinOp::Or:
+            case BinOp::And:
+            case BinOp::Not: {
+                return type->category() == TypeCategory::Bool;
+            }
+
+            default:
+                return false;
+        }
+
+        return false;
+    }
+
+    bool is_numeric_binop(BinOp binop) {
+        switch (binop) {
+            case BinOp::Plus:
+            case BinOp::Minus:
+            case BinOp::Mult:
+            case BinOp::Div:
+            case BinOp::Mod:
+            case BinOp::Remainder:
+            case BinOp::Lt:
+            case BinOp::Le:
+            case BinOp::Gt:
+            case BinOp::Ge:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
     std::ostream& operator<<(std::ostream& os, BinOp binop) {
         return os << binop_to_string(binop);
     }

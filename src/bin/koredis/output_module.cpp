@@ -38,6 +38,7 @@ namespace koredis {
 
         for (auto instruction : decoded_instructions) {
             os << color << "  " << attr
+               << instruction.byte_position() << "  "
                << std::setw(10) << std::left
                << opcode_color << instruction.name() << attr
                << instruction.registers_as_string()

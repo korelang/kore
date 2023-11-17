@@ -30,9 +30,9 @@ namespace kore {
             }
 
             Error incompatible_binop(const Type* left, const Type* right, BinOp op, const SourceLocation& location) {
-                auto message = "cannot use binary operation '"
+                auto message = "cannot use binary operator '"
                     + binop_to_string(op) + "'"
-                    + " with numeric types "
+                    + " with types "
                     + left->name()
                     + " and "
                     + right->name()
@@ -41,13 +41,13 @@ namespace kore {
                 return Error(ErrorType::Typing, message, location);
             }
 
-            Error binop_numeric_operands(const Type* left, const Type* right, BinOp op, const SourceLocation& location) {
-                auto message = "binary expression '"
+            Error binop_operand(const Type* type, BinOp op, const std::string& which, const SourceLocation& location) {
+                std::string types_string = operand_types_string(op);
+
+                auto message = "binary operator '"
                     + binop_to_string(op)
-                    + "' must have numeric operands but got "
-                    + left->name()
-                    + " and "
-                    + right->name();
+                    + "' must have " + types_string + " operands but got "
+                    + type->name() + " for " + which + " argument";
 
                 return Error(ErrorType::Typing, message, location);
             }

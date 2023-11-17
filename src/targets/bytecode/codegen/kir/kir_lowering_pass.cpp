@@ -4,6 +4,7 @@
 #include "logging/logging.hpp"
 #include "targets/bytecode/codegen/bytecode.hpp"
 #include "targets/bytecode/codegen/kir/kir_lowering_pass.hpp"
+#include "targets/bytecode/register.hpp"
 #include "targets/bytecode/vm/builtins/builtins.hpp"
 #include "utils/unused_parameter.hpp"
 
@@ -152,60 +153,72 @@ namespace kore {
         }
 
         void KirLoweringPass::visit(IfStatement& ifstatement) {
-            trace_kir("if", std::to_string(ifstatement.branch_count()));
+            const std::string msg = std::to_string(ifstatement.branch_count()) + " branch(es)";
+            trace_kir("if", msg);
 
             auto& func = current_function();
             auto& graph = func.graph();
             auto after_block_id = graph.add_block();
 
+            BlockId before_block_id = graph.current_block().id;
+            BlockId first_condition_block_id = BasicBlock::InvalidBlockId;
+
             // Save the previous block ids and condition register so
             // we can properly link up blocks when we generate code
             // for the subsequent blocks
             auto prev_block_id = BasicBlock::InvalidBlockId;
-            auto prev_true_branch_id = BasicBlock::InvalidBlockId;
+            auto condition_block_id = BasicBlock::InvalidBlockId;
             Reg prev_cond_reg = INVALID_REGISTER;
 
             for (auto& branch : ifstatement) {
-                auto condition_block_id = BasicBlock::InvalidBlockId;
                 auto condition = branch->condition();
                 Reg cond_reg = INVALID_REGISTER;
 
                 if (condition) {
                     condition_block_id = graph.add_block_as_current();
                     cond_reg = visit_expression(condition);
+
+                    if (first_condition_block_id == BasicBlock::InvalidBlockId) {
+                        // Connect the block before the if statement to the
+                        // first condition block
+                        graph.add_edge(before_block_id, condition_block_id);
+                    }
                 }
 
-                auto true_branch_id = graph.add_block_as_current();
+                auto branch_id = graph.add_block_as_current();
 
                 if (condition) {
-                    graph.add_edge(condition_block_id, true_branch_id);
+                    graph.add_edge(condition_block_id, branch_id);
                 }
 
-                graph.add_edge(true_branch_id, after_block_id);
-
-                // TODO: Call visit_expression with the branch instead.
-                // Implement visit method for branch
-                // Generate code for the true branch
+                // Generate code for the branch
                 for (auto& statement : *branch) {
                     statement->accept_visit_only(*this);
                 }
 
-                if (prev_block_id != BasicBlock::InvalidBlockId) {
-                    if (condition) {
-                        graph.add_edge(prev_block_id, condition_block_id);
+                // TODO: This should actually only be generated if this is not
+                // the last branch in the if statement
+                if (condition) {
+                    // Generate an unconditional jump from the end of this
+                    // branch (which was taken) to the after block
+                    func.unconditional_jump(after_block_id);
+                }
 
-                        // Generate a branch instruction from the last
-                        // condition branch to this condition
-                        graph.set_current_block(prev_block_id);
-                        func.branch(prev_cond_reg, prev_block_id, condition_block_id);
-                    } else {
-                        // Else block
-                        graph.add_edge(prev_block_id, true_branch_id);
-                    }
+                graph.add_edge(branch_id, after_block_id);
+
+                if (prev_block_id != BasicBlock::InvalidBlockId) {
+                    auto target_id = condition ? condition_block_id : branch_id;
+
+                    graph.add_edge(prev_block_id, target_id);
+
+                    // Generate a condition jump instruction at the end of the last
+                    // condition block to this condition
+                    graph.set_current_block(prev_block_id);
+
+                    func.conditional_jump(Bytecode::JumpIfNot, prev_cond_reg, target_id);
                 }
 
                 prev_block_id = condition_block_id;
-                prev_true_branch_id = true_branch_id;
                 prev_cond_reg = cond_reg;
             }
 

@@ -101,12 +101,12 @@ namespace kore {
         void Graph::write_adjacency_lists(std::ostream& os) const {
             // Write the instructions in each basic block
             for (auto& bb : _blocks) {
-                if (bb.id == BasicBlock::StartBlockId) {// || bb.id == BasicBlock::EndBlockId) {
+                if (bb.is_start_or_end_block()) {
                     continue;
                 }
 
                 if (bb.instructions.size() > 0) {
-                    os << "instructions for bb" << bb.id << std::endl;
+                    os << "bb" << bb.id << ":" << std::endl;
 
                     for (auto& instruction : bb.instructions) {
                         os << instruction << std::endl;
@@ -115,11 +115,15 @@ namespace kore {
                     os << "no instructions in bb" << bb.id;
                 }
 
-                os << std::endl;
+                os << std::endl << std::endl;
             }
 
             // Write the adjacency list
             for (auto& bb : _blocks) {
+                if (bb.is_start_or_end_block()) {
+                    continue;
+                }
+
                 os << "bb" << bb.id << ": ";
 
                 if (has_successors(bb.id)) {

@@ -160,15 +160,12 @@ namespace kore {
             return reg;
         }
 
-        void Function::branch(Reg condition, BlockId true_block, BlockId false_block) {
-            add_instruction(
-                Instruction(
-                    InstructionType::Branch,
-                    condition,
-                    true_block,
-                    false_block
-                )
-            );
+        void Function::unconditional_jump(BlockId target_block_id) {
+            add_instruction(Instruction(InstructionType::Value, Bytecode::Jump, target_block_id));
+        }
+
+        void Function::conditional_jump(Bytecode opcode, Reg condition, BlockId target_block_id) {
+            add_instruction(Instruction(InstructionType::Value, opcode, condition, target_block_id));
         }
 
         Reg Function::allocate_array(ArrayExpression& expr, const std::vector<Reg> element_regs) {

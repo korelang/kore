@@ -190,26 +190,40 @@ namespace kore {
         left->accept_visit_only(*this);
         right->accept_visit_only(*this);
 
+        trace_type_checker("binop", left->type(), right->type());
+
         auto op = binexpr.op();
+        auto left_type = left->type();
+        auto right_type = right->type();
+        auto left_type_compatible = compatible_binop_type(op, left_type);
+        auto right_type_compatible = compatible_binop_type(op, right_type);
 
-        if (op == BinOp::Plus || op == BinOp::Minus || op == BinOp::Mult || op == BinOp::Div) {
-            auto left_type = left->type();
-            auto right_type = right->type();
-
-            if (left_type->is_numeric() && right_type->is_numeric()) {
-                auto result_type = left_type->unify(right_type);
-
-                if (result_type->is_unknown()) {
-                    push_error(errors::typing::incompatible_binop(left_type, right_type, op, binexpr.location()));
-                } else {
-                    binexpr.set_type(result_type);
-                }
-            } else {
-                push_error(errors::typing::binop_numeric_operands(left_type, right_type, op, binexpr.location()));
-            }
+        // Check if types are compatible with the binary operation
+        if (!left_type_compatible) {
+            push_error(errors::typing::binop_operand(left_type, op, "left", left->location()));
         }
 
-        trace_type_checker("binop", left->type(), right->type());
+        if (!right_type_compatible) {
+            push_error(errors::typing::binop_operand(right_type, op, "right", right->location()));
+        }
+
+        auto result_type = left_type->unify(right_type);
+
+        // Handle type unification errors
+        if (left_type_compatible && right_type_compatible) {
+            if (result_type->is_unknown()) {
+                push_error(
+                    errors::typing::incompatible_binop(
+                        left_type,
+                        right_type,
+                        op,
+                        binexpr.location()
+                    )
+                );
+            } else {
+                binexpr.set_type(result_type);
+            }
+        }
     }
 
     void TypeChecker::visit(Branch& branch) {
@@ -226,6 +240,20 @@ namespace kore {
         }
 
         _scope_stack.leave();
+    }
+
+    void TypeChecker::visit(IfStatement& statement) {
+        for (auto& branch : statement) {
+            auto condition = branch->condition();
+
+            if (condition) {
+                condition->accept_visit_only(*this);
+            }
+
+            for (auto& statement : *branch) {
+                statement->accept_visit_only(*this);
+            }
+        }
     }
 
     void TypeChecker::visit(Function& func) {

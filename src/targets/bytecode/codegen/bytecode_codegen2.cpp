@@ -2,6 +2,7 @@
 
 #include "targets/bytecode/codegen/bytecode_codegen2.hpp"
 #include "targets/bytecode/codegen/kir/block_id.hpp"
+#include "targets/bytecode/codegen/kir/graph.hpp"
 #include "targets/bytecode/codegen/kir/instruction.hpp"
 #include "targets/bytecode/register.hpp"
 #include "utils/endian.hpp"
@@ -183,7 +184,7 @@ namespace kore {
             auto block_id = block_ids.front();
             block_ids.pop();
 
-            if (block_id != kir::BasicBlock::StartBlockId) {
+            if (block_id != kir::BasicBlock::StartBlockId && block_id != kir::BasicBlock::EndBlockId) {
                 generate_for_block(graph[block_id]);
             }
 
@@ -198,7 +199,7 @@ namespace kore {
 
     void BytecodeGenerator2::generate_for_block(kir::BasicBlock& block) {
         // TODO: This only works if the basic blocks are sequentially ordered
-        _block_offsets.push_back(_buffer.size());
+        _block_offsets[block.id] = _buffer.size();
 
         for (auto& instruction : block.instructions) {
             generate_for_instruction(instruction);
@@ -271,6 +272,23 @@ namespace kore {
                 break;
             }
 
+            case kir::InstructionType::Value: {
+                auto opcode = instruction.opcode();
+                auto target = instruction.value();
+
+                save_patch_location(target);
+
+                if (instruction.registers().size() == 1) {
+                    write_be32(
+                        KORE_MAKE_REG_VALUE_INSTRUCTION(opcode, instruction.reg1(), target)
+                    );
+                } else {
+                    write_be32(KORE_MAKE_VALUE_INSTRUCTION(instruction.opcode(), target));
+                }
+
+                break;
+            }
+
             case kir::InstructionType::Branch: {
                 // We write the basic block IDs directly in the jump offsets
                 // now and patch them later when we know the instruction
@@ -279,16 +297,13 @@ namespace kore {
                     KORE_MAKE_INSTRUCTION(
                         Bytecode::JumpIfNot,
                         instruction.reg1(),
-                        instruction.bb1()
+                        instruction.bb2()
                     )
                 );
-                save_patch_location();
 
-                write_be32(
-                    KORE_MAKE_VALUE_INSTRUCTION(Bytecode::Jump, instruction.bb2())
-                );
-
-                save_patch_location();
+                save_patch_location(0);
+                write_be32(KORE_MAKE_VALUE_INSTRUCTION(Bytecode::Jump, instruction.bb2()));
+                save_patch_location(0);
                 break;
             }
 
@@ -371,16 +386,19 @@ namespace kore {
         }
     }
 
-    void BytecodeGenerator2::save_patch_location() {
-        _patch_locations.push_back(_buffer.size() - 1);
+    void BytecodeGenerator2::save_patch_location(kir::BlockId target_block_id) {
+        _patch_locations.push_back({ _buffer.size(), target_block_id });
     }
 
     void BytecodeGenerator2::patch_jumps() {
-        for (auto location : _patch_locations) {
-            auto instruction = _buffer[location];
-            auto bb_offset = GET_VALUE(instruction);
+        for (auto [location, target_block_id] : _patch_locations) {
+            auto relative_offset = _block_offsets[target_block_id] - location;
 
-            SET_VALUE(instruction, _block_offsets[bb_offset]);
+            // TODO: Check for too large relative offsets
+
+            // Pack the relative offset into the jump offset location in the buffer
+            _buffer[location + 2] = relative_offset >> 8;
+            _buffer[location + 3] = relative_offset & 0xff;
         }
     }
 

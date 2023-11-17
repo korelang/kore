@@ -5,17 +5,25 @@ namespace koredis {
     Instruction::Instruction()
         : Instruction(kore::Bytecode::Noop, -1, -1, -1, -1) {}
 
-    Instruction::Instruction(kore::Bytecode opcode, int pos)
-        : Instruction(opcode, pos, -1, -1, -1) {}
+    Instruction::Instruction(kore::Bytecode opcode, int pos, int byte_pos)
+        : Instruction(opcode, pos, byte_pos, -1, -1, -1) {}
 
-    Instruction::Instruction(kore::Bytecode opcode, int pos, kore::Reg reg1)
-        : Instruction(opcode, pos, reg1, -1, -1) {}
+    Instruction::Instruction(kore::Bytecode opcode, int pos, int byte_pos, kore::Reg reg1)
+        : Instruction(opcode, pos, byte_pos, reg1, -1, -1) {}
 
-    Instruction::Instruction(kore::Bytecode opcode, int pos, kore::Reg reg1, kore::Reg reg2)
-        : Instruction(opcode, pos, reg1, reg2, -1) {}
+    Instruction::Instruction(kore::Bytecode opcode, int pos, int byte_pos, kore::Reg reg1, kore::Reg reg2)
+        : Instruction(opcode, pos, byte_pos, reg1, reg2, -1) {}
 
-    Instruction::Instruction(kore::Bytecode opcode, int pos, kore::Reg reg1, kore::Reg reg2, kore::Reg reg3)
+    Instruction::Instruction(
+        kore::Bytecode opcode,
+        int pos,
+        int byte_pos,
+        kore::Reg reg1,
+        kore::Reg reg2,
+        kore::Reg reg3
+    )
         : _pos(pos),
+          _byte_pos(byte_pos),
           _opcode(opcode),
           _reg1(reg1),
           _reg2(reg2),
@@ -23,12 +31,36 @@ namespace koredis {
 
     Instruction::~Instruction() {}
 
-    Instruction Instruction::load(kore::Bytecode opcode, int pos, int reg1, int value) {
-        return Instruction::with_offset(opcode, pos, reg1, value);
+    Instruction Instruction::load(
+        kore::Bytecode opcode,
+        int pos,
+        int byte_pos,
+        int reg1,
+        int value
+    ) {
+        return Instruction::with_offset(opcode, pos, byte_pos, reg1, value);
     }
 
-    Instruction Instruction::with_offset(kore::Bytecode opcode, int pos, int reg1, int offset) {
-        auto instruction = Instruction(opcode, pos, reg1);
+    Instruction Instruction::with_offset(
+        kore::Bytecode opcode,
+        int pos,
+        int byte_pos,
+        int offset
+    ) {
+        auto instruction = Instruction(opcode, pos, byte_pos);
+        instruction._value = offset;
+
+        return instruction;
+    }
+
+    Instruction Instruction::with_offset(
+        kore::Bytecode opcode,
+        int pos,
+        int byte_pos,
+        int reg1,
+        int offset
+    ) {
+        auto instruction = Instruction(opcode, pos, byte_pos, reg1);
         instruction._value = offset;
 
         return instruction;
@@ -37,13 +69,22 @@ namespace koredis {
     Instruction Instruction::call(
         kore::Bytecode opcode,
         int pos,
+        int byte_pos,
         int func_index,
         int return_count,
         int arg_count,
         const std::vector<kore::Reg>& return_registers,
         const std::vector<kore::Reg>& arg_registers
     ) {
-        auto instruction = Instruction(opcode, pos, func_index, return_count, arg_count);
+        auto instruction = Instruction(
+            opcode,
+            pos,
+            byte_pos,
+            func_index,
+            return_count,
+            arg_count
+        );
+
         instruction._return_registers = return_registers;
         instruction._arg_registers = arg_registers;
 
@@ -53,10 +94,11 @@ namespace koredis {
     Instruction Instruction::ret(
         kore::Bytecode opcode,
         int pos,
+        int byte_pos,
         int return_count,
         const std::vector<kore::Reg>& return_registers
     ) {
-        auto instruction = Instruction(opcode, pos, return_count);
+        auto instruction = Instruction(opcode, pos, byte_pos, return_count);
         instruction._return_registers = return_registers;
 
         return instruction;
@@ -64,6 +106,10 @@ namespace koredis {
 
     int Instruction::position() const {
         return _pos;
+    }
+
+    int Instruction::byte_position() const {
+        return _byte_pos;
     }
 
     kore::Bytecode Instruction::opcode() const {
@@ -109,7 +155,7 @@ namespace koredis {
             }
 
             case kore::Bytecode::Jump: {
-                oss << value();
+                oss << " " << value();
                 return oss.str();
             }
 
