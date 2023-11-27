@@ -1,7 +1,6 @@
 #include "ast/ast_visitor.hpp"
 #include "ast/expressions/binary_expression.hpp"
 
-#include <iostream>
 #include <map>
 
 namespace kore {
@@ -137,25 +136,6 @@ namespace kore {
         }
 
         return false;
-    }
-
-    bool is_numeric_binop(BinOp binop) {
-        switch (binop) {
-            case BinOp::Plus:
-            case BinOp::Minus:
-            case BinOp::Mult:
-            case BinOp::Div:
-            case BinOp::Mod:
-            case BinOp::Remainder:
-            case BinOp::Lt:
-            case BinOp::Le:
-            case BinOp::Gt:
-            case BinOp::Ge:
-                return true;
-
-            default:
-                return false;
-        }
     }
 
     std::ostream& operator<<(std::ostream& os, BinOp binop) {

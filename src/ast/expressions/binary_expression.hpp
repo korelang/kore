@@ -38,8 +38,6 @@ namespace kore {
     std::string operand_types_string(BinOp binop);
     bool compatible_binop_type(BinOp binop, const Type* const type);
 
-    bool is_numeric_binop(BinOp binop);
-
     class BinaryExpression : public Expression {
         public:
             BinaryExpression(const std::string& op, Owned<Expression> left, Owned<Expression> right, SourceLocation location);
