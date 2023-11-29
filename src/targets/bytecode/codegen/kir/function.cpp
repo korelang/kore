@@ -7,6 +7,69 @@
 
 namespace kore {
     namespace kir {
+        std::map<TypeCategory, std::map<BinOp, Bytecode>> _binary_operator_opcodes = {
+            {
+                TypeCategory::Integer32, {
+                    {BinOp::Plus,     Bytecode::AddI32},
+                    {BinOp::Minus,    Bytecode::SubI32},
+                    {BinOp::Mult,     Bytecode::MultI32},
+                    {BinOp::Pow,      Bytecode::PowI32},
+                    {BinOp::Div,      Bytecode::DivI32},
+                    {BinOp::Lt,       Bytecode::LtI32},
+                    {BinOp::Gt,       Bytecode::GtI32},
+                    {BinOp::Le,       Bytecode::LeI32},
+                    {BinOp::Ge,       Bytecode::GeI32},
+                    {BinOp::Equal,    Bytecode::EqI32},
+                    {BinOp::NotEqual, Bytecode::NeqI32},
+                },
+            },
+            {
+                TypeCategory::Integer64, {
+                    {BinOp::Plus,     Bytecode::AddI64},
+                    {BinOp::Minus,    Bytecode::SubI64},
+                    {BinOp::Mult,     Bytecode::MultI64},
+                    {BinOp::Pow,      Bytecode::PowI64},
+                    {BinOp::Div,      Bytecode::DivI64},
+                    {BinOp::Lt,       Bytecode::LtI64},
+                    {BinOp::Gt,       Bytecode::GtI64},
+                    {BinOp::Le,       Bytecode::LeI64},
+                    {BinOp::Ge,       Bytecode::GeI64},
+                    {BinOp::Equal,    Bytecode::EqI64},
+                    {BinOp::NotEqual, Bytecode::NeqI64},
+                },
+            },
+            {
+                TypeCategory::Float32, {
+                    {BinOp::Plus,     Bytecode::AddF32},
+                    {BinOp::Minus,    Bytecode::SubF32},
+                    {BinOp::Mult,     Bytecode::MultF32},
+                    {BinOp::Pow,      Bytecode::PowF32},
+                    {BinOp::Div,      Bytecode::DivF32},
+                    {BinOp::Lt,       Bytecode::LtF32},
+                    {BinOp::Gt,       Bytecode::GtF32},
+                    {BinOp::Le,       Bytecode::LeF32},
+                    {BinOp::Ge,       Bytecode::GeF32},
+                    {BinOp::Equal,    Bytecode::EqF32},
+                    {BinOp::NotEqual, Bytecode::NeqF32},
+                },
+            },
+            {
+                TypeCategory::Float64, {
+                    {BinOp::Plus,     Bytecode::AddF64},
+                    {BinOp::Minus,    Bytecode::SubF64},
+                    {BinOp::Mult,     Bytecode::MultF64},
+                    {BinOp::Pow,      Bytecode::PowF64},
+                    {BinOp::Div,      Bytecode::DivF64},
+                    {BinOp::Lt,       Bytecode::LtF64},
+                    {BinOp::Gt,       Bytecode::GtF64},
+                    {BinOp::Le,       Bytecode::LeF64},
+                    {BinOp::Ge,       Bytecode::GeF64},
+                    {BinOp::Equal,    Bytecode::EqF64},
+                    {BinOp::NotEqual, Bytecode::NeqF64},
+                },
+            },
+        };
+
         Function::Function(FuncIndex index)
             : _index(index),
               _func(nullptr),
@@ -103,118 +166,100 @@ namespace kore {
             }
         }
 
-        Reg Function::load_constant(BoolExpression& expr) {
-            Reg reg = allocate_register();
-            add_instruction(Instruction(InstructionType::LoadBool, reg, expr));
+        // TODO: Remember to set register types
+        // TODO: Do we need functions for each expression/statement? Maybe just for
+        // each type of instruction + the expression for setting register types?
 
-            return reg;
+        Reg Function::load_constant(BoolExpression& expr) {
+            return load_constant(
+                Bytecode::LoadBool,
+                expr,
+                static_cast<int>(expr.bool_value())
+            );
         }
 
         Reg Function::load_constant(IntegerExpression& expr, int index) {
-            return load_constant(InstructionType::LoadInteger, expr, index);
+            return load_constant(Bytecode::CloadI32, expr, index);
         }
 
         Reg Function::load_constant(FloatExpression& expr, int index) {
-            return load_constant(InstructionType::LoadFloat, expr, index);
+            return load_constant(Bytecode::CloadF32, expr, index);
         }
 
-        Reg Function::load_global(Identifier& expr, Reg gidx) {
-            auto reg = allocate_register();
-
-            add_instruction(
-                Instruction(
-                    InstructionType::LoadGlobal,
-                    reg,
-                    gidx,
-                    expr
-                )
-            );
-
-            return reg;
+        Reg Function::load_global(Identifier& expr, Reg global_index) {
+            return load_constant(Bytecode::Gload, expr, global_index);
         }
 
-        void Function::move(VariableAssignment& assign, Reg dst, Reg src) {
-            add_instruction(
-                Instruction(
-                    InstructionType::Move,
-                    dst,
-                    src,
-                    assign
-                )
-            );
+        void Function::move(Reg dst, Reg src) {
+            add_instruction(Instruction{ Bytecode::Move, TwoRegisters{ dst, src } });
         }
 
         Reg Function::binop(BinaryExpression& expr, Reg left, Reg right) {
             auto reg = allocate_register();
+            auto opcode = _binary_operator_opcodes[expr.type()->category()][expr.op()];
 
-            add_instruction(
-                Instruction(
-                    InstructionType::Binop,
-                    reg,
-                    left,
-                    right,
-                    expr
-                )
-            );
+            add_instruction(Instruction{ opcode, ThreeRegisters{ reg, left, right } });
 
             return reg;
         }
 
         void Function::unconditional_jump(BlockId target_block_id) {
-            add_instruction(Instruction(InstructionType::Value, Bytecode::Jump, target_block_id));
+            add_instruction(Instruction{ Bytecode::Jump, Value{ target_block_id } });
         }
 
-        void Function::conditional_jump(Bytecode opcode, Reg condition, BlockId target_block_id) {
-            add_instruction(Instruction(InstructionType::Value, opcode, condition, target_block_id));
+        void Function::conditional_jump(
+            Bytecode opcode,
+            Reg condition,
+            BlockId target_block_id
+        ) {
+            add_instruction(
+                Instruction{ opcode, RegisterAndValue{ condition, target_block_id } }
+            );
         }
 
-        Reg Function::allocate_array(ArrayExpression& expr, const std::vector<Reg> element_regs) {
+        Reg Function::allocate_array(ArrayExpression& expr) {
             auto reg = allocate_register();
 
             add_instruction(
-                Instruction(
-                    InstructionType::AllocateArray,
-                    reg,
-                    element_regs,
-                    expr
-                )
+                Instruction{
+                    Bytecode::AllocArray,
+                    RegisterAndValue{ reg, expr.size() },
+                }
             );
 
             return reg;
         }
 
         void Function::destroy(Reg reg) {
-            add_instruction(Instruction(Bytecode::Destroy, reg));
+            add_instruction(Instruction{ Bytecode::Destroy, OneRegister{ reg } });
         }
 
         void Function::refinc(Reg reg) {
-            add_instruction(Instruction(Bytecode::RefInc, reg));
+            add_instruction(Instruction{ Bytecode::RefInc, OneRegister{ reg } });
         }
 
         void Function::refdec(Reg reg) {
-            add_instruction(Instruction(Bytecode::RefDec, reg));
+            add_instruction(Instruction{ Bytecode::RefDec, OneRegister{ reg } });
         }
 
         void Function::call(
             kore::Bytecode opcode,
             Expression& expr,
-            const std::vector<kore::Reg>& return_registers,
-            const std::vector<kore::Reg>& arg_registers
+            const std::vector<kore::Reg>& arg_registers,
+            const std::vector<kore::Reg>& return_registers
         ) {
-            add_instruction(Instruction::call(opcode, expr, arg_registers, return_registers));
+            add_instruction(
+                Instruction{ opcode, CallV{ &expr, arg_registers, return_registers } }
+            );
         }
 
         void Function::_return() {
-            add_instruction(Instruction(Bytecode::Ret));
+            add_instruction(Instruction{ Bytecode::Ret, ReturnV{} });
         }
 
         void Function::_return(Reg retreg) {
-            /* add_instruction(Instruction::ret(return_registers)); */
-
             // TODO: Support multiple return values
-            std::vector<Reg> registers{ 1, retreg };
-
-            add_instruction(Instruction(Bytecode::Ret, registers));
+            add_instruction(Instruction{ Bytecode::Ret, ReturnV{ { retreg } } });
         }
 
         FuncIndex Function::index() const noexcept {
@@ -249,18 +294,13 @@ namespace kore {
             return _code_size;
         }
 
-        Reg Function::load_constant(
-            InstructionType inst_type,
-            Expression& expr,
-            int index
-        ) {
+        Reg Function::load_constant(Bytecode opcode, Expression& expr, int index) {
             Reg reg = allocate_register();
 
-            add_instruction(Instruction(inst_type, reg, expr, index));
+            add_instruction(Instruction{ opcode, RegisterAndValue{ reg, index } });
             set_register_type(reg, expr.type());
 
             return reg;
         }
-
     }
 }

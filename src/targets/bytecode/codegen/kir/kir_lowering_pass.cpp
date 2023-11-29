@@ -32,16 +32,16 @@ namespace kore {
         void KirLoweringPass::visit(ArrayExpression& expr) {
             trace_kir("array", std::to_string(expr.size()));
 
-            std::vector<Reg> element_regs;
+            /* std::vector<Reg> element_regs; */
 
-            // TODO: This needs to be limited to a threshold for very large
-            // arrays and perhaps use a loop instead
-            for (int idx = 0; idx < expr.size(); ++idx) {
-                element_regs.push_back(visit_expression(expr[idx]));
-            }
+            /* // TODO: This needs to be limited to a threshold for very large */
+            /* // arrays and perhaps use a loop instead */
+            /* for (int idx = 0; idx < expr.size(); ++idx) { */
+            /*     element_regs.push_back(visit_expression(expr[idx])); */
+            /* } */
 
             push_register(
-                current_function().allocate_array(expr, element_regs),
+                current_function().allocate_array(expr),//, element_regs),
                 expr.type()
             );
         }
@@ -141,7 +141,7 @@ namespace kore {
                 func.free_register(dst);
             }
 
-            func.move(statement, dst, src);
+            func.move(dst, src);
 
             // If we reference a variable which is not a value type (e.g. an
             // array), increase its reference count

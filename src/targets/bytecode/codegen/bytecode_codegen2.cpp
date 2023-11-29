@@ -1,5 +1,3 @@
-#include <queue>
-
 #include "targets/bytecode/codegen/bytecode_codegen2.hpp"
 #include "targets/bytecode/codegen/kir/block_id.hpp"
 #include "targets/bytecode/codegen/kir/graph.hpp"
@@ -7,18 +5,16 @@
 #include "targets/bytecode/register.hpp"
 #include "utils/endian.hpp"
 
+#include <queue>
+#include <variant>
+
 #define KORE_MAKE_INSTRUCTION0(opcode) (\
     ((opcode & OPCODE_BITMASK) << OPCODE_SHIFT)\
 )
 
-#define KORE_ADD_REG(instruction, reg, position) (\
-    (instruction) | ((reg & 0xff) << (16 - position * 8))\
-)
-
-#define KORE_MAKE_INSTRUCTION(opcode, reg, value) (\
+#define KORE_MAKE_INSTRUCTION1(opcode, reg) (\
     ((opcode & OPCODE_BITMASK) << OPCODE_SHIFT) |\
-    ((reg & 0xff) << REG1_SHIFT) |\
-    (value & VALUE_BITMASK)\
+    ((reg & 0xff) << REG1_SHIFT)\
 )
 
 #define KORE_MAKE_INSTRUCTION2(opcode, reg1, reg2) (\
@@ -207,181 +203,76 @@ namespace kore {
     }
 
     void BytecodeGenerator2::generate_for_instruction(kir::Instruction& instruction) {
-        switch (instruction.type()) {
-            case kir::InstructionType::LoadBool: {
-                bool value = instruction.expr_as<BoolExpression>()->bool_value();
+        auto opcode = instruction.opcode;
 
-                write_be32(
-                    KORE_MAKE_INSTRUCTION(
-                        Bytecode::LoadBool,
-                        instruction.reg1(),
-                        value
-                    )
-                );
-                break;
+        if (auto ins_type = std::get_if<kir::OneRegister>(&instruction.type)) {
+            write_be32(KORE_MAKE_INSTRUCTION1(opcode, ins_type->reg));
+        } else if (auto ins_type = std::get_if<kir::TwoRegisters>(&instruction.type)) {
+            write_be32(KORE_MAKE_INSTRUCTION2(opcode, ins_type->reg1, ins_type->reg2));
+        } else if (auto ins_type = std::get_if<kir::ThreeRegisters>(&instruction.type)) {
+            write_be32(
+                KORE_MAKE_INSTRUCTION3(
+                    opcode,
+                    ins_type->reg1,
+                    ins_type->reg2,
+                    ins_type->reg3
+                )
+            );
+        } else if (auto ins_type = std::get_if<kir::RegisterAndValue>(&instruction.type)) {
+            if (opcode == Bytecode::JumpIf || opcode == Bytecode::JumpIfNot) {
+                save_patch_location(ins_type->value);
             }
 
-            case kir::InstructionType::LoadInteger: {
-                write_be32(
-                    KORE_MAKE_INSTRUCTION(
-                        Bytecode::CloadI32,
-                        instruction.reg1(),
-                        instruction.value()
-                    )
-                );
-                break;
+            write_be32(KORE_MAKE_REG_VALUE_INSTRUCTION(
+                opcode,
+                ins_type->reg,
+                ins_type->value
+            ));
+        } else if (auto ins_type = std::get_if<kir::Value>(&instruction.type)) {
+            auto value = ins_type->value;
+
+            if (opcode == Bytecode::Jump) {
+                save_patch_location(value);
             }
 
-            case kir::InstructionType::LoadGlobal: {
-                write_be32(
-                    KORE_MAKE_REG_VALUE_INSTRUCTION(
-                        Bytecode::Gload,
-                        instruction.reg1(),
-                        instruction.value()
-                    )
-                );
-                break;
-            }
+            write_be32(KORE_MAKE_VALUE_INSTRUCTION(opcode, value));
+        } else if (auto ins_type = std::get_if<kir::CallV>(&instruction.type)) {
+            // TODO: This should probably be a register containing the function index instead
+            auto func_index = 0;
+            auto arg_registers = ins_type->arg_registers;
+            auto ret_registers = ins_type->ret_registers;
 
-            case kir::InstructionType::Move: {
-                write_be32(
-                    KORE_MAKE_INSTRUCTION2(
-                        Bytecode::Move,
-                        instruction.reg1(),
-                        instruction.reg2()
-                    )
-                );
-                break;
-            }
+            // TODO: Use return count of called function here (what about
+            // variadic functions?)
+            std::vector<std::uint8_t> bytes{
+                static_cast<std::uint8_t>(opcode),
+                static_cast<std::uint8_t>(func_index),
+                static_cast<std::uint8_t>(arg_registers.size()),
+                static_cast<std::uint8_t>(ret_registers.size()),
+            };
 
-            case kir::InstructionType::Binop: {
-                auto binexpr = instruction.expr_as<BinaryExpression>();
-                auto opcode = get_binop_instruction(
-                    binexpr->type()->category(),
-                    binexpr->op()
-                );
+            bytes.insert(bytes.end(), arg_registers.cbegin(), arg_registers.cend());
+            bytes.insert(bytes.end(), ret_registers.cbegin(), ret_registers.cend());
 
-                write_be32(
-                    KORE_MAKE_INSTRUCTION3(
-                        opcode,
-                        instruction.reg1(),
-                        instruction.reg2(),
-                        instruction.reg3()
-                    )
-                );
-                break;
-            }
+            write_bytes(bytes);
+        } else if (auto ins_type = std::get_if<kir::ReturnV>(&instruction.type)) {
+            auto registers = ins_type->registers;
 
-            case kir::InstructionType::Value: {
-                auto opcode = instruction.opcode();
-                auto target = instruction.value();
-
-                save_patch_location(target);
-
-                if (instruction.registers().size() == 1) {
-                    write_be32(
-                        KORE_MAKE_REG_VALUE_INSTRUCTION(opcode, instruction.reg1(), target)
-                    );
-                } else {
-                    write_be32(KORE_MAKE_VALUE_INSTRUCTION(instruction.opcode(), target));
-                }
-
-                break;
-            }
-
-            case kir::InstructionType::Branch: {
-                // We write the basic block IDs directly in the jump offsets
-                // now and patch them later when we know the instruction
-                // offsets of all basic blocks
-                write_be32(
-                    KORE_MAKE_INSTRUCTION(
-                        Bytecode::JumpIfNot,
-                        instruction.reg1(),
-                        instruction.bb2()
-                    )
-                );
-
-                save_patch_location(0);
-                write_be32(KORE_MAKE_VALUE_INSTRUCTION(Bytecode::Jump, instruction.bb2()));
-                save_patch_location(0);
-                break;
-            }
-
-            case kir::InstructionType::AllocateArray: {
-                write_be32(
-                    KORE_MAKE_INSTRUCTION(
-                        Bytecode::AllocArray,
-                        instruction.reg1(),
-                        instruction.value()
-                    )
-                );
-                break;
-            }
-
-            case kir::InstructionType::BuiltinFunctionCall: {
-                write_be32(
-                    KORE_MAKE_INSTRUCTION3(
-                        Bytecode::BuiltinCall,
-                        instruction.reg1(),
-                        instruction.reg2(),
-                        instruction.reg3()
-                    )
-                );
-                break;
-            }
-
-            case kir::InstructionType::Call: {
-                // TODO: This should probably be a register containing the function index instead
-                auto func_index = 0;
-
-                auto arg_count = instruction.value();
-                auto registers = instruction.registers();
-                auto ret_count = registers.size() - arg_count;
-
-                // TODO: Use return count of called function here (what about
-                // variadic functions?)
+            if (registers.empty()) {
+                write_be32(KORE_MAKE_INSTRUCTION0(opcode));
+            } else {
                 std::vector<std::uint8_t> bytes{
-                    Bytecode::Call,
-                    static_cast<std::uint8_t>(func_index),
-                    static_cast<std::uint8_t>(arg_count),
-                    static_cast<std::uint8_t>(ret_count),
+                    static_cast<std::uint8_t>(opcode),
+                    static_cast<std::uint8_t>(registers.size()),
                 };
 
-                if (arg_count > 0) {
-                    bytes.insert(
-                        bytes.end(),
-                        registers.cbegin(),
-                        registers.cbegin() + arg_count
-                    );
-                }
+                bytes.insert(bytes.end(), registers.cbegin(), registers.cend());
 
-                if (ret_count > 0) {
-                    bytes.insert(
-                        bytes.end(),
-                        registers.cbegin() + arg_count,
-                        registers.cend()
-                    );
+                if (bytes.size() < 4) {
+                    bytes.insert(bytes.cend(), 4 - bytes.size(), 0);
                 }
 
                 write_bytes(bytes);
-                break;
-            }
-
-            case kir::InstructionType::LoadFloat: {
-                break;
-            }
-
-            case kir::InstructionType::Raw: {
-                auto registers = instruction.registers();
-                auto ins = KORE_MAKE_INSTRUCTION0(instruction.opcode());
-
-                for (size_t i = 0; i < registers.size(); ++i) {
-                    ins = KORE_ADD_REG(ins, registers[i], i);
-                }
-
-                write_be32(ins);
-
-                break;
             }
         }
     }
@@ -448,7 +339,8 @@ namespace kore {
     }
 }
 
-#undef KORE_MAKE_INSTRUCTION
+#undef KORE_MAKE_INSTRUCTION0
+#undef KORE_MAKE_INSTRUCTION1
 #undef KORE_MAKE_INSTRUCTION2
 #undef KORE_MAKE_INSTRUCTION3
 #undef KORE_MAKE_VALUE_INSTRUCTION

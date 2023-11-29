@@ -188,7 +188,7 @@ namespace koredis {
     kore::Module disassemble_module(std::istream& is) {
         auto module_index = kore::read_be32(is);
         auto module_path = read_string(is);
-        kore::Module module{module_index, module_path};
+        kore::Module module{ module_index, module_path };
 
         disassemble_constant_table(is, module);
         disassemble_functions(is, module);

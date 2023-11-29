@@ -2,229 +2,74 @@
 #include "instruction.hpp"
 
 namespace koredis {
-    Instruction::Instruction()
-        : Instruction(kore::Bytecode::Noop, -1, -1, -1, -1) {}
+    const std::string register_symbol = "@";
+    const std::string constant_index_symbol = "#";
 
-    Instruction::Instruction(kore::Bytecode opcode, int pos, int byte_pos)
-        : Instruction(opcode, pos, byte_pos, -1, -1, -1) {}
-
-    Instruction::Instruction(kore::Bytecode opcode, int pos, int byte_pos, kore::Reg reg1)
-        : Instruction(opcode, pos, byte_pos, reg1, -1, -1) {}
-
-    Instruction::Instruction(kore::Bytecode opcode, int pos, int byte_pos, kore::Reg reg1, kore::Reg reg2)
-        : Instruction(opcode, pos, byte_pos, reg1, reg2, -1) {}
-
-    Instruction::Instruction(
-        kore::Bytecode opcode,
-        int pos,
-        int byte_pos,
-        kore::Reg reg1,
-        kore::Reg reg2,
-        kore::Reg reg3
-    )
-        : _pos(pos),
-          _byte_pos(byte_pos),
-          _opcode(opcode),
-          _reg1(reg1),
-          _reg2(reg2),
-          _reg3(reg3) {}
-
-    Instruction::~Instruction() {}
-
-    Instruction Instruction::load(
-        kore::Bytecode opcode,
-        int pos,
-        int byte_pos,
-        int reg1,
-        int value
-    ) {
-        return Instruction::with_offset(opcode, pos, byte_pos, reg1, value);
+    std::ostream& reg(std::ostream& os, kore::Reg reg) {
+        return os << register_symbol << reg;
     }
 
-    Instruction Instruction::with_offset(
-        kore::Bytecode opcode,
-        int pos,
-        int byte_pos,
-        int offset
-    ) {
-        auto instruction = Instruction(opcode, pos, byte_pos);
-        instruction._value = offset;
-
-        return instruction;
-    }
-
-    Instruction Instruction::with_offset(
-        kore::Bytecode opcode,
-        int pos,
-        int byte_pos,
-        int reg1,
-        int offset
-    ) {
-        auto instruction = Instruction(opcode, pos, byte_pos, reg1);
-        instruction._value = offset;
-
-        return instruction;
-    }
-
-    Instruction Instruction::call(
-        kore::Bytecode opcode,
-        int pos,
-        int byte_pos,
-        int func_index,
-        int return_count,
-        int arg_count,
-        const std::vector<kore::Reg>& return_registers,
-        const std::vector<kore::Reg>& arg_registers
-    ) {
-        auto instruction = Instruction(
-            opcode,
-            pos,
-            byte_pos,
-            func_index,
-            return_count,
-            arg_count
-        );
-
-        instruction._return_registers = return_registers;
-        instruction._arg_registers = arg_registers;
-
-        return instruction;
-    }
-
-    Instruction Instruction::ret(
-        kore::Bytecode opcode,
-        int pos,
-        int byte_pos,
-        int return_count,
-        const std::vector<kore::Reg>& return_registers
-    ) {
-        auto instruction = Instruction(opcode, pos, byte_pos, return_count);
-        instruction._return_registers = return_registers;
-
-        return instruction;
-    }
-
-    int Instruction::position() const {
-        return _pos;
-    }
-
-    int Instruction::byte_position() const {
-        return _byte_pos;
-    }
-
-    kore::Bytecode Instruction::opcode() const {
-        return _opcode;
-    }
-
-    std::string Instruction::name() const {
-        return bytecode_to_string(opcode());
-    }
-
-    kore::Reg Instruction::reg1() const {
-        return _reg1;
-    }
-
-    kore::Reg Instruction::reg2() const {
-        return _reg2;
-    }
-
-    kore::Reg Instruction::reg3() const {
-        return _reg3;
-    }
-
-    int Instruction::value() const {
-        return _value;
-    }
-
-    std::vector<kore::Reg> Instruction::return_registers() const {
-        return _return_registers;
-    }
-
-    std::vector<kore::Reg> Instruction::call_registers() const {
-        return _arg_registers;
-    }
-
-    std::string Instruction::registers_as_string() const {
-        std::ostringstream oss;
-
+    std::ostream& format_registers(std::ostream& os, Instruction instruction) {
         // Special-case output for more complex opcodes
-        switch (opcode()) {
-            case kore::Bytecode::LoadBool: {
-                oss << " @" << reg1() << " " << (value() == 1 ? "true" : "false");
-                return oss.str();
+        auto instruction_type = instruction.value.type;
+
+        if (auto ins_type = std::get_if<kore::kir::OneRegister>(&instruction_type)) {
+        } else if (auto ins_type = std::get_if<kore::kir::TwoRegisters>(&instruction_type)) {
+            if (instruction.value.opcode == kore::Bytecode::Gstore) {
+                os << " " << constant_index_symbol << ins_type->reg1 << " " << register_symbol << ins_type->reg2;
+            } else {
+                os << " " << register_symbol << ins_type->reg1 << " " << register_symbol << ins_type->reg2;
+            }
+        } else if (auto ins_type = std::get_if<kore::kir::ThreeRegisters>(&instruction_type)) {
+            os << " " << register_symbol << ins_type->reg1 << " "
+               << register_symbol << ins_type->reg2 << " "
+               << register_symbol << ins_type->reg3;
+        } else if (auto ins_type = std::get_if<kore::kir::RegisterAndValue>(&instruction_type)) {
+            auto opcode = instruction.value.opcode;
+            auto value = ins_type->value;
+            os << " "; reg(os, ins_type->reg);
+
+            if (opcode == kore::Bytecode::JumpIf || opcode == kore::Bytecode::JumpIfNot) {
+                auto target_pos = instruction.byte_pos + value;
+
+                os << " " << ins_type->value << " [target: " << target_pos << "]";
+            } else if (opcode == kore::Bytecode::LoadBool) {
+                os << " " << (value == 1 ? "true" : "false");
+            } else {
+                os << " " << constant_index_symbol << value;
+            }
+        } else if (auto ins_type = std::get_if<kore::kir::Value>(&instruction_type)) {
+            auto value = ins_type->value;
+            auto target_pos = instruction.byte_pos + value;
+
+            os << " " << value << " [target: " << target_pos << "]";
+        } else if (auto ins_type = std::get_if<kore::kir::CallV>(&instruction_type)) {
+            auto arg_iter = ins_type->arg_registers.cbegin();
+
+            // First register is the function register
+            os << " " << *arg_iter++;
+
+            for (auto iter = arg_iter; arg_iter != ins_type->arg_registers.cend(); ++arg_iter) {
+                os << " " << register_symbol << *iter;
             }
 
-            case kore::Bytecode::Jump: {
-                auto target_pos = byte_position() + value();
-                oss << " " << value() << " [target: " << target_pos << "]";
-                return oss.str();
+            for (auto ret_reg : ins_type->ret_registers) {
+                os << " " << register_symbol << ret_reg;
             }
 
-            case kore::Bytecode::JumpIf:
-            case kore::Bytecode::JumpIfNot: {
-                auto target_pos = byte_position() + value();
-                oss << " @" << reg1() << " " << value() << " [target: " << target_pos << "]";
-                return oss.str();
+            os << " [args: " << (ins_type->arg_registers.size() - 1) << ", returns: " << ins_type->ret_registers.size() << "]";
+        } else if (auto ins_type = std::get_if<kore::kir::ReturnV>(&instruction_type)) {
+            for (auto reg : ins_type->registers) {
+                os << " " << register_symbol << reg;
             }
-
-            case kore::Bytecode::CloadI32:
-            case kore::Bytecode::CloadI64:
-            case kore::Bytecode::CloadF32:
-            case kore::Bytecode::CloadF64:
-            case kore::Bytecode::Gload:
-                oss << " @" << reg1() << " #" << value();
-                return oss.str();
-
-            case kore::Bytecode::Call: {
-                oss << " @" << reg1() << " " << reg2() << " " << reg3();
-
-                for (auto call_register : call_registers()) {
-                    oss << " @" << call_register;
-                }
-
-                for (auto ret_register : return_registers()) {
-                    oss << " @" << ret_register;
-                }
-
-                return oss.str();
-            }
-
-            case kore::Bytecode::Ret: {
-                for (auto ret_register : return_registers()) {
-                    oss << " @" << ret_register;
-                }
-
-                return oss.str();
-            }
-
-            case kore::Bytecode::Gstore: {
-                oss << "#" << reg1() << " @" << reg2();
-                return oss.str();
-            }
-
-            default:
-                break;
         }
 
-        if (reg1() >= 0) {
-            oss << " @" << reg1();
-        }
-
-
-        if (reg2() >= 0) {
-            oss << " @" << reg2();
-        }
-
-        if (reg3() >= 0) {
-            oss << " @" << reg3();
-        }
-
-        return oss.str();
+        return os;
     }
 
     std::ostream& operator<<(std::ostream& os, const Instruction instruction) {
-        os << instruction.position() << ": " << instruction.name() << instruction.registers_as_string();
-
-        return os;
+        os << instruction.byte_pos << ": " << bytecode_to_string(instruction.value.opcode);
+        
+        return format_registers(os, instruction);
     }
 }

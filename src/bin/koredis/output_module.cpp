@@ -5,6 +5,7 @@
 #include "logging/colors.hpp"
 #include "logging/logging.hpp"
 #include "output_module.hpp"
+#include "targets/bytecode/codegen/bytecode.hpp"
 #include "targets/bytecode/disassemble/decode_instruction.hpp"
 #include "utils/unused_parameter.hpp"
 #include "version.hpp"
@@ -21,28 +22,39 @@ namespace koredis {
     }
 
     bool compare_instruction_display_lengths(const Instruction ins1, const Instruction ins2) {
-        return kore::bytecode_to_string(ins1.opcode()).size() < kore::bytecode_to_string(ins2.opcode()).size();
+        return kore::bytecode_to_string(ins1.value.opcode).size() < kore::bytecode_to_string(ins2.value.opcode).size();
     }
 
     void output_function(std::ostream& os, kore::Color color, kore::CompiledObject& obj) {
-        kore::section("function", kore::Color::Magenta, kore::ColorAttribute::Bold, 0, obj.name().c_str());
-        auto attr = kore::ColorAttribute::Reset;
+        // TODO: Make colors configurable instead of hardcoded
+        kore::section(
+            "function",
+            kore::Color::Magenta,
+            kore::ColorAttribute::Bold,
+            0,
+            "%s (registers: %d, code size: %d)",
+            obj.name().c_str(),
+            obj.reg_count(),
+            obj.code_size()
+        );
 
-        os << color << "  " << attr << "registers: " << obj.reg_count() << std::endl;
-        os << color << "  " << attr << "code size: " << obj.code_size() << std::endl;
-        os << color << "" << attr << std::endl;
+        auto attr = kore::ColorAttribute::Reset;
 
         auto decoded_instructions = decode_instructions(obj);
         auto opcode_color = kore::Color::Blue;
 
         for (auto instruction : decoded_instructions) {
             os << color << "  " << attr
-               << instruction.byte_position() << "  "
+               << instruction.byte_pos << "  "
                << std::setw(10) << std::left
-               << opcode_color << instruction.name() << attr
-               << instruction.registers_as_string()
-               << std::endl;
+               << opcode_color << kore::bytecode_to_string(instruction.value.opcode) << attr;
+
+            format_registers(os, instruction);
+
+            os << std::endl;
         }
+
+        os << std::endl;
     }
 
     void output_module(std::ostream& os, kore::Module& module, bool colors, bool porcelain, int verbosity) {

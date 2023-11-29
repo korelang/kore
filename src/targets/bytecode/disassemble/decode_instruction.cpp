@@ -2,6 +2,7 @@
 #include <vector>
 
 #include "targets/bytecode/codegen/bytecode.hpp"
+#include "targets/bytecode/codegen/kir/instruction.hpp"
 #include "targets/bytecode/disassemble/decode_instruction.hpp"
 #include "targets/bytecode/disassemble/disassemble_error.hpp"
 #include "targets/bytecode/disassemble/instruction.hpp"
@@ -35,11 +36,17 @@ namespace koredis {
         kore::bytecode_type instruction = obj[pos];
         auto opcode = GET_OPCODE(instruction);
         Instruction decoded_instruction;
+        bool byte_pos_advanced = false;
 
         switch (opcode) {
             case kore::Bytecode::Noop: {
-                decoded_instruction = Instruction(opcode, pos++, byte_pos);
-                byte_pos += 4;
+                // We just use the OneRegister variant here to avoid having
+                // another variant for an opcode with no arguments
+                decoded_instruction = Instruction{
+                    pos++,
+                    byte_pos,
+                    { opcode, kore::kir::OneRegister{ kore::INVALID_REGISTER } }
+                };
                 break;
             }
 
@@ -48,29 +55,37 @@ namespace koredis {
             case kore::Bytecode::CloadI64:
             case kore::Bytecode::CloadF32:
             case kore::Bytecode::CloadF64:
-            case kore::Bytecode::Gload: {
-                decoded_instruction = Instruction::load(
-                    opcode,
+            case kore::Bytecode::Gload:
+            case kore::Bytecode::JumpIf:
+            case kore::Bytecode::JumpIfNot: {
+                decoded_instruction = Instruction{
                     pos++,
                     byte_pos,
-                    GET_REG1(instruction),
-                    GET_VALUE(instruction)
-                );
-                byte_pos += 4;
+                    {
+                        opcode,
+                        kore::kir::RegisterAndValue{
+                            static_cast<kore::Reg>(GET_REG1(instruction)),
+                            static_cast<kore::Reg>(GET_VALUE(instruction))
+                        }
+                    }
+                };
                 break;
             }
 
             case kore::Bytecode::Move:
             case kore::Bytecode::Gstore:
             case kore::Bytecode::AllocArray: {
-                decoded_instruction = Instruction(
-                    opcode,
+                decoded_instruction = Instruction{
                     pos++,
                     byte_pos,
-                    GET_REG1(instruction),
-                    GET_REG2(instruction)
-                );
-                byte_pos += 4;
+                    {
+                        opcode,
+                        kore::kir::TwoRegisters{
+                            static_cast<kore::Reg>(GET_REG1(instruction)),
+                            static_cast<kore::Reg>(GET_REG2(instruction))
+                        }
+                    }
+                };
                 break;
             }
 
@@ -120,39 +135,32 @@ namespace koredis {
             case kore::Bytecode::NeqF64:
             case kore::Bytecode::ArrayIndexGet:
             case kore::Bytecode::ArrayIndexSet: {
-                decoded_instruction = Instruction(
-                    opcode,
+                decoded_instruction = Instruction{
                     pos++,
                     byte_pos,
-                    GET_REG1(instruction),
-                    GET_REG2(instruction),
-                    GET_REG3(instruction)
-                );
-                byte_pos += 4;
+                    {
+                        opcode,
+                        kore::kir::ThreeRegisters{
+                            static_cast<kore::Reg>(GET_REG1(instruction)),
+                            static_cast<kore::Reg>(GET_REG2(instruction)),
+                            static_cast<kore::Reg>(GET_REG3(instruction))
+                        }
+                    }
+                };
                 break;
             }
 
             case kore::Bytecode::Jump: {
-                decoded_instruction = Instruction::with_offset(
-                    opcode,
+                decoded_instruction = Instruction{
                     pos++,
                     byte_pos,
-                    GET_OFFSET(instruction)
-                );
-                byte_pos += 4;
-                break;
-            }
-
-            case kore::Bytecode::JumpIf:
-            case kore::Bytecode::JumpIfNot: {
-                decoded_instruction = Instruction::with_offset(
-                    opcode,
-                    pos++,
-                    byte_pos,
-                    GET_REG1(instruction),
-                    GET_OFFSET(instruction)
-                );
-                byte_pos += 4;
+                    {
+                        opcode,
+                        kore::kir::Value{
+                            static_cast<kore::Reg>(GET_OFFSET(instruction))
+                        }
+                    }
+                };
                 break;
             }
 
@@ -160,30 +168,30 @@ namespace koredis {
                 int func_reg = GET_REG1(instruction);
                 int arg_count = GET_REG2(instruction);
                 int return_count = GET_REG3(instruction);
-                int start_pos = pos;
+                int start_pos = pos++;
                 int byte_offset = 0;
-                std::vector<kore::Reg> arg_regs;
-                std::vector<kore::Reg> ret_regs;
 
-                arg_regs = decode_registers(pos, byte_offset, arg_count, obj);
-                ret_regs = decode_registers(pos, byte_offset, return_count, obj);
+                auto arg_regs = decode_registers(pos, byte_offset, arg_count, obj);
+                auto ret_regs = decode_registers(pos, byte_offset, return_count, obj);
 
                 if (arg_count > 0 || return_count > 0) {
                     ++pos;
                 }
 
-                decoded_instruction = Instruction::call(
-                    opcode,
+                // HACK: Insert the function register as the first argument as
+                // we don't have a valid expression as is expected by KIR
+                arg_regs.insert(arg_regs.begin(), func_reg);
+
+                decoded_instruction = Instruction{
                     start_pos,
                     byte_pos,
-                    func_reg,
-                    return_count,
-                    arg_count,
-                    ret_regs,
-                    arg_regs
-                );
+                    { opcode, kore::kir::CallV{ nullptr, arg_regs, ret_regs } }
+                };
 
+                // Advance 4 positions for the instruction size + any additional
+                // argument and return registers
                 byte_pos += 4 + byte_offset;
+                byte_pos_advanced = true;
                 break;
             }
 
@@ -192,13 +200,25 @@ namespace koredis {
                 int byte_offset = 2;
                 auto ret_regs = decode_registers(pos, byte_offset, regs, obj);
 
-                decoded_instruction = Instruction::ret(opcode, pos++, byte_pos, regs, ret_regs);
+                decoded_instruction = Instruction{
+                    pos++,
+                    byte_pos,
+                    { opcode, kore::kir::ReturnV{ ret_regs } }
+                };
+
+                // Advance at least the instruction size if there were less than
+                // 3 regsiters otherwise account for the additional return registers
                 byte_pos += std::max(byte_offset, 4);
+                byte_pos_advanced = true;
                 break;
             }
 
             default:
-                throw DisassembleError("Failed to decode instruction", pos);
+                throw DisassembleError("Failed to decode instruction", byte_pos);
+        }
+
+        if (!byte_pos_advanced) {
+            byte_pos += 4;
         }
 
         return decoded_instruction;

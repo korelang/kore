@@ -39,9 +39,9 @@ namespace kore {
                 Reg load_global(Identifier& expr, Reg gidx);
                 Reg binop(BinaryExpression& expr, Reg left, Reg right);
                 void unconditional_jump(BlockId target_block_id);
-                void move(VariableAssignment& assign, Reg src, Reg dst);
+                void move(Reg src, Reg dst);
                 void conditional_jump(Bytecode opcode, Reg condition, BlockId target_block_id);
-                Reg allocate_array(ArrayExpression& expr, const std::vector<Reg> element_regs);
+                Reg allocate_array(ArrayExpression& expr);
                 void destroy(Reg reg);
                 /* void destroy(Expression& expr, Reg reg); */
                 void refinc(Reg reg);
@@ -49,8 +49,8 @@ namespace kore {
                 void call(
                     kore::Bytecode opcode,
                     Expression& expr, // TODO: This doesn't need to be mutable
-                    const std::vector<kore::Reg>& return_registers,
-                    const std::vector<kore::Reg>& arg_registers
+                    const std::vector<kore::Reg>& arg_registers,
+                    const std::vector<kore::Reg>& return_registers
                 );
                 void _return();
                 void _return(Reg retreg);
@@ -62,7 +62,7 @@ namespace kore {
                 int code_size() const;
 
             private:
-                Reg load_constant(InstructionType inst_type, Expression& expr, int index);
+                Reg load_constant(Bytecode opcode, Expression& expr, int index);
 
             private:
                 FuncIndex _index;
