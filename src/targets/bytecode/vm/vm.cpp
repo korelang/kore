@@ -46,23 +46,23 @@
         break;\
     \
     case Bytecode::Gt##opcode_suffix:\
-        BINARY_OP(type, bool, <)\
+        BINARY_OP(type, bool, >)\
         break;\
     \
     case Bytecode::Le##opcode_suffix:\
-        BINARY_OP(type, bool, <)\
+        BINARY_OP(type, bool, <=)\
         break;\
     \
     case Bytecode::Ge##opcode_suffix:\
-        BINARY_OP(type, bool, <)\
+        BINARY_OP(type, bool, >=)\
         break;\
     \
     case Bytecode::Eq##opcode_suffix:\
-        BINARY_OP(type, bool, <)\
+        BINARY_OP(type, bool, ==)\
         break;\
     \
     case Bytecode::Neq##opcode_suffix:\
-        BINARY_OP(type, bool, <)\
+        BINARY_OP(type, bool, !=)\
         break;\
 }
 
