@@ -144,7 +144,7 @@ set(KORE_SHARED_COMPILE_FLAGS -Wall -Wextra -pedantic -Werror)# -g -O0)
 #   - Virtual machine (kore)
 add_subdirectory("./src/bin/korec")
 add_subdirectory("./src/bin/koredis")
-# add_subdirectory("./src/bin/kore")
+add_subdirectory("./src/bin/kore")
 
 # Build tests
 add_subdirectory("./tests")

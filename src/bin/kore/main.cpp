@@ -4,12 +4,12 @@
 #include <string>
 
 #include "logging/logging.hpp"
-#include "module.hpp"
-#include "module_loader.hpp"
+#include "targets/bytecode/module.hpp"
+/* #include "module_loader.hpp" */
 #include "options.hpp"
 #include "repl.hpp"
+#include "targets/bytecode/vm/vm.hpp"
 #include "version.hpp"
-#include "vm/vm.hpp"
 
 namespace fs = std::filesystem;
 
@@ -17,8 +17,6 @@ namespace kore {
     const std::string PROGRAM_NAME = "kore";
 
     int run_vm(const ParsedCommandLineArgs& args) {
-        vm::Vm vm;
-
         if (args.repl_mode) {
             Repl repl;
             repl.run();
@@ -40,6 +38,7 @@ namespace kore {
                 }
             }
 
+            vm::Vm vm;
             vm.run_path(args.path);
 
             if (args.dump_registers) {

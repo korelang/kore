@@ -1,4 +1,4 @@
-#include "kore/repl.hpp"
+#include "bin/kore/repl.hpp"
 #include "logging/logging.hpp"
 
 #include <iostream>
