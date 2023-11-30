@@ -2,6 +2,8 @@
 
 namespace kore {
     namespace vm {
+        Value::Value() : tag(ValueTag::Bool) {}
+
         Value::~Value() {
             switch (tag) {
                 case ValueTag::Bool:

@@ -33,6 +33,8 @@ namespace kore {
                 /* std::string _str; */
             } value;
 
+            Value();
+
             ~Value();
 
             inline bool as_bool() const {
