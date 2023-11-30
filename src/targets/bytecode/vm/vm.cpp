@@ -71,6 +71,7 @@
 #ifdef _KORE_DEBUG_VM
     #include "logging/logging.hpp"
 
+    // TODO: Change to use debug_group
     #define KORE_DEBUG_VM_LOG(action, value) {\
         if (!value.empty()) {\
             debug_group("vm", "%s: %s", action, value.c_str());\
@@ -93,13 +94,24 @@ namespace kore {
             this->pc = call_frame.old_pc;
         }
 
-        CallFrame::CallFrame(int ret_count, int reg_count, const bytecode_type* code, std::size_t size)
+        CallFrame::CallFrame(
+            int ret_count,
+            int reg_count,
+            const bytecode_type* code,
+            std::size_t size
+        )
             : ret_count(ret_count),
               reg_count(reg_count),
               code(code),
               size(size) {}
 
-        CallFrame::CallFrame(int ret_count, int shift, std::size_t old_fp, std::size_t old_pc, CompiledObject* obj)
+        CallFrame::CallFrame(
+            int ret_count,
+            int shift,
+            std::size_t old_fp,
+            std::size_t old_pc,
+            CompiledObject* obj
+        )
             : ret_count(ret_count),
               reg_count(obj->reg_count()),
               shift(shift),
@@ -347,7 +359,7 @@ namespace kore {
                 // Push argument registers onto the call stack
                 for (int i = 0; i < arg_count; ++i, shift -= 8) {
                     Reg dst_reg = _context.fp + i;
-                    Reg src_reg = old_fp + (instruction >> shift) & 0xff;
+                    Reg src_reg = old_fp + ((instruction >> shift) & 0xff);
                     move(dst_reg, src_reg);
 
                     if (shift == 0) {
@@ -358,7 +370,9 @@ namespace kore {
             }
 
             // Push a new call frame for the called function
-            _call_frames.push_back(CallFrame{ ret_count, shift, old_fp, _context.pc, function });
+            _call_frames.push_back(
+                CallFrame{ ret_count, shift, old_fp, _context.pc, function }
+            );
 
             // Set the program counter to zero to start executing the start of
             // the called function's instructions
@@ -382,7 +396,8 @@ namespace kore {
                 auto& caller = get_caller();
                 bytecode_type ret = caller.code[frame.old_pc++];
 
-                // Copy return registers into destination registers in the previous call frame
+                // Copy return registers into destination registers in the
+                // previous call frame
                 for (int i = 0, ret_shift = 8; i < ret_count; ++i, shift -= 8, ret_shift -= 8) {
                     // Get a source register from the return instruction
                     Reg src_reg = _context.fp + ((instruction >> ret_shift) & 0xff);
