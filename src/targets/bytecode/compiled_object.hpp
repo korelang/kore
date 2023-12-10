@@ -63,6 +63,8 @@ namespace kore {
             int _local_count = 0;
             std::vector<bytecode_type> _instructions;
 
+            // TODO: Add a pointer to the containing module here
+
             // For now, we just use a very simple register allocator with
             // a maximum of 256 registers that just bumps a register count
             int _reg_count = 0;

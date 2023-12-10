@@ -1,3 +1,4 @@
+#include "analysis/function_name_visitor.hpp"
 #include "ast/expressions/integer_expression.hpp"
 #include "ast/statements/statements.hpp"
 #include "bin/korec/options.hpp"
@@ -13,6 +14,10 @@ namespace kore {
         KirLoweringPass::KirLoweringPass(const ParsedCommandLineArgs& args) : _args(&args) {}
 
         Module KirLoweringPass::lower(const Ast& ast) {
+            kore::analysis::FunctionNameVisitor function_name_visitor{};
+
+            _functions = function_name_visitor.collect_functions(ast);
+
             Module module(0, ast.path());
 
             _module = &module;
@@ -22,6 +27,10 @@ namespace kore {
             for (auto const& statement : ast) {
                 statement->accept_visit_only(*this);
             }
+
+            // Emit a return instruction at the end of the main function so we
+            // pop its call frame
+            current_function()._return();
 
             _func_index_stack.pop();
             assert(_func_index_stack.size() == 0);
@@ -243,6 +252,12 @@ namespace kore {
             trace_kir("call", call.name());
 
             auto& func = current_function();
+            auto& module = current_module();
+
+            int func_index = _functions[call.name()].first;
+            int index = module.i32_constant_table().add(func_index);
+            Reg func_reg = func.load_constant(index);
+
             std::vector<Reg> arg_registers;
 
             for (int idx = 0; idx < call.arg_count(); ++idx) {
@@ -252,20 +267,13 @@ namespace kore {
             // TODO: Support multiple return values
             std::vector<Reg> return_registers{ func.allocate_register() };
 
-            // We pass the called function instead of a function index because
-            // the function might not have been visited yet and we do not want
-            // to enforce an ordering of function. We determine the function
-            // index later when generating code.
-            //
-            // TODO: This will not work once we have modules as the same
-            // function name can be used in different modules. Perhaps pass a
-            // name like "module::function" where "::" is a scope delimiter
-            func.call(Bytecode::Call, call, arg_registers, return_registers);
+            func.call(Bytecode::Call, func_reg, arg_registers, return_registers);
 
             // Push single destination (return) register
             push_register(return_registers[0]);
 
-            /* // TODO: Or maybe move this into a separate AST node? */
+            // TODO: Or maybe move this into a separate AST node?
+
             /* auto [idx, builtin_func_ptr] = vm::get_builtin_function_by_name(call.name()); */
 
             /* if (builtin_func_ptr != nullptr) { */

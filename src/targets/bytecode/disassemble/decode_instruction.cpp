@@ -178,14 +178,10 @@ namespace koredis {
                     ++pos;
                 }
 
-                // HACK: Insert the function register as the first argument as
-                // we don't have a valid expression as is expected by KIR
-                arg_regs.insert(arg_regs.begin(), func_reg);
-
                 decoded_instruction = Instruction{
                     start_pos,
                     byte_pos,
-                    { opcode, kore::kir::CallV{ nullptr, arg_regs, ret_regs } }
+                    { opcode, kore::kir::CallV{ func_reg, arg_regs, ret_regs } }
                 };
 
                 // Advance 4 positions for the instruction size + any additional

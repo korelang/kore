@@ -52,6 +52,7 @@ namespace kore {
             static const VoidType* void_type();
             static ArrayType* make_array_type(const Type* element_type);
             static const Optional* make_optional_type(const Type* contained_type);
+            static const Type* get_type_from_category(TypeCategory category);
 
             static const Type* from_token(const Token& token);
 

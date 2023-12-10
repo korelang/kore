@@ -237,8 +237,6 @@ namespace kore {
 
             write_be32(KORE_MAKE_VALUE_INSTRUCTION(opcode, value));
         } else if (auto ins_type = std::get_if<kir::CallV>(&instruction.type)) {
-            // TODO: This should probably be a register containing the function index instead
-            auto func_index = 0;
             auto arg_registers = ins_type->arg_registers;
             auto ret_registers = ins_type->ret_registers;
 
@@ -246,7 +244,7 @@ namespace kore {
             // variadic functions?)
             std::vector<std::uint8_t> bytes{
                 static_cast<std::uint8_t>(opcode),
-                static_cast<std::uint8_t>(func_index),
+                static_cast<std::uint8_t>(ins_type->func_index),
                 static_cast<std::uint8_t>(arg_registers.size()),
                 static_cast<std::uint8_t>(ret_registers.size()),
             };

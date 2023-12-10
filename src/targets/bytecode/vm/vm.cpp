@@ -94,6 +94,9 @@ namespace kore {
             this->pc = call_frame.old_pc;
         }
 
+        CallFrame::CallFrame(CompiledObject* obj)
+            : CallFrame(0, 0, 0, 0, obj) {}
+
         CallFrame::CallFrame(
             int ret_count,
             int reg_count,
@@ -230,6 +233,8 @@ namespace kore {
         }
 
         void Vm::dump_registers(std::ostream& os) {
+            // TODO: Track the highest register used by each call frame so we
+            // can dump all call frames instead
             for (int i = 0; i < main_call_frame_reg_count; ++i) {
                 os << "@" << i << std::setw(6) << std::left << " " << _registers[i] << std::endl;
             }
@@ -250,7 +255,7 @@ namespace kore {
 
             // Push a call frame to the main object
             auto main_object = _context._current_module->main_object();
-            _call_frames.push_back(CallFrame{ 0, 0, 0, 0, main_object });
+            _call_frames.push_back(CallFrame{ main_object });
 
             run_compiled_object(main_object);
         }
@@ -260,6 +265,7 @@ namespace kore {
         }
 
         void Vm::load_functions_from_module(const Module& module) {
+            // TODO: Move this lookup into the Module class?
             KORE_DEBUG_VM_LOG("module load", module.path());
             _loaded_functions.resize(_loaded_functions.size() + module.objects_count());
 
@@ -293,6 +299,7 @@ namespace kore {
         void Vm::throw_unknown_opcode(Bytecode opcode) {
             auto message = "Unsupported bytecode at "  + std::to_string(_context.pc) + ": " + std::to_string(opcode);
 
+            // TODO: Cannot throw before we have deallocated all VM memory
             throw_vm_error(message);
         }
 
@@ -356,7 +363,7 @@ namespace kore {
                 // argument registers
                 instruction = frame.code[_context.pc];
 
-                // Push argument registers onto the call stack
+                // Move argument registers into the callee's register window
                 for (int i = 0; i < arg_count; ++i, shift -= 8) {
                     Reg dst_reg = _context.fp + i;
                     Reg src_reg = old_fp + ((instruction >> shift) & 0xff);
@@ -421,8 +428,8 @@ namespace kore {
             }
 
             // Reset the stack pointer to the base of the current call frame
-            // and beyond the old frame pointer and program counter. Restore
-            // the old frame pointer and program counter
+            // just beyond the register window of the caller. Restore the old
+            // frame pointer and program counter
             deallocate_local_stack(frame);
             _context.restore(frame);
 

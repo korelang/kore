@@ -152,7 +152,15 @@ namespace kore {
     ) {
         auto location = SourceLocation(lnum, start, end);
 
-        _objects.emplace_back(std::make_unique<CompiledObject>(name, location, func_index, locals_count, reg_count, instructions));
+        _objects.emplace_back(std::make_unique<CompiledObject>(
+            name,
+            location,
+            func_index,
+            locals_count,
+            reg_count,
+            instructions
+        ));
+
         _function_map[name] = _objects.back().get();
     }
 

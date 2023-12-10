@@ -9,6 +9,17 @@ namespace koredis {
         return os << register_symbol << reg;
     }
 
+    std::ostream& format_register_list(
+        std::ostream& os,
+        const std::vector<kore::Reg> registers
+    ) {
+        for (auto reg : registers) {
+            os << " " << register_symbol << reg;
+        }
+
+        return os;
+    }
+
     std::ostream& format_registers(std::ostream& os, Instruction instruction) {
         // Special-case output for more complex opcodes
         auto instruction_type = instruction.value.type;
@@ -44,24 +55,16 @@ namespace koredis {
 
             os << " " << value << " [target: " << target_pos << "]";
         } else if (auto ins_type = std::get_if<kore::kir::CallV>(&instruction_type)) {
-            auto arg_iter = ins_type->arg_registers.cbegin();
+            os << " " << register_symbol << ins_type->func_index;
+            format_register_list(os, ins_type->arg_registers);
+            format_register_list(os, ins_type->ret_registers);
 
-            // First register is the function register
-            os << " " << *arg_iter++;
-
-            for (auto iter = arg_iter; arg_iter != ins_type->arg_registers.cend(); ++arg_iter) {
-                os << " " << register_symbol << *iter;
-            }
-
-            for (auto ret_reg : ins_type->ret_registers) {
-                os << " " << register_symbol << ret_reg;
-            }
-
-            os << " [args: " << (ins_type->arg_registers.size() - 1) << ", returns: " << ins_type->ret_registers.size() << "]";
+            os << " [args: "
+               << ins_type->arg_registers.size()
+               << ", returns: "
+               << ins_type->ret_registers.size() << "]";
         } else if (auto ins_type = std::get_if<kore::kir::ReturnV>(&instruction_type)) {
-            for (auto reg : ins_type->registers) {
-                os << " " << register_symbol << reg;
-            }
+            format_register_list(os, ins_type->registers);
         }
 
         return os;

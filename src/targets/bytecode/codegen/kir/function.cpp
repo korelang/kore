@@ -3,6 +3,7 @@
 #include "targets/bytecode/codegen/kir/function.hpp"
 #include "targets/bytecode/codegen/kir/instruction.hpp"
 #include "targets/bytecode/vm/config.hpp"
+#include "types/type_category.hpp"
 #include "types/unknown_type.hpp"
 
 namespace kore {
@@ -170,6 +171,7 @@ namespace kore {
         // TODO: Do we need functions for each expression/statement? Maybe just for
         // each type of instruction + the expression for setting register types?
 
+        // TODO: Rename these to "emit_X"
         Reg Function::load_constant(BoolExpression& expr) {
             return load_constant(
                 Bytecode::LoadBool,
@@ -184,6 +186,17 @@ namespace kore {
 
         Reg Function::load_constant(FloatExpression& expr, int index) {
             return load_constant(Bytecode::CloadF32, expr, index);
+        }
+
+        Reg Function::load_constant(int index) {
+            Reg reg = allocate_register();
+
+            add_instruction(
+                Instruction{ Bytecode::CloadI32, RegisterAndValue{ reg, index } }
+            );
+            set_register_type(reg, Type::get_type_from_category(TypeCategory::Integer32));
+
+            return reg;
         }
 
         Reg Function::load_global(Identifier& expr, Reg global_index) {
@@ -244,12 +257,12 @@ namespace kore {
 
         void Function::call(
             kore::Bytecode opcode,
-            Expression& expr,
+            Reg func_index,
             const std::vector<kore::Reg>& arg_registers,
             const std::vector<kore::Reg>& return_registers
         ) {
             add_instruction(
-                Instruction{ opcode, CallV{ &expr, arg_registers, return_registers } }
+                Instruction{ opcode, CallV{ func_index, arg_registers, return_registers } }
             );
         }
 
@@ -270,6 +283,7 @@ namespace kore {
             // If the function is not backed by a syntactic function then it is
             // a compiled-generated "main" function
             if (!_func) {
+                // TODO: Make "<main>" a constant somewhere logic
                 return "<main>";
             }
 

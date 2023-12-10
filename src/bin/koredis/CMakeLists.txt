@@ -15,6 +15,7 @@ set(KORE_DISASSEMBLER_SOURCES
     ${KORE_TARGETS_BYTECODE_SOURCES}
     ${KORE_KIR_SOURCES}
     ${KORE_ERRORS_SOURCES}
+    ${KORE_ANALYSIS_SOURCES}
 
     # Files specific to koredis
     # disassemble.cpp

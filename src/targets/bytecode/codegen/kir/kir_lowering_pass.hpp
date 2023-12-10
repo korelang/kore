@@ -1,6 +1,7 @@
 #ifndef KORE_KIR_LOWERING_PASS_HPP
 #define KORE_KIR_LOWERING_PASS_HPP
 
+#include "analysis/function_name_visitor.hpp"
 #include "ast/ast.hpp"
 #include "ast/ast_visitor.hpp"
 #include "bin/korec/options.hpp"
@@ -50,6 +51,7 @@ namespace kore {
                 const ParsedCommandLineArgs* _args;
                 ScopeStack _scope_stack;
                 Module* _module;
+                analysis::FunctionMap _functions;
                 std::stack<int> _func_index_stack;
                 std::vector<errors::Error> _errors;
                 std::vector<Reg> _register_stack;

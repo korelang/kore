@@ -36,6 +36,7 @@ namespace kore {
                 /* void load_constant(CharExpression& expr); */
                 Reg load_constant(IntegerExpression& expr, int index);
                 Reg load_constant(FloatExpression& expr, int index);
+                Reg load_constant(int index);
                 Reg load_global(Identifier& expr, Reg gidx);
                 Reg binop(BinaryExpression& expr, Reg left, Reg right);
                 void unconditional_jump(BlockId target_block_id);
@@ -48,7 +49,7 @@ namespace kore {
                 void refdec(Reg reg);
                 void call(
                     kore::Bytecode opcode,
-                    Expression& expr, // TODO: This doesn't need to be mutable
+                    Reg func_index,
                     const std::vector<kore::Reg>& arg_registers,
                     const std::vector<kore::Reg>& return_registers
                 );

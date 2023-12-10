@@ -16,6 +16,7 @@ namespace fs = std::filesystem;
 namespace kore {
     namespace vm {
         struct CallFrame {
+            CallFrame(CompiledObject* obj);
             CallFrame(int ret_count, int reg_count, const bytecode_type* code, std::size_t size);
             CallFrame(int ret_count, int shift, std::size_t old_fp, std::size_t old_pc, CompiledObject* obj);
 

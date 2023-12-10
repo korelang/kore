@@ -38,7 +38,7 @@ namespace kore {
         };
 
         struct CallV {
-            Expression* expr;
+            Reg func_index;
             std::vector<kore::Reg> arg_registers;
             std::vector<kore::Reg> ret_registers;
         };

@@ -171,6 +171,10 @@ namespace kore {
         return _type_cache.get_optional_type(contained_type);
     }
 
+    const Type* Type::get_type_from_category(TypeCategory category) {
+        return _type_cache.get_type(category);
+    }
+
     const Type* Type::from_token(const Token& token) {
         if (!token.is_type()) {
             throw std::runtime_error("Cannot create type from non-type token '%s'");

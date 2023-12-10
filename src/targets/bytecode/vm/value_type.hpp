@@ -5,6 +5,7 @@
 
 #include "internal_value_types.hpp"
 #include "targets/bytecode/vm/values/array_value.hpp"
+#include "targets/bytecode/vm/values/function_value.hpp"
 
 namespace kore {
     namespace vm {
@@ -15,6 +16,7 @@ namespace kore {
             F32,
             F64,
             Array,
+            FunctionValue,
             /* Str, */
         };
 
@@ -30,6 +32,7 @@ namespace kore {
                 f32 _f32;
                 f64 _f64;
                 ArrayValue* _array;
+                FunctionValue _function_value;
                 /* std::string _str; */
             } value;
 
@@ -107,6 +110,16 @@ namespace kore {
                 return value._array;
             }
 
+            inline FunctionValue as_function_value() {
+                #if KORE_VM_DEBUG
+                if (tag != ValueTag::FunctionValue) {
+                    throw std::runtime_error("Not a function value");
+                }
+                #endif
+
+                return value._function_value;
+            }
+
             static Value from_bool(bool value);
             static Value from_i32(i32 value);
             static Value from_i64(i64 value);
@@ -114,6 +127,7 @@ namespace kore {
             static Value from_f64(f64 value);
             /* static Value from_string(const std::string& str); */
             static Value allocate_array(std::size_t size);
+            static Value allocate_function_value(int func_idx, CompiledObject* obj);
         };
 
         std::ostream& operator<<(std::ostream& out, const Value& value);

@@ -132,7 +132,12 @@ set(KORE_TARGETS_BYTECODE_SOURCES
     ${PROJECT_SOURCE_DIR}/src/targets/bytecode/disassemble/instruction.cpp
     ${PROJECT_SOURCE_DIR}/src/targets/bytecode/vm/value_type.cpp
     ${PROJECT_SOURCE_DIR}/src/targets/bytecode/vm/values/array_value.cpp
+    ${PROJECT_SOURCE_DIR}/src/targets/bytecode/vm/values/function_value.cpp
     ${PROJECT_SOURCE_DIR}/src/targets/bytecode/vm/vm.cpp
+)
+
+set(KORE_ANALYSIS_SOURCES
+    ${PROJECT_SOURCE_DIR}/src/analysis/function_name_visitor.cpp
 )
 
 set(KORE_SHARED_COMPILE_FLAGS -Wall -Wextra -pedantic -Werror)# -g -O0)

@@ -10,9 +10,10 @@ namespace kore {
                 case ValueTag::I32:
                 case ValueTag::I64:
                 case ValueTag::F32:
-                case ValueTag::F64:
+                case ValueTag::F64: {
                     // We don't allocate any memory for these values
                     break;
+                }
 
                 case ValueTag::Array: {
                     #if KORE_VM_DEBUG
@@ -23,6 +24,11 @@ namespace kore {
 
                     delete value._array;
                     break;
+                }
+
+                case ValueTag::FunctionValue: {
+                    value._function_value.index = -1;
+                    value._function_value.obj = nullptr;
                 }
             }
         }
@@ -92,25 +98,30 @@ namespace kore {
 
         std::ostream& operator<<(std::ostream& out, const Value& value) {
             switch (value.tag) {
-                case ValueTag::Bool:
+                case ValueTag::Bool: {
                     out << (value.value._bool ? "true" : "false");
                     break;
+                }
 
-                case ValueTag::I32:
+                case ValueTag::I32: {
                     out << "i32(" << value.value._i32 << ")";
                     break;
+                }
 
-                case ValueTag::I64:
+                case ValueTag::I64: {
                     out << "i64(" << value.value._i64 << ")";
                     break;
+                }
 
-                case ValueTag::F32:
+                case ValueTag::F32: {
                     out << "f32(" << value.value._f32 << ")";
                     break;
+                }
 
-                case ValueTag::F64:
+                case ValueTag::F64: {
                     out << "f64(" << value.value._f64 << ")";
                     break;
+                }
 
                 /* case ValueTag::Str: */
                 /*     out << "Value(" << value.value._str << ", str)"; */
@@ -125,6 +136,24 @@ namespace kore {
 
                     out << (*value.value._array);
                     break;
+                }
+
+                case ValueTag::FunctionValue: {
+                    #if KORE_VM_DEBUG
+                        if (value.value._function_value.index < 0) {
+                            throw std::runtime_error(
+                                "Function value contains negative function index"
+                            );
+                        }
+
+                        if (value.value._function_value.obj == nullptr) {
+                            throw std::runtime_error(
+                                "Function value points to null compiled function"
+                            );
+                        }
+                    #endif
+
+                    out << value.value._function_value;
                 }
             }
 
