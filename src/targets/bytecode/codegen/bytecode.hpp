@@ -147,8 +147,8 @@ namespace kore {
 
     Bytecode int_to_bytecode(int opcode);
 
-    bool is_variable_length(Bytecode bytecode);
-    bool is_variable_length(bytecode_type instruction);
+    bool is_variable_length_opcode(Bytecode bytecode);
+    bool is_variable_length_instruction(bytecode_type instruction);
 
     std::ostream& operator<<(std::ostream& os, const Bytecode bytecode);
 }

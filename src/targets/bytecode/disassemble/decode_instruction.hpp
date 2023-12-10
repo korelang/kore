@@ -4,12 +4,12 @@
 #include "targets/bytecode/codegen/bytecode_codegen.hpp"
 #include "targets/bytecode/compiled_object.hpp"
 #include "targets/bytecode/disassemble/instruction.hpp"
-#include "targets/bytecode/disassemble/disassemble_error.hpp"
+#include "targets/bytecode/module_load_error.hpp"
 
 namespace koredis {
     struct DecodeResult {
         std::vector<Instruction> instructions;
-        std::vector<DisassembleError> errors;
+        std::vector<kore::ModuleLoadError> errors;
     };
 
     Instruction decode_instruction(kore::bytecode_type instruction);

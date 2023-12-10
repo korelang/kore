@@ -3,10 +3,10 @@
 
 #include "logging/logging.hpp"
 #include "options.hpp"
-#include "output_module.hpp"
-#include "targets/bytecode/disassemble/disassemble.hpp"
-#include "targets/bytecode/disassemble/disassemble_error.hpp"
+#include "dump_module.hpp"
+#include "targets/bytecode/module_load_error.hpp"
 #include "targets/bytecode/module.hpp"
+#include "targets/bytecode/module_loader.hpp"
 #include "version.hpp"
 
 namespace koredis {
@@ -33,10 +33,10 @@ namespace koredis {
             }
 
             try {
-                kore::Module module = disassemble_modules_from_path(path);
+                kore::Module module = kore::load_module_from_path(path);
 
-                output_module(std::cout, module, args.colors, args.porcelain, args.verbosity);
-            } catch (DisassembleError& ex) {
+                dump_module(std::cout, module, args.colors, args.porcelain, args.verbosity);
+            } catch (kore::ModuleLoadError& ex) {
                 kore::error("disassembly of '%s' failed: %s", path.c_str(), ex.what());
             }
         }

@@ -81,7 +81,7 @@ namespace kore {
         return static_cast<kore::Bytecode>(opcode);
     }
 
-    bool is_variable_length(Bytecode bytecode) {
+    bool is_variable_length_opcode(Bytecode bytecode) {
         switch (bytecode) {
             case Call:
             case Ret:
@@ -92,8 +92,8 @@ namespace kore {
         }
     }
 
-    bool is_variable_length(bytecode_type instruction) {
-        return is_variable_length(GET_OPCODE(instruction));
+    bool is_variable_length_instruction(bytecode_type instruction) {
+        return is_variable_length_opcode(GET_OPCODE(instruction));
     }
 
     std::ostream& operator<<(std::ostream& os, const Bytecode bytecode) {

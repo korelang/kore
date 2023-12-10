@@ -1,10 +1,10 @@
 #include <algorithm>
 #include <iomanip>
 
+#include "dump_module.hpp"
 #include "logging/color_attributes.hpp"
 #include "logging/colors.hpp"
 #include "logging/logging.hpp"
-#include "output_module.hpp"
 #include "targets/bytecode/codegen/bytecode.hpp"
 #include "targets/bytecode/disassemble/decode_instruction.hpp"
 #include "utils/unused_parameter.hpp"
@@ -25,7 +25,7 @@ namespace koredis {
         return kore::bytecode_to_string(ins1.value.opcode).size() < kore::bytecode_to_string(ins2.value.opcode).size();
     }
 
-    void output_function(std::ostream& os, kore::Color color, kore::CompiledObject& obj) {
+    void dump_function(std::ostream& os, kore::Color color, kore::CompiledObject& obj) {
         // TODO: Make colors configurable instead of hardcoded
         kore::section(
             "function",
@@ -41,12 +41,12 @@ namespace koredis {
         auto attr = kore::ColorAttribute::Reset;
 
         auto decoded_instructions = decode_instructions(obj);
-        auto opcode_color = kore::Color::Blue;
+        auto opcode_color = kore::Color::Cyan;
 
         for (auto instruction : decoded_instructions) {
             os << color << "  " << attr
-               << instruction.byte_pos << "  "
-               << std::setw(10) << std::left
+               << std::left << std::setw(4)
+               << instruction.byte_pos
                << opcode_color << kore::bytecode_to_string(instruction.value.opcode) << attr;
 
             format_registers(os, instruction);
@@ -57,7 +57,7 @@ namespace koredis {
         os << std::endl;
     }
 
-    void output_module(std::ostream& os, kore::Module& module, bool colors, bool porcelain, int verbosity) {
+    void dump_module(std::ostream& os, kore::Module& module, bool colors, bool porcelain, int verbosity) {
         UNUSED_PARAM(porcelain);
         UNUSED_PARAM(verbosity);
 
@@ -79,15 +79,15 @@ namespace koredis {
             module.global_indices_count()
         );
 
-        output_constant_table(os, color, module.i32_constant_table());
-        /* output_constant_table(os, color, module.i64_constant_table()); */
-        /* output_constant_table(os, color, module.f32_constant_table()); */
-        /* output_constant_table(os, color, module.f64_constant_table()); */
+        dump_constant_table(os, color, module.i32_constant_table());
+        /* dump_constant_table(os, color, module.i64_constant_table()); */
+        /* dump_constant_table(os, color, module.f32_constant_table()); */
+        /* dump_constant_table(os, color, module.f64_constant_table()); */
 
         kore::section("functions", kore::Color::Magenta, kore::ColorAttribute::Bold, 0, "%d", module.objects_count());
 
         for (auto it = module.objects_begin(); it != module.objects_end(); ++it) {
-            output_function(os, color, *it->get());
+            dump_function(os, color, *it->get());
         }
     }
 }

@@ -4,8 +4,8 @@
 #include "targets/bytecode/codegen/bytecode.hpp"
 #include "targets/bytecode/codegen/kir/instruction.hpp"
 #include "targets/bytecode/disassemble/decode_instruction.hpp"
-#include "targets/bytecode/disassemble/disassemble_error.hpp"
 #include "targets/bytecode/disassemble/instruction.hpp"
+#include "targets/bytecode/module_load_error.hpp"
 #include "targets/bytecode/register.hpp"
 #include "utils/unused_parameter.hpp"
 
@@ -214,7 +214,7 @@ namespace koredis {
             }
 
             default:
-                throw DisassembleError("Failed to decode instruction", byte_pos);
+                throw kore::ModuleLoadError("Failed to decode instruction", byte_pos);
         }
 
         if (!byte_pos_advanced) {

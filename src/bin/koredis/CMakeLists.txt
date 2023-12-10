@@ -22,7 +22,7 @@ set(KORE_DISASSEMBLER_SOURCES
     # decode_instruction.cpp
     # instruction.cpp
     options.cpp
-    output_module.cpp
+    dump_module.cpp
     main.cpp
 )
 

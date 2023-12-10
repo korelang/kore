@@ -1,5 +1,5 @@
-#ifndef KOREDIS_OUTPUT_MODULE_HPP
-#define KOREDIS_OUTPUT_MODULE_HPP
+#ifndef KOREDIS_DUMP_MODULE_HPP
+#define KOREDIS_DUMP_MODULE_HPP
 
 #include <ostream>
 
@@ -13,7 +13,7 @@ namespace koredis {
     std::string constant_table_tag_to_string(kore::ConstantTableTag tag);
 
     template<typename T>
-    void output_constant_table(std::ostream& os, kore::Color color, const kore::ConstantTable<T>& table) {
+    void dump_constant_table(std::ostream& os, kore::Color color, const kore::ConstantTable<T>& table) {
         kore::section(
             "constant table",
             kore::Color::Magenta,
@@ -32,7 +32,7 @@ namespace koredis {
         }
     }
 
-    void output_module(std::ostream& os, kore::Module& module, bool colors, bool porcelain, int verbosity);
+    void dump_module(std::ostream& os, kore::Module& module, bool colors, bool porcelain, int verbosity);
 }
 
-#endif // KOREDIS_OUTPUT_MODULE_HPP
+#endif // KOREDIS_DUMP_MODULE_HPP
