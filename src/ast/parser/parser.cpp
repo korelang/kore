@@ -901,7 +901,7 @@ namespace kore {
     }
 
     Owned<Expression> Parser::parse_function_call(Owned<Expression> func_name) {
-        trace_parser("call");;
+        trace_parser("call");
 
         // TODO: We can probably just return the vector here and use its move constructor
         std::vector<Owned<Expression>> expr_list;

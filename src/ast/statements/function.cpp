@@ -66,7 +66,7 @@ namespace kore {
     void Function::set_return_type(const Type* type) {
         _type->set_return_type(type);
 
-        // After parsing the return type, as therefore the parameters,
+        // After parsing the return type, and therefore the parameters,
         // set the type of the identifier associated with the function
         // which will later be saved in lexical scopes
         _name.set_type(_type.get());

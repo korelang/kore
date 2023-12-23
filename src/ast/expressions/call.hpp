@@ -8,7 +8,7 @@
 namespace kore {
     class Call : public Expression {
         public:
-            Call(Owned<Expression> identifier, std::vector<Owned<Expression>> parmeters);
+            Call(Owned<Expression> identifier, std::vector<Owned<Expression>> parameters);
             virtual ~Call();
 
             std::string name() const;

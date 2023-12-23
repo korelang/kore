@@ -18,7 +18,6 @@ namespace kore {
     #define GET_RET_REG(instruction) GET_REG3(instruction)
     #define GET_VALUE(instruction) GET_OFFSET(instruction)
     #define SET_VALUE(instruction, value) (instruction | (value & 0xffff))
-    #define GET_VALUE32(instruction) (instruction & 0xffff)
 }
 
 #endif // KORE_REGISTER_HPP
