@@ -1,7 +1,22 @@
+#include "logging/color.hpp"
+#include "logging/color_spec.hpp"
+
+#include <ios>
 #include <iostream>
-#include "colors.hpp"
 
 namespace kore {
+    inline int get_color_flag_index() {
+        static int idx = std::ios_base::xalloc();
+
+        return idx;
+    }
+
+    std::ostream& colors(std::ostream& os, bool enabled) {
+        os.iword(get_color_flag_index()) = static_cast<int>(enabled);
+
+        return os;
+    }
+
     Color::Color() : Color(AnsiColorCode::Black) {}
 
     Color::Color(AnsiColorCode ansi_code) : _ansi_code(ansi_code) {}
@@ -34,12 +49,16 @@ namespace kore {
     const Color Color::BrightWhite(AnsiColorCode::BrightWhite);
 
     std::ostream& operator<<(std::ostream& os, const Color& color) {
-        int final_code = static_cast<int>(color._ansi_code);
+        int code = static_cast<int>(color._ansi_code);
 
-        if (final_code != 0 && color.is_background()) {
-            final_code += 10;
+        if (code != 0 && color.is_background()) {
+            code += 10;
         }
 
-        return os << "\x1b[" << final_code << "m";
+        return os << "\x1b[" << code << "m";
+    }
+
+    std::ostream& operator<<(std::ostream& os, const ColorSpec& color_spec) {
+        return os << color_spec.attribute << color_spec.color;
     }
 }

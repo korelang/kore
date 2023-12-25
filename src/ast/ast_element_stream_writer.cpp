@@ -1,5 +1,5 @@
 #include "ast/ast_element_stream_writer.hpp"
-#include "logging/colors.hpp"
+#include "logging/color.hpp"
 #include "logging/color_attributes.hpp"
 
 namespace kore {

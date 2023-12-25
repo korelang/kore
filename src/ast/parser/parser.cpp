@@ -17,7 +17,7 @@
 #include "ast/statements/return_statement.hpp"
 #include "ast/statements/variable_assignment.hpp"
 #include "logging/color_attributes.hpp"
-#include "logging/colors.hpp"
+#include "logging/color.hpp"
 #include "logging/logging.hpp"
 #include "types/array_type.hpp"
 #include "types/function_type.hpp"

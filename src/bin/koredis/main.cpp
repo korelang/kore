@@ -35,7 +35,16 @@ namespace koredis {
             try {
                 kore::Module module = kore::load_module_from_path(path);
 
-                dump_module(std::cout, module, args.colors, args.porcelain, args.verbosity);
+                const DumpConfig dump_config{
+                    args.colors,
+                    args.porcelain,
+                    args.verbosity,
+                    { kore::Color::Magenta, kore::ColorAttribute::Bold },
+                    { kore::Color::Cyan },
+                    { kore::Color::White }
+                };
+
+                dump_module(std::cout, module, dump_config);
             } catch (kore::ModuleLoadError& ex) {
                 kore::error("disassembly of '%s' failed: %s", path.c_str(), ex.what());
             }

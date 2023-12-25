@@ -1,5 +1,5 @@
-#ifndef KORE_COLORS_HPP
-#define KORE_COLORS_HPP
+#ifndef KORE_COLOR_HPP
+#define KORE_COLOR_HPP
 
 #include <ostream>
 
@@ -26,8 +26,20 @@ namespace kore {
         BrightWhite = 97,
     };
 
+    /// Get the internal stream color flag index
+    inline int get_color_flag_index();
+
+    /// Global stream manipulator that can enable or disable colors and attributes
+    std::ostream& colors(std::ostream& os, bool enabled);
+
+    struct ColorSpec;
+
+    // TODO: Add call operator for a streamed, colored string
+    // TODO: Just use color specs for streams since they can have attributes?
+    // TODO: Add a stream manipulator that can enable and disable colors
     class Color final {
         friend std::ostream& operator<<(std::ostream& os, const Color& color);
+        friend std::ostream& operator<<(std::ostream& os, const ColorSpec& color_spec);
 
         public:
             Color();
@@ -61,8 +73,6 @@ namespace kore {
             AnsiColorCode _ansi_code;
             bool _is_background;
     };
-
-    std::ostream& operator<<(std::ostream& os, const Color& color);
 }
 
-#endif // KORE_COLORS_HPP
+#endif // KORE_COLOR_HPP

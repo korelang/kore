@@ -3,7 +3,8 @@
 
 #include "errors/error.hpp"
 #include "logging/color_attributes.hpp"
-#include "logging/colors.hpp"
+#include "logging/color.hpp"
+#include "logging/color_spec.hpp"
 #include "ast/source_location.hpp"
 
 namespace kore {
@@ -33,7 +34,11 @@ namespace kore {
 
     void error_group(const std::string& group, const char* const format, ...);
 
+    void critical_group(const std::string& group, const char* const format, ...);
+
     void section(const std::string& group, Color color, ColorAttribute attributes, int indent, const char* const format, ...);
+
+    void section(const std::string& group, const ColorSpec color_spec, int indent, const char* const format, ...);
 
     void section_error(const std::string& group, errors::Error error, int indent);
 

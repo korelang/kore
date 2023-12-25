@@ -4,6 +4,11 @@
 #include "logging/logging.hpp"
 
 namespace kore {
+    /* void log(const char* const format, ...); */
+    /* void log(int verbosity, int options_verbosity, const char* const format, ...); */
+    /* void log_group(const std::string& group, const char* const format, ...); */
+    /* void log_group(const std::string& group, int verbosity, int options_verbosity, const char* const format, ...); */
+
     // TODO: Distinguish between stderr and stdout
     void output(
         int indent,
@@ -139,6 +144,22 @@ namespace kore {
         va_list args;
         va_start(args, format);
         output(indent, group, "", color, attributes, true, format, args);
+        va_end(args);
+    }
+
+    void section(const std::string& group, const ColorSpec color_spec, int indent, const char* const format, ...) {
+        va_list args;
+        va_start(args, format);
+        output(
+            indent,
+            group,
+            "",
+            color_spec.color,
+            color_spec.attribute,
+            true,
+            format,
+            args
+        );
         va_end(args);
     }
 
