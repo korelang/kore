@@ -1,12 +1,12 @@
 #ifndef KORE_KIR_MODULE_HPP
 #define KORE_KIR_MODULE_HPP
 
-#include <filesystem>
-
 #include "ast/statements/function.hpp"
 #include "targets/bytecode/constant_table.hpp"
 #include "targets/bytecode/module.hpp"
 #include "targets/bytecode/codegen/kir/function.hpp"
+
+#include <filesystem>
 
 namespace fs = std::filesystem;
 
@@ -25,14 +25,12 @@ namespace kore {
                 std::string path() const;
                 ModuleIndex index() const noexcept;
 
-                int add_function();
                 int add_function(const kore::Function* function);
                 Function& operator[](int index);
                 const Function& operator[](int index) const;
                 Function& main_function();
 
                 int function_count() const noexcept;
-                int constants_count() const noexcept;
                 int global_count() const noexcept;
 
                 iterator begin();
@@ -40,30 +38,18 @@ namespace kore {
                 const_iterator cbegin() const;
                 const_iterator cend() const;
 
-                ConstantTable<i32>& i32_constant_table();
-                ConstantTable<i64>& i64_constant_table();
-                ConstantTable<f32>& f32_constant_table();
-                ConstantTable<f64>& f64_constant_table();
-                ConstantTable<std::string>& str_constant_table();
-
-                const ConstantTable<i32>& i32_constant_table() const;
-                const ConstantTable<i64>& i64_constant_table() const;
-                const ConstantTable<f32>& f32_constant_table() const;
-                const ConstantTable<f64>& f64_constant_table() const;
-                const ConstantTable<std::string>& str_constant_table() const;
+                ConstantTable& constant_table();
+                const ConstantTable& constant_table() const;
 
             private:
                 ModuleIndex _index;
                 std::string _name;
                 std::string _path;
 
+                int _main_function_index;
                 std::vector<Function> _functions;
                 int _global_indices;
-                ConstantTable<i32> _i32_constants;
-                ConstantTable<i64> _i64_constants;
-                ConstantTable<f32> _f32_constants;
-                ConstantTable<f64> _f64_constants;
-                ConstantTable<std::string> _str_constants;
+                ConstantTable _constants;
         };
     }
 }

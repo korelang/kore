@@ -8,6 +8,7 @@
 #include "errors/errors.hpp"
 /* #include "targets/bytecode/vm/builtins/builtins.hpp" */
 #include "logging/logging.hpp"
+#include "targets/bytecode/vm/builtins/builtins.hpp"
 #include "types/function_type.hpp"
 #include "types/scope.hpp"
 
@@ -136,16 +137,29 @@ namespace kore {
         // function definition
         auto entry = _scope_stack.find(call.name());
 
-        /* if (!entry) { */
-        /*     auto [idx, ptr] = vm::get_builtin_function_by_name(call.name()); */
+        if (!entry) {
+            auto builtin_function = vm::get_builtin_function_by_name(call.name());
 
-        /*     if (!ptr) { */
-        /*         push_error(errors::typing::unknown_call(call)); */
-        /*         return; */
-        /*     } */
+            if (!builtin_function) {
+                push_error(errors::typing::unknown_call(call));
+                return;
+            }
 
-        /*     // TODO: Typecheck builtin function calls */
-        /* } */
+            // TODO: Typecheck builtin function calls
+
+            if (call.arg_count() != builtin_function->arity) {
+                /* push_error(errors::typing::incorrect_arg_count( */
+                /*     call, */
+                /*     func_type */
+                /* )); */
+
+                return;
+            }
+
+            call.set_type(builtin_function->ret_types[0]);
+
+            return;
+        }
 
         auto type = entry->identifier->type();
 

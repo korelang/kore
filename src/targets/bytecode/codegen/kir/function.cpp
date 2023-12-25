@@ -142,7 +142,7 @@ namespace kore {
                 return;
             }
 
-            destroy(reg);
+            emit_destroy(reg);
             set_register_state(reg, RegisterState::Moved);
         }
 
@@ -155,7 +155,7 @@ namespace kore {
 
                     case RegisterState::Available: {
                         if (!register_type(reg)->is_value_type()) {
-                            destroy(reg);
+                            emit_destroy(reg);
                         }
                         break;
                     }
@@ -171,43 +171,30 @@ namespace kore {
         // TODO: Do we need functions for each expression/statement? Maybe just for
         // each type of instruction + the expression for setting register types?
 
-        // TODO: Rename these to "emit_X"
-        Reg Function::load_constant(BoolExpression& expr) {
-            return load_constant(
-                Bytecode::LoadBool,
-                expr,
-                static_cast<int>(expr.bool_value())
-            );
-        }
-
-        Reg Function::load_constant(IntegerExpression& expr, int index) {
-            return load_constant(Bytecode::CloadI32, expr, index);
-        }
-
-        Reg Function::load_constant(FloatExpression& expr, int index) {
-            return load_constant(Bytecode::CloadF32, expr, index);
-        }
-
-        Reg Function::load_constant(int index) {
+        Reg Function::emit_load(Bytecode opcode, Expression& expr, int index) {
             Reg reg = allocate_register();
 
-            add_instruction(
-                Instruction{ Bytecode::CloadI32, RegisterAndValue{ reg, index } }
-            );
-            set_register_type(reg, Type::get_type_from_category(TypeCategory::Integer32));
+            add_instruction(Instruction{ opcode, RegisterAndValue{ reg, index } });
+            set_register_type(reg, expr.type());
 
             return reg;
         }
 
-        Reg Function::load_global(Identifier& expr, Reg global_index) {
-            return load_constant(Bytecode::Gload, expr, global_index);
+        Reg Function::emit_load_function(int func_index) {
+            Reg reg = allocate_register();
+
+            add_instruction(
+                Instruction{ Bytecode::LoadFunction, RegisterAndValue{ reg, func_index } }
+            );
+
+            return reg;
         }
 
-        void Function::move(Reg dst, Reg src) {
+        void Function::emit_move(Reg dst, Reg src) {
             add_instruction(Instruction{ Bytecode::Move, TwoRegisters{ dst, src } });
         }
 
-        Reg Function::binop(BinaryExpression& expr, Reg left, Reg right) {
+        Reg Function::emit_binop(BinaryExpression& expr, Reg left, Reg right) {
             auto reg = allocate_register();
             auto opcode = _binary_operator_opcodes[expr.type()->category()][expr.op()];
 
@@ -216,11 +203,11 @@ namespace kore {
             return reg;
         }
 
-        void Function::unconditional_jump(BlockId target_block_id) {
+        void Function::emit_unconditional_jump(BlockId target_block_id) {
             add_instruction(Instruction{ Bytecode::Jump, Value{ target_block_id } });
         }
 
-        void Function::conditional_jump(
+        void Function::emit_conditional_jump(
             Bytecode opcode,
             Reg condition,
             BlockId target_block_id
@@ -230,7 +217,7 @@ namespace kore {
             );
         }
 
-        Reg Function::allocate_array(ArrayExpression& expr) {
+        Reg Function::emit_allocate_array(ArrayExpression& expr) {
             auto reg = allocate_register();
 
             add_instruction(
@@ -243,34 +230,36 @@ namespace kore {
             return reg;
         }
 
-        void Function::destroy(Reg reg) {
+        void Function::emit_destroy(Reg reg) {
             add_instruction(Instruction{ Bytecode::Destroy, OneRegister{ reg } });
         }
 
-        void Function::refinc(Reg reg) {
+        void Function::emit_refinc(Reg reg) {
             add_instruction(Instruction{ Bytecode::RefInc, OneRegister{ reg } });
         }
 
-        void Function::refdec(Reg reg) {
+        void Function::emit_refdec(Reg reg) {
             add_instruction(Instruction{ Bytecode::RefDec, OneRegister{ reg } });
         }
 
-        void Function::call(
-            kore::Bytecode opcode,
-            Reg func_index,
+        void Function::emit_call(
+            Reg func_reg,
             const std::vector<kore::Reg>& arg_registers,
             const std::vector<kore::Reg>& return_registers
         ) {
             add_instruction(
-                Instruction{ opcode, CallV{ func_index, arg_registers, return_registers } }
+                Instruction{
+                    Bytecode::Call,
+                    CallV{ func_reg, arg_registers, return_registers },
+                }
             );
         }
 
-        void Function::_return() {
+        void Function::emit_return() {
             add_instruction(Instruction{ Bytecode::Ret, ReturnV{} });
         }
 
-        void Function::_return(Reg retreg) {
+        void Function::emit_return(Reg retreg) {
             // TODO: Support multiple return values
             add_instruction(Instruction{ Bytecode::Ret, ReturnV{ { retreg } } });
         }
@@ -280,8 +269,8 @@ namespace kore {
         }
 
         std::string Function::name() const {
-            // If the function is not backed by a syntactic function then it is
-            // a compiled-generated "main" function
+            // If the function is not backed by an AST function then it is a
+            // compiled-generated "main" function
             if (!_func) {
                 // TODO: Make "<main>" a constant somewhere logic
                 return "<main>";
@@ -306,15 +295,6 @@ namespace kore {
 
         int Function::code_size() const {
             return _code_size;
-        }
-
-        Reg Function::load_constant(Bytecode opcode, Expression& expr, int index) {
-            Reg reg = allocate_register();
-
-            add_instruction(Instruction{ opcode, RegisterAndValue{ reg, index } });
-            set_register_type(reg, expr.type());
-
-            return reg;
         }
     }
 }

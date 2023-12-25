@@ -1,69 +1,42 @@
 #ifndef KORE_CONSTANT_TABLE_HPP
 #define KORE_CONSTANT_TABLE_HPP
 
+#include "constant_table_tag.hpp"
+#include "targets/bytecode/vm/value_type.hpp"
+
 #include <unordered_map>
 
-#include "constant_table_tag.hpp"
-
 namespace kore {
-    template<typename T, typename IndexType = int>
     class ConstantTable final {
         public:
-            using const_iterator = typename std::unordered_map<T, IndexType>::const_iterator;
-            using sorted_const_iterator = typename std::vector<T>::const_iterator;
+            using index_type = int;
+            using const_iterator = typename std::unordered_map<vm::Value, index_type>::const_iterator;
+            using const_value_iterator = typename std::vector<vm::Value>::const_iterator;
+            using const_index_iterator = typename std::vector<index_type>::const_iterator;
 
         public:
-            ConstantTable(ConstantTableTag tag) : _tag(tag) {}
+            ConstantTable();
 
-            ConstantTableTag tag() const {
-                return _tag;
-            }
+            index_type add(i32 value);
+            index_type add(i64 value);
+            index_type add(f32 value);
+            index_type add(f64 value);
+            index_type add(vm::Value constant);
+            vm::Value get(index_type idx) const;
+            size_t size() const;
+            void clear();
 
-            IndexType add(T constant) {
-                auto it = _table.find(constant);
-
-                if (it != _table.end()) {
-                    return it->second;
-                }
-
-                _constants.push_back(constant);
-
-                return _table.insert({ constant, _constants.size() - 1 }).first->second;
-            }
-
-            T get(IndexType idx) const {
-                return _constants[idx];
-            }
-
-            size_t size() const {
-                return _constants.size();
-            }
-
-            const_iterator cbegin() const {
-                return _table.cbegin();
-            }
-
-            const_iterator cend() const {
-                return _table.cend();
-            }
-
-            sorted_const_iterator sorted_cbegin() const {
-                return _constants.cbegin();
-            }
-
-            sorted_const_iterator sorted_cend() const {
-                return _constants.cend();
-            }
-
-            void clear() {
-                _table.clear();
-                _constants.clear();
-            }
+            const_iterator cbegin() const;
+            const_iterator cend() const;
+            const_value_iterator sorted_cbegin() const;
+            const_value_iterator sorted_cend() const;
+            const_index_iterator tagged_cbegin(vm::ValueTag tag) const;
+            const_index_iterator tagged_cend(vm::ValueTag tag) const;
 
         private:
-            ConstantTableTag _tag;
-            std::unordered_map<T, IndexType> _table;
-            std::vector<T> _constants;
+            std::unordered_map<vm::Value, index_type> _table;
+            std::vector<vm::Value> _constants;
+            std::unordered_map<vm::ValueTag, std::vector<index_type>> _tagged_constants;
     };
 }
 

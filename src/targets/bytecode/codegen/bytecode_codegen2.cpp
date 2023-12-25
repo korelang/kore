@@ -141,10 +141,34 @@ namespace kore {
         return _buffer;
     }
 
+    void BytecodeGenerator2::write_value(const vm::Value& value) {
+        switch (value.tag) {
+            case vm::ValueTag::I32:
+                write_be32(value.as_i32());
+                break;
+
+            default:
+                // NOTE: Make exceptions that can take a group (e.g. codegen?)
+                throw std::runtime_error("Unsupported value tag");
+        }
+    }
+
+    void BytecodeGenerator2::write_constant_table(const ConstantTable& table) {
+        write_be32(static_cast<std::uint32_t>(table.size()));
+
+        for (auto it = table.sorted_cbegin(); it < table.sorted_cend(); ++it) {
+            write_bytes({ static_cast<std::uint8_t>(it->tag) });
+            write_value(*it);
+        }
+    }
+
     void BytecodeGenerator2::generate_for_module(const kir::Module& module) {
         write_be32(module.index());
         write_string(module.path());
-        write_constant_table<i32>(module.i32_constant_table());
+
+        auto constant_table = module.constant_table();
+        write_constant_table(constant_table);
+
         write_be32(module.function_count());
 
         for (int idx = 0; idx < module.function_count(); ++idx) {

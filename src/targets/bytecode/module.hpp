@@ -3,6 +3,7 @@
 
 #include <array>
 #include <filesystem>
+#include <type_traits>
 #include <unordered_map>
 #include <vector>
 
@@ -40,20 +41,12 @@ namespace kore {
             ModuleIndex index() const;
             std::string path() const;
             int objects_count() const;
-            int constants_count() const;
 
-            int add_i32_constant(i32 constant);
-            int add_f32_constant(f32 constant);
-            int add_i64_constant(i64 constant);
-            int add_f64_constant(f64 constant);
+            ConstantTable::index_type add_constant(vm::Value value);
+            const ConstantTable& constant_table() const;
 
             object_iterator objects_begin() const;
             object_iterator objects_end() const;
-
-            const ConstantTable<i32>& i32_constant_table() const;
-            const ConstantTable<i64>& i64_constant_table() const;
-            const ConstantTable<f32>& f32_constant_table() const;
-            const ConstantTable<f64>& f64_constant_table() const;
 
             void set_global_indices_count(int count);
             int global_indices_count() const;
@@ -64,6 +57,7 @@ namespace kore {
             CompiledObject* main_object();
             /* const CompiledObject* main_object() const; */
             CompiledObject* get_function(const std::string& name);
+            CompiledObject* get_function_by_index(int index);
             void add_function(
                 const std::string& name,
                 int lnum,
@@ -89,13 +83,7 @@ namespace kore {
             // Map a function name to its compiled code
             function_map _function_map;
 
-            // Constant tables
-            // TODO: Make these figure out their tag at compile-time
-            ConstantTable<i32> _i32_constants;
-            ConstantTable<i64> _i64_constants;
-            ConstantTable<f32> _f32_constants;
-            ConstantTable<f64> _f64_constants;
-            ConstantTable<std::string> _str_constants;
+            ConstantTable _constants;
 
             int _global_indices;
 

@@ -85,7 +85,7 @@ set(KORE_ERRORS_SOURCES
 
 set(KORE_LOGGING_SOURCES
     ${PROJECT_SOURCE_DIR}/src/logging/color_attributes.cpp
-    ${PROJECT_SOURCE_DIR}/src/logging/colors.cpp
+    ${PROJECT_SOURCE_DIR}/src/logging/color.cpp
     ${PROJECT_SOURCE_DIR}/src/logging/logging.cpp
 )
 
@@ -119,17 +119,20 @@ set(KORE_UTILS_SOURCES
 )
 
 set(KORE_TARGETS_BYTECODE_SOURCES
+    ${PROJECT_SOURCE_DIR}/src/targets/bytecode/constant_table.cpp
     ${PROJECT_SOURCE_DIR}/src/targets/bytecode/bytecode_format_writer.cpp
     ${PROJECT_SOURCE_DIR}/src/targets/bytecode/compiled_object.cpp
     ${PROJECT_SOURCE_DIR}/src/targets/bytecode/module.cpp
     ${PROJECT_SOURCE_DIR}/src/targets/bytecode/module_loader.cpp
     ${PROJECT_SOURCE_DIR}/src/targets/bytecode/codegen/bytecode.cpp
     ${PROJECT_SOURCE_DIR}/src/targets/bytecode/codegen/bytecode_array_writer.cpp
-    ${PROJECT_SOURCE_DIR}/src/targets/bytecode/codegen/bytecode_codegen.cpp
     ${PROJECT_SOURCE_DIR}/src/targets/bytecode/codegen/bytecode_codegen2.cpp
     ${PROJECT_SOURCE_DIR}/src/targets/bytecode/disassemble/decode_instruction.cpp
     ${PROJECT_SOURCE_DIR}/src/targets/bytecode/module_load_error.cpp
     ${PROJECT_SOURCE_DIR}/src/targets/bytecode/disassemble/instruction.cpp
+    ${PROJECT_SOURCE_DIR}/src/targets/bytecode/vm/builtins/builtins.cpp
+    ${PROJECT_SOURCE_DIR}/src/targets/bytecode/vm/builtins/io.cpp
+    ${PROJECT_SOURCE_DIR}/src/targets/bytecode/vm/builtins/math.cpp
     ${PROJECT_SOURCE_DIR}/src/targets/bytecode/vm/value_type.cpp
     ${PROJECT_SOURCE_DIR}/src/targets/bytecode/vm/values/array_value.cpp
     ${PROJECT_SOURCE_DIR}/src/targets/bytecode/vm/values/function_value.cpp

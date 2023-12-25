@@ -1,16 +1,10 @@
+#include "targets/bytecode/codegen/bytecode.hpp"
+#include "targets/bytecode/compiled_object.hpp"
 #include "targets/bytecode/module_loader.hpp"
+#include "targets/bytecode/vm/builtins/builtins.hpp"
 #include "targets/bytecode/vm/config.hpp"
 #include "targets/bytecode/vm/vm.hpp"
 #include "utils/unused_parameter.hpp"
-
-#define LOAD_OPCODE(type) {\
-    Reg dest_reg = GET_REG1(instruction);\
-    int index = GET_VALUE(instruction);\
-    \
-    _registers[fp + dest_reg] = Value::from_##type(\
-        _context._current_module->type##_constant_table().get(index)\
-    );\
-}
 
 #define BINARY_OP(arg_type, ret_type, op) {\
     Reg dest_reg = GET_REG1(instruction);\
@@ -113,7 +107,7 @@ namespace kore {
             int shift,
             std::size_t old_fp,
             std::size_t old_pc,
-            CompiledObject* obj
+            const CompiledObject* obj
         )
             : ret_count(ret_count),
               reg_count(obj->reg_count()),
@@ -122,6 +116,8 @@ namespace kore {
               old_pc(old_pc),
               code(obj->instructions()),
               size(obj->code_size()) {}
+
+        const std::string Vm::log_group = "vm";
 
         Vm::Vm() {}
 
@@ -136,8 +132,11 @@ namespace kore {
             main_call_frame_reg_count = current_frame().reg_count;
             _context.sp += main_call_frame_reg_count;
 
+            _running = true;
+            _errored = false;
+
             // Main interpreter dispatch loop
-            while (_call_frames.size() > 0) {//_context.pc < size) {
+            while (_call_frames.size() > 0 && _running) {
                 auto instruction = current_frame().code[_context.pc++];
                 auto opcode = GET_OPCODE(instruction);
                 auto fp = _context.fp;
@@ -159,19 +158,16 @@ namespace kore {
                         break;
                     }
 
-                    case Bytecode::CloadI32: {
-                        LOAD_OPCODE(i32);
-                        break;
-                    }
-
-                    case Bytecode::CloadI64: {
-                        LOAD_OPCODE(i64);
+                    case Bytecode::Cload: {
+                        Reg reg = GET_REG1(instruction);
+                        int index = GET_VALUE(instruction);
+                        _registers[fp + reg] = _context._current_module->constant_table().get(index);
                         break;
                     }
 
                     case Bytecode::Gload: {
-                        Reg dest_reg = GET_REG1(instruction);
-                        _registers[fp + dest_reg] = _globals[GET_REG2(instruction)];
+                        Reg reg = GET_REG1(instruction);
+                        _registers[fp + reg] = _globals[GET_REG2(instruction)];
                         break;
                     }
 
@@ -212,8 +208,33 @@ namespace kore {
                         break;
                     }
 
+                    case Bytecode::LoadFunction: {
+                        Reg reg = GET_REG1(instruction);
+                        int func_index = GET_VALUE(instruction);
+                        auto builtin = get_builtin_function_by_index(func_index);
+                        Value function_value;
+
+                        if (builtin) {
+                            function_value = Value::from_builtin_function(builtin);
+                        } else {
+                            function_value = Value::from_function(get_function(func_index));
+                        }
+
+                        _registers[fp + reg] = function_value;
+                        break;
+                    }
+
                     case Bytecode::Call: {
-                        do_function_call(instruction);
+                        Reg func_reg = GET_REG1(instruction);
+                        auto callable = _registers[fp + func_reg].as_function_value();
+
+                        if (callable.type == FunctionValueType::Ordinary) {
+                            do_function_call(instruction, callable);
+                        } else if (callable.type == FunctionValueType::Builtin) {
+                            do_builtin_function_call(instruction, callable);
+                        } else if (callable.type == FunctionValueType::Closure) {
+                            vm_error("Closures are not yet supported");
+                        }
                         break;
                     }
 
@@ -222,10 +243,19 @@ namespace kore {
                         break;
                     }
 
-                    default:
-                        throw_unknown_opcode(opcode);
+                    default: {
+                        vm_error_unknown_opcode(opcode);
+                        break;
+                    }
                 }
             }
+
+            /* if (_errored) { */
+            /*     dump_call_stack(std::cerr); */
+            /* } */
+
+            _running = false;
+            // TODO: Dump registers then register free memory here
         }
 
         void Vm::run(const std::vector<bytecode_type>& code) {
@@ -278,29 +308,45 @@ namespace kore {
             _globals.resize(_globals.size() + module.global_indices_count());
         }
 
-        void Vm::allocate_local_stack(const CompiledObject* const obj) {
+        bool Vm::allocate_local_stack(const CompiledObject* const obj) {
             auto reg_count = obj->reg_count();
 
             if (_context.sp + reg_count >= KORE_VM_MAX_REGISTERS) {
-                throw_vm_error("Stack-overflow, ran out of local stack");
+                vm_error("Stack-overflow, ran out of local stack");
+                return false;
             }
 
             _context.sp += reg_count;
+            return true;
         }
 
         void Vm::deallocate_local_stack(const CallFrame& call_frame) {
             _context.sp -= call_frame.reg_count;
         }
 
-        void Vm::throw_vm_error(const std::string& message) {
-            throw std::runtime_error(message);
+        void Vm::vm_error(const std::string& message) {
+            error_group(log_group, "%s", message.c_str());
+            /* critical_group(log_group, message); */
+            _running = false;
+            _errored = true;
         }
 
-        void Vm::throw_unknown_opcode(Bytecode opcode) {
-            auto message = "Unsupported bytecode at "  + std::to_string(_context.pc) + ": " + std::to_string(opcode);
+        void Vm::vm_error_unknown_opcode(Bytecode opcode) {
+            // TODO: Emit current call frame information and function name
+            auto message = "Unsupported bytecode at "
+                + std::to_string(_context.pc)
+                + ": "
+                + std::to_string(opcode);
 
-            // TODO: Cannot throw before we have deallocated all VM memory
-            throw_vm_error(message);
+            vm_error(message);
+        }
+
+        void Vm::vm_fatal_error(const std::string& message) {
+            error_group(log_group, "%s", message.c_str());
+            /* critical_group(log_group, "%s", message.c_str()); */
+
+            _running = false;
+            _errored = true;
         }
 
         CompiledObject* Vm::get_function(int func_index) {
@@ -333,34 +379,15 @@ namespace kore {
             return _call_frames[_call_frames.size() - 2];
         }
 
-        /* void Vm::push_call_frame(int ret_count, int shift, int old_fp, CompiledObject* function) { */
-        /*     _call_frames.push_back(CallFrame{ ret_count, shift, old_fp, _context.pc, function }); */
-        /* } */
-
-        void Vm::do_function_call(bytecode_type instruction) {
-            int func_reg = GET_REG1(instruction);
+        int Vm::push_function_arguments(bytecode_type instruction, std::size_t old_fp) {
             int arg_count = GET_REG2(instruction);
-            int ret_count = GET_REG3(instruction);
-
-            // Save the old frame pointer
-            auto old_fp = _context.fp;
-
-            // Save the current stack pointer position as the new frame pointer
-            _context.fp = _context.sp;
-
-            auto function = get_function(_registers[func_reg].as_i32());
-            KORE_DEBUG_VM_LOG("push call frame", function->name());
-
-            // Reserve local stack space for the called function
-            _context.sp += function->reg_count();
-
             int shift = 24;
 
             if (arg_count > 0) {
                 CallFrame& frame = current_frame();
 
-                // Get the next instruction containing the beginning of the
-                // argument registers
+                // Get the instruction containing the beginning of the argument
+                // registers
                 instruction = frame.code[_context.pc];
 
                 // Move argument registers into the callee's register window
@@ -371,25 +398,73 @@ namespace kore {
 
                     if (shift == 0) {
                         shift = 24;
-                        instruction = frame.code[++_context.pc];
+                        instruction = frame.code[_context.pc++];
                     }
                 }
             }
 
-            // Push a new call frame for the called function
-            _call_frames.push_back(
-                CallFrame{ ret_count, shift, old_fp, _context.pc, function }
-            );
+            return shift;
+        }
+
+        void Vm::push_call_frame(CallFrame call_frame) {
+            _call_frames.push_back(call_frame);
 
             // Set the program counter to zero to start executing the start of
             // the called function's instructions
             _context.pc = 0;
         }
 
+        void Vm::do_function_call(bytecode_type instruction, const FunctionValue& callable) {
+            // Save the old frame pointer
+            auto old_fp = _context.fp;
+
+            // Save the current stack pointer position as the new frame pointer
+            _context.fp = _context.sp;
+
+            KORE_DEBUG_VM_LOG("push call frame (ordinary)", callable.func->name());
+
+            // Reserve local stack space for the called function
+            if (!allocate_local_stack(callable.func)) {
+                return;
+            }
+
+            int shift = push_function_arguments(instruction, old_fp);
+            int ret_count = GET_REG3(instruction);
+
+            push_call_frame(CallFrame{
+                ret_count,
+                shift,
+                old_fp,
+                _context.pc,
+                callable.func,
+            });
+        }
+
+        void Vm::do_builtin_function_call(
+            bytecode_type instruction,
+            const FunctionValue& callable
+        ) {
+            KORE_DEBUG_VM_LOG("call builtin", callable.builtin->name);
+
+            _context.shift = push_function_arguments(instruction, _context.fp);
+            callable.builtin->func(*this, &_registers[_context.fp]);
+
+            // Move the instruction pointer if there were arguments and/or
+            // return values since the instruction pointer was left on next
+            // instruction by the caller which is either the next instruction
+            // to execute or the one containing argument/return registers if
+            // there were any
+            if (callable.builtin->arity + callable.builtin->ret_count > 0) {
+                ++_context.pc;
+            }
+        }
+
         Value Vm::pop() {
             return _registers[--_context.sp];
         }
 
+        // TODO: Clean up register window by setting registers to a
+        // sentinel/gravestore value
         void Vm::do_function_return(bytecode_type instruction) {
             KORE_DEBUG_VM_LOG("pop call frame", std::string());
 
@@ -436,6 +511,29 @@ namespace kore {
             _call_frames.pop_back();
         }
 
+        void Vm::set_return_value(const Value& value) {
+            // Getting the current call frame here is the caller since calling a
+            // builtin function does not push a call frame onto the stack
+            CallFrame& frame = current_frame();
+
+            auto instruction = frame.code[_context.pc];
+
+            // Copy the value into a destination register in the caller's
+            // register window. Get the destination register encoded in the
+            // caller's call instruction
+            Reg dst_reg = (instruction >> _context.shift) & 0xff;
+
+            _registers[_context.fp + dst_reg] = value;
+
+            // Move shift to the next return register
+            _context.shift -= 8;
+
+            if (_context.shift <= 0) {
+                _context.shift = 24;
+                ++_context.pc;
+            }
+        }
+
         inline int Vm::top() {
             return _context.sp - 1;
         }
@@ -453,14 +551,16 @@ namespace kore {
             // not for the repl
             _modules.try_emplace(module_name, std::move(module));
             _context._current_module = &_modules[module_name];
-
         }
+
+        /* void Vm::dump_call_stack(std::ostream& os) { */
+        /*     for (int idx = _call_frames.size(); idx >= 0; --idx) { */
+        /*         auto& call_frame = _call_frames[idx]; */
+        /*     } */
+        /* } */
     }
 }
 
-#undef LOAD_OPCODE
-#undef BINARY_ARITH_OPCODE
 #undef BINARY_OP_CASES
-#undef RELOP_OPCODE
 #undef RELOP_CASES
 #undef KORE_DEBUG_VM_LOG

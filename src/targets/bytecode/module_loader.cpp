@@ -3,6 +3,7 @@
 
 #include "targets/bytecode/module_load_error.hpp"
 #include "targets/bytecode/module_loader.hpp"
+#include "targets/bytecode/vm/value_type.hpp"
 #include "utils/endian.hpp"
 
 namespace kore {
@@ -63,14 +64,15 @@ namespace kore {
     } 
 
     void load_constant_table(std::istream& is, kore::Module& module) {
-        auto constant_table_tag = kore::read_be32(is);
         auto constant_table_size = kore::read_be32(is);
 
         for (decltype(constant_table_size) i = 0; i < constant_table_size; ++i) {
+            auto tag = static_cast<kore::vm::ValueTag>(kore::read8(is));
+
             // TODO: Fix signedness of values
-            switch (static_cast<kore::ConstantTableTag>(constant_table_tag)) {
-                case kore::ConstantTableTag::I32: {
-                    module.add_i32_constant(kore::read_be32(is));
+            switch (tag) {
+                case kore::vm::ValueTag::I32: {
+                    module.add_constant(vm::Value::from_i32(kore::read_be32(is)));
                     break;
                 }
 

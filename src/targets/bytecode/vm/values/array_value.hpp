@@ -19,6 +19,9 @@ namespace kore {
                 ArrayValue();
                 ~ArrayValue();
 
+                bool operator==(const ArrayValue& other);
+                std::vector<Value>::size_type size() const;
+
                 static ArrayValue* allocate(std::size_t size);
 
             private:

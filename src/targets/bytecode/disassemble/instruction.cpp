@@ -1,6 +1,7 @@
 #include <sstream>
 #include "instruction.hpp"
 #include "targets/bytecode/register.hpp"
+#include "targets/bytecode/vm/builtins/builtins.hpp"
 
 namespace koredis {
     const std::string register_symbol = "@";
@@ -60,7 +61,7 @@ namespace koredis {
         return os;
     }
 
-    std::ostream& format_registers(std::ostream& os, Instruction instruction) {
+    std::ostream& format_registers(std::ostream& os, Instruction instruction, kore::Module& module) {
         // Special-case output for more complex opcodes
         auto instruction_type = instruction.value.type;
 
@@ -86,6 +87,24 @@ namespace koredis {
                 os << " " << ins_type->value << " [target: " << target_pos << "]";
             } else if (opcode == kore::Bytecode::LoadBool) {
                 os << " " << (value == 1 ? "true" : "false");
+            } else if (opcode == kore::LoadFunction) {
+                std::string name;
+                auto index = ins_type->value;
+                auto builtin = kore::vm::get_builtin_function_by_index(index);
+
+                if (builtin) {
+                    name = builtin->name;
+                } else {
+                    name = module.get_function_by_index(index)->name();
+                }
+
+                os << " [" << name;
+
+                if (builtin) {
+                    os << " (builtin)";
+                }
+
+                os << "]";
             } else {
                 os << " " << constant(value);
             }
@@ -103,15 +122,15 @@ namespace koredis {
                << ", returns: "
                << ins_type->ret_registers.size() << "]";
         } else if (auto ins_type = std::get_if<kore::kir::ReturnV>(&instruction_type)) {
-            os << regs(ins_type->registers);
+            os << " " << regs(ins_type->registers);
         }
 
         return os;
     }
 
-    std::ostream& operator<<(std::ostream& os, const Instruction instruction) {
-        os << instruction.byte_pos << ": " << bytecode_to_string(instruction.value.opcode);
+    /* std::ostream& operator<<(std::ostream& os, const Instruction instruction) { */
+    /*     os << instruction.byte_pos << ": " << bytecode_to_string(instruction.value.opcode); */
         
-        return format_registers(os, instruction);
-    }
+    /*     return format_registers(os, instruction); */
+    /* } */
 }

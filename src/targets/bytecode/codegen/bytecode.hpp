@@ -56,16 +56,12 @@ namespace kore {
         Noop,
         Move,
 
-        // Load/store global
+        // Loads/stores
         Gload,
         Gstore,
-
-        // Load constants
         LoadBool,
-        CloadI32,
-        CloadI64,
-        CloadF32,
-        CloadF64,
+        Cload,
+        LoadFunction,
 
         // Load locals (TODO: Remove?)
         LloadI32,

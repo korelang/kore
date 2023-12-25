@@ -51,10 +51,8 @@ namespace koredis {
             }
 
             case kore::Bytecode::LoadBool:
-            case kore::Bytecode::CloadI32:
-            case kore::Bytecode::CloadI64:
-            case kore::Bytecode::CloadF32:
-            case kore::Bytecode::CloadF64:
+            case kore::Bytecode::Cload:
+            case kore::Bytecode::LoadFunction:
             case kore::Bytecode::Gload:
             case kore::Bytecode::JumpIf:
             case kore::Bytecode::JumpIfNot: {

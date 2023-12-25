@@ -104,6 +104,7 @@ namespace kore {
     // TODO: Make these functions more generic!
 
     // Stream-based endian functions
+    std::uint8_t read8(std::istream& is);
     std::uint16_t read_be16(std::istream& is);
     std::uint32_t read_be32(std::istream& is);
     std::uint32_t read_le32(std::istream& is);

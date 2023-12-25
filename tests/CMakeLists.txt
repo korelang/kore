@@ -13,9 +13,12 @@ set(TEST_RUNNER_SOURCES
     ${KORE_PARSER_SOURCES}
     ${KORE_TYPE_SOURCES}
     ${KORE_LOGGING_SOURCES}
+    ${KORE_KIR_SOURCES}
     ${KORE_ERRORS_SOURCES}
     ${KORE_UTF8_SOURCES}
     ${KORE_UTILS_SOURCES}
+    ${KORE_TARGETS_BYTECODE_SOURCES}
+    ${KORE_ANALYSIS_SOURCES}
 
     # Files specific to scanner test runner
     test_utils.cpp

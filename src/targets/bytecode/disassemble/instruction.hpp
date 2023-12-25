@@ -6,6 +6,7 @@
 
 #include "targets/bytecode/codegen/bytecode.hpp"
 #include "targets/bytecode/codegen/kir/instruction.hpp"
+#include "targets/bytecode/module.hpp"
 #include "targets/bytecode/register.hpp"
 
 namespace koredis {
@@ -16,9 +17,9 @@ namespace koredis {
         kore::kir::Instruction value;
     };
 
-    std::ostream& format_registers(std::ostream& os, Instruction instruction);
+    std::ostream& format_registers(std::ostream& os, Instruction instruction, kore::Module& module);
 
-    std::ostream& operator<<(std::ostream& os, const Instruction instruction);
+    /* std::ostream& operator<<(std::ostream& os, const Instruction instruction); */
 }
 
 #endif // KOREDIS_INSTRUCTION_HPP

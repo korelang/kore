@@ -22,6 +22,7 @@ namespace kore {
 
             _module = &module;
 
+            // Add main function
             add_kir_function(nullptr);
 
             for (auto const& statement : ast) {
@@ -30,7 +31,7 @@ namespace kore {
 
             // Emit a return instruction at the end of the main function so we
             // pop its call frame
-            current_function()._return();
+            current_function().emit_return();
 
             _func_index_stack.pop();
             assert(_func_index_stack.size() == 0);
@@ -41,7 +42,7 @@ namespace kore {
         void KirLoweringPass::visit(ArrayExpression& expr) {
             trace_kir("array", std::to_string(expr.size()));
 
-            /* std::vector<Reg> element_regs; */
+            /* Regs element_regs; */
 
             /* // TODO: This needs to be limited to a threshold for very large */
             /* // arrays and perhaps use a loop instead */
@@ -50,14 +51,14 @@ namespace kore {
             /* } */
 
             push_register(
-                current_function().allocate_array(expr),//, element_regs),
+                current_function().emit_allocate_array(expr),//, element_regs),
                 expr.type()
             );
         }
 
         void KirLoweringPass::visit(BoolExpression& expr) {
             trace_kir("bool", expr.value());
-            push_register(current_function().load_constant(expr), expr.type());
+            push_register(current_function().emit_load(Bytecode::LoadBool, expr, expr.bool_value() ? 1 : 0), expr.type());
         }
 
         /* void KirLoweringPass::visit(CharExpression& expr) { */
@@ -68,35 +69,17 @@ namespace kore {
         void KirLoweringPass::visit(IntegerExpression& expr) {
             trace_kir(expr.type()->name().c_str(), std::to_string(expr.value()));
 
-            int index;
-            int num_bits = expr.type()->category() == TypeCategory::Integer32 ? 32 : 64;
-            auto& module = current_module();
+            int index = current_module().constant_table().add(expr.value());
 
-            if (num_bits == 32) {
-                index = module.i32_constant_table().add(expr.value());
-            } else {
-                index = module.i64_constant_table().add(expr.value());
-            }
-
-            // TODO: Save in module-level constant table first and then save
-            // the return value
-            push_register(current_function().load_constant(expr, index), expr.type());
+            push_register(current_function().emit_load(Bytecode::Cload, expr, index), expr.type());
         }
 
         void KirLoweringPass::visit(FloatExpression& expr) {
             trace_kir(expr.type()->name().c_str(), std::to_string(expr.value()));
 
-            int index;
-            int num_bits = expr.type()->category() == TypeCategory::Float32 ? 32 : 64;
-            auto& module = current_module();
+            int index = current_module().constant_table().add(expr.value());
 
-            if (num_bits == 32) {
-                index = module.f32_constant_table().add(expr.value());
-            } else {
-                index = module.f64_constant_table().add(expr.value());
-            }
-
-            push_register(current_function().load_constant(expr, index), expr.type());
+            push_register(current_function().emit_load(Bytecode::Cload, expr, index), expr.type());
         }
 
         /* void KirLoweringPass::visit(StringExpression& expr) { */
@@ -112,7 +95,7 @@ namespace kore {
             Reg reg_right = visit_expression(expr.right());
 
             push_register(
-                current_function().binop(expr, reg_left, reg_right),
+                current_function().emit_binop(expr, reg_left, reg_right),
                 expr.type()
             );
         }
@@ -123,7 +106,7 @@ namespace kore {
             auto entry = _scope_stack.find(expr.name());
 
             if (entry->is_global_scope()) {
-                auto reg = current_function().load_global(expr, entry->reg);
+                auto reg = current_function().emit_load(Bytecode::Gload, expr, entry->reg);
                 push_register(reg, expr.type());
             } else {
                 check_register_state(expr, entry->reg);
@@ -150,13 +133,13 @@ namespace kore {
                 func.free_register(dst);
             }
 
-            func.move(dst, src);
+            func.emit_move(dst, src);
 
             // If we reference a variable which is not a value type (e.g. an
             // array), increase its reference count
             if (rhs->expr_type() == ExpressionType::Identifier) {
                 if (!rhs->type()->is_value_type()) {
-                    func.refinc(src);
+                    func.emit_refinc(src);
                 }
             }
         }
@@ -210,7 +193,7 @@ namespace kore {
                 if (condition) {
                     // Generate an unconditional jump from the end of this
                     // branch (which was taken) to the after block
-                    func.unconditional_jump(after_block_id);
+                    func.emit_unconditional_jump(after_block_id);
                 }
 
                 graph.add_edge(branch_id, after_block_id);
@@ -224,7 +207,7 @@ namespace kore {
                     // condition block to this condition
                     graph.set_current_block(prev_block_id);
 
-                    func.conditional_jump(Bytecode::JumpIfNot, prev_cond_reg, target_id);
+                    func.emit_conditional_jump(Bytecode::JumpIfNot, prev_cond_reg, target_id);
                 }
 
                 prev_block_id = condition_block_id;
@@ -248,37 +231,50 @@ namespace kore {
             exit_function();
         }
 
-        void KirLoweringPass::visit(class Call& call) {
-            trace_kir("call", call.name());
-
-            auto& func = current_function();
-            auto& module = current_module();
-
-            int func_index = _functions[call.name()].first;
-            int index = module.i32_constant_table().add(func_index);
-            Reg func_reg = func.load_constant(index);
-
-            std::vector<Reg> arg_registers;
+        Regs KirLoweringPass::visit_function_arguments(class Call& call) {
+            Regs arg_registers;
 
             for (int idx = 0; idx < call.arg_count(); ++idx) {
                 arg_registers.push_back(visit_expression(call.arg(idx)));
             }
 
-            // TODO: Support multiple return values
-            std::vector<Reg> return_registers{ func.allocate_register() };
+            return arg_registers;
+        }
 
-            func.call(Bytecode::Call, func_reg, arg_registers, return_registers);
+        Regs KirLoweringPass::allocate_function_return_registers(class Call& call) {
+            UNUSED_PARAM(call);
+
+            // TODO: Support multiple return values. We need to know how many
+            // values are being expected to be returned from the parser
+            return { current_function().allocate_register() };
+        }
+
+        void KirLoweringPass::visit(class Call& call) {
+            auto& func = current_function();
+            Regs arg_registers = visit_function_arguments(call);
+            Regs return_registers = allocate_function_return_registers(call);
+
+            // Check if this is a built-in function
+            auto builtin_function = vm::get_builtin_function_by_name(call.name());
+
+            if (builtin_function) {
+                trace_kir("builtin call", call.name());
+                Regs builtin_return_registers;
+
+                if (builtin_function->ret_count > 0) {
+                    builtin_return_registers = return_registers;
+                }
+
+                func.emit_call(func.emit_load_function(builtin_function->index), arg_registers, builtin_return_registers);
+            } else {
+                trace_kir("call", call.name());
+
+                int func_index = _functions[call.name()].first;
+                func.emit_call(func.emit_load_function(func_index), arg_registers, return_registers);
+            }
 
             // Push single destination (return) register
             push_register(return_registers[0]);
-
-            // TODO: Or maybe move this into a separate AST node?
-
-            /* auto [idx, builtin_func_ptr] = vm::get_builtin_function_by_name(call.name()); */
-
-            /* if (builtin_func_ptr != nullptr) { */
-            /*     current_function().builtin_call(idx); */
-            /* } */
         }
 
         void KirLoweringPass::visit(Return& ret) {
@@ -289,11 +285,11 @@ namespace kore {
             // for it, then get its register
             if (ret.expr()) {
                 auto reg = visit_expression(ret.expr());
-                func._return(reg);
+                func.emit_return(reg);
                 func.set_register_state(reg, RegisterState::Moved);
             } else {
                 // Otherwise return zero registers
-                func._return();
+                func.emit_return();
             }
 
             func.free_registers();

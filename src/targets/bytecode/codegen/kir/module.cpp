@@ -7,12 +7,7 @@ namespace kore {
             const fs::path& path
         ) : _index(index),
             _path(path),
-            _global_indices(0),
-            _i32_constants(ConstantTableTag::I32),
-            _i64_constants(ConstantTableTag::I64),
-            _f32_constants(ConstantTableTag::F32),
-            _f64_constants(ConstantTableTag::F64),
-            _str_constants(ConstantTableTag::Str)
+            _global_indices(0)
         {}
 
         Module::~Module() {}
@@ -25,13 +20,13 @@ namespace kore {
             return _index;
         }
 
-        int Module::add_function() {
-            return add_function(nullptr);
-        }
-
         int Module::add_function(const kore::Function* function) {
             auto func_index = _functions.size();
             _functions.push_back(Function(func_index, function));
+
+            if (!function) {
+                _main_function_index = func_index;
+            }
 
             return func_index;
         }
@@ -45,15 +40,11 @@ namespace kore {
         }
 
         Function& Module::main_function() {
-            return _functions.back();
+            return _functions[_main_function_index];
         }
 
         int Module::function_count() const noexcept {
             return _functions.size();
-        }
-
-        int Module::constants_count() const noexcept {
-            return _i32_constants.size() + _i64_constants.size() + _f32_constants.size() + _f64_constants.size();
         }
 
         int Module::global_count() const noexcept {
@@ -76,44 +67,12 @@ namespace kore {
             return _functions.cend();
         }
 
-        ConstantTable<i32>& Module::i32_constant_table() {
-            return _i32_constants;
+        ConstantTable& Module::constant_table() {
+            return _constants;
         }
 
-        ConstantTable<i64>& Module::i64_constant_table() {
-            return _i64_constants;
-        }
-
-        ConstantTable<f32>& Module::f32_constant_table() {
-            return _f32_constants;
-        }
-
-        ConstantTable<f64>& Module::f64_constant_table() {
-            return _f64_constants;
-        }
-
-        ConstantTable<std::string>& Module::str_constant_table() {
-            return _str_constants;
-        }
-
-        const ConstantTable<i32>& Module::i32_constant_table() const {
-            return _i32_constants;
-        }
-
-        const ConstantTable<i64>& Module::i64_constant_table() const {
-            return _i64_constants;
-        }
-
-        const ConstantTable<f32>& Module::f32_constant_table() const {
-            return _f32_constants;
-        }
-
-        const ConstantTable<f64>& Module::f64_constant_table() const {
-            return _f64_constants;
-        }
-
-        const ConstantTable<std::string>& Module::str_constant_table() const {
-            return _str_constants;
+        const ConstantTable& Module::constant_table() const {
+            return _constants;
         }
     }
 }

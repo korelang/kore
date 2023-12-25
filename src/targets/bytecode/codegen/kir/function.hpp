@@ -32,38 +32,30 @@ namespace kore {
                 RegisterState register_state(Reg reg);
                 const Type* register_type(Reg reg);
 
-                Reg load_constant(BoolExpression& expr);
-                /* void load_constant(CharExpression& expr); */
-                Reg load_constant(IntegerExpression& expr, int index);
-                Reg load_constant(FloatExpression& expr, int index);
-                Reg load_constant(int index);
-                Reg load_global(Identifier& expr, Reg gidx);
-                Reg binop(BinaryExpression& expr, Reg left, Reg right);
-                void unconditional_jump(BlockId target_block_id);
-                void move(Reg src, Reg dst);
-                void conditional_jump(Bytecode opcode, Reg condition, BlockId target_block_id);
-                Reg allocate_array(ArrayExpression& expr);
-                void destroy(Reg reg);
+                Reg emit_load(Bytecode opcode, Expression& expr, int index);
+                Reg emit_load_function(int func_index);
+                Reg emit_binop(BinaryExpression& expr, Reg left, Reg right);
+                void emit_unconditional_jump(BlockId target_block_id);
+                void emit_move(Reg src, Reg dst);
+                void emit_conditional_jump(Bytecode opcode, Reg condition, BlockId target_block_id);
+                Reg emit_allocate_array(ArrayExpression& expr);
+                void emit_destroy(Reg reg);
                 /* void destroy(Expression& expr, Reg reg); */
-                void refinc(Reg reg);
-                void refdec(Reg reg);
-                void call(
-                    kore::Bytecode opcode,
-                    Reg func_index,
+                void emit_refinc(Reg reg);
+                void emit_refdec(Reg reg);
+                void emit_call(
+                    Reg func_reg,
                     const std::vector<kore::Reg>& arg_registers,
                     const std::vector<kore::Reg>& return_registers
                 );
-                void _return();
-                void _return(Reg retreg);
+                void emit_return();
+                void emit_return(Reg retreg);
 
                 FuncIndex index() const noexcept;
                 std::string name() const;
                 SourceLocation location() const;
                 int max_regs_used() const noexcept;
                 int code_size() const;
-
-            private:
-                Reg load_constant(Bytecode opcode, Expression& expr, int index);
 
             private:
                 FuncIndex _index;

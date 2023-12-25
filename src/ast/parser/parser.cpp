@@ -662,30 +662,52 @@ namespace kore {
         trace_parser("literal");
 
         auto token = current_token();
+        int sign = 1;
         Owned<Expression> result = nullptr;
 
+        if (token->value() == "-" || token->value() == "+") {
+            // This is a signed literal
+            sign = token->value() == "-" ? -1 : 1;
+            token = next_token();
+        }
+
         switch (token->type()) {
-            case TokenType::integer:
-                result = Expression::make_expression<IntegerExpression>(token->int_value(), token->location());
+            case TokenType::integer: {
+                result = Expression::make_expression<IntegerExpression>(
+                    token->int_value() * sign,
+                    token->location()
+                );
                 next_token();
                 break;
+            }
 
-            case TokenType::floatp:
-                result = Expression::make_expression<FloatExpression>(token->float32_value(), token->location());
+            case TokenType::floatp: {
+                result = Expression::make_expression<FloatExpression>(
+                    token->float32_value() * sign,
+                    token->location()
+                );
                 next_token();
                 break;
+            }
 
-            case TokenType::character:
+            case TokenType::character: {
+                // TODO: Handle signed characters
                 result = Expression::make_expression<CharExpression>(token->int_value(), token->location());
                 next_token();
                 break;
+            }
 
-            case TokenType::string:
-                result = Expression::make_expression<StringExpression>(token->value(), token->location());
+            case TokenType::string: {
+                // TODO: Handle signed strings (an error)
+                result = Expression::make_expression<StringExpression>(
+                    token->value(),
+                    token->location()
+                );
                 next_token();
                 break;
+            }
 
-            case TokenType::keyword:
+            case TokenType::keyword: {
                 if (token->is_boolean_keyword()) {
                     result = Expression::make_expression<BoolExpression>(token->value(), token->location());
                     next_token();
@@ -696,14 +718,17 @@ namespace kore {
                     );
                 }
                 break;
+            }
 
-            case TokenType::lbracket:
+            case TokenType::lbracket: {
                 result = parse_array(token);
                 break;
+            }
 
-            default:
+            default: {
                 result = Expression::make_expression<ParserErrorNode>("Expected literal token type", token->location());
                 break;
+            }
         }
 
         return result;

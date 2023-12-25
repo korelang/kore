@@ -12,6 +12,8 @@
 
 namespace kore {
     namespace kir {
+        using Regs = std::vector<Reg>;
+
         /// Compiler pass that lowers an AST to KIR
         ///
         /// It is heavily inspired by inko's MIR (mid-level intermediate representation)
@@ -54,7 +56,7 @@ namespace kore {
                 analysis::FunctionMap _functions;
                 std::stack<int> _func_index_stack;
                 std::vector<errors::Error> _errors;
-                std::vector<Reg> _register_stack;
+                Regs _register_stack;
 
                 // Mapping from variable names to their registers
                 std::unordered_map<std::string, Reg> _var_to_reg;
@@ -66,6 +68,8 @@ namespace kore {
                 void enter_function(kore::Function& func);
                 void exit_function();
                 void add_kir_function(kore::Function* function);
+                Regs visit_function_arguments(class Call& call);
+                Regs allocate_function_return_registers(class Call& call);
 
                 Reg visit_expression(Expression* expr);
                 void check_register_state(Identifier& expr, Reg reg);

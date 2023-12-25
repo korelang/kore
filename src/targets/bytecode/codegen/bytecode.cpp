@@ -9,10 +9,8 @@ namespace kore {
             case Gload:          return "gload";
             case Gstore:         return "gstore";
             case LoadBool:       return "loadbool";
-            case CloadI32:       return "cloadi32";
-            case CloadI64:       return "cloadi64";
-            case CloadF32:       return "cloadf32";
-            case CloadF64:       return "cloadf64";
+            case Cload:          return "cload";
+            case LoadFunction:   return "loadfunction";
             case LloadI32:       return "lloadi32";
             case LloadI64:       return "lloadi64";
             case LloadF32:       return "lloadf32";

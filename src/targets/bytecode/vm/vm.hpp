@@ -1,15 +1,15 @@
 #ifndef KORE_VM_HPP
 #define KORE_VM_HPP
 
-#include <cstddef>
-#include <filesystem>
-#include <vector>
-
 #include "targets/bytecode/codegen/bytecode.hpp"
 #include "targets/bytecode/vm/value_type.hpp"
 #include "targets/bytecode/vm/config.hpp"
 #include "targets/bytecode/register.hpp"
 #include "targets/bytecode/module.hpp"
+
+#include <cstddef>
+#include <filesystem>
+#include <vector>
 
 namespace fs = std::filesystem;
 
@@ -17,8 +17,21 @@ namespace kore {
     namespace vm {
         struct CallFrame {
             CallFrame(CompiledObject* obj);
-            CallFrame(int ret_count, int reg_count, const bytecode_type* code, std::size_t size);
-            CallFrame(int ret_count, int shift, std::size_t old_fp, std::size_t old_pc, CompiledObject* obj);
+
+            CallFrame(
+                int ret_count,
+                int reg_count,
+                const bytecode_type* code,
+                std::size_t size
+            );
+
+            CallFrame(
+                int ret_count,
+                int shift,
+                std::size_t old_fp,
+                std::size_t old_pc,
+                const CompiledObject* obj
+            );
 
             int ret_count;
             int reg_count;
@@ -35,6 +48,7 @@ namespace kore {
             std::size_t pc = 0; // Program counter
             std::size_t sp = 0; // Stack pointer
             std::size_t fp = 0; // Frame pointer for current call frame
+            int shift = 0;
 
             Module* _current_module;
 
@@ -68,10 +82,19 @@ namespace kore {
 
                 void dump_registers(std::ostream& os);
 
+                /// Set a return value from builtin function
+                void set_return_value(const Value& value);
+
+                void vm_fatal_error(const std::string& message);
+
             private:
+                bool _running = false;
+                bool _errored = false;
                 Context _context;
                 Value _registers[KORE_VM_MAX_REGISTERS];
                 std::vector<CallFrame> _call_frames;
+
+                static const std::string log_group;
 
                 // Saved for dumping the main function's registers
                 int main_call_frame_reg_count;
@@ -92,15 +115,14 @@ namespace kore {
                 /// Allocate space for globals
                 void allocate_globals(const Module& module);
 
-                /// Reserve local stack space for the called function
-                void allocate_local_stack(const CompiledObject* const obj);
+                /// Reserve local stack space for a called function
+                bool allocate_local_stack(const CompiledObject* const obj);
 
                 /// Deallocate local stack space for a call frame
                 void deallocate_local_stack(const CallFrame& call_frame);
 
-                [[noreturn]] void throw_vm_error(const std::string& message);
-
-                void throw_unknown_opcode(Bytecode opcode);
+                void vm_error(const std::string& message);
+                void vm_error_unknown_opcode(Bytecode opcode);
 
                 /// Get a function by its index
                 CompiledObject* get_function(int func_index);
@@ -120,8 +142,20 @@ namespace kore {
                 /// When in a function call, get the caller of that function
                 inline const CallFrame& get_caller();
 
+                void push_call_frame(CallFrame call_frame);
+
+                int push_function_arguments(bytecode_type instruction, std::size_t old_fp);
+
                 /// Push a new call frame
-                void do_function_call(bytecode_type instruction);
+                void do_function_call(
+                    bytecode_type instruction,
+                    const FunctionValue& callable
+                );
+
+                void do_builtin_function_call(
+                    bytecode_type instruction,
+                    const FunctionValue& callable
+                );
 
                 /// Pop the current call frame
                 void do_function_return(bytecode_type instruction);
@@ -136,6 +170,8 @@ namespace kore {
                 inline void move(Reg src_reg, Reg dst_reg);
 
                 void add_module(Module& module);
+
+                void dump_call_stack(std::ostream& os);
         };
     }
 }

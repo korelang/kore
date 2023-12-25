@@ -10,6 +10,13 @@ namespace kore {
         return *(std::uint8_t*)&one != 1;
     }
 
+    std::uint8_t read8(std::istream& is) {
+        char byte;
+        is.read(&byte, 1);
+
+        return static_cast<std::uint8_t>(byte);
+    }
+
     // TODO: Template these functions
     std::uint16_t read_be16(std::istream& is) {
         std::array<char, 2> data;

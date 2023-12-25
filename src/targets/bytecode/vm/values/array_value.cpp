@@ -6,6 +6,15 @@ namespace kore {
         ArrayValue::ArrayValue() {}
         ArrayValue::~ArrayValue() {}
 
+        bool ArrayValue::operator==(const ArrayValue& other) {
+            // FIXME:
+            return size() == other.size();
+        }
+
+        std::vector<Value>::size_type ArrayValue::size() const {
+            return _values.size();
+        }
+
         ArrayValue* ArrayValue::allocate(std::size_t size) {
             ArrayValue* array = new ArrayValue();
 

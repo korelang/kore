@@ -16,6 +16,7 @@
 #include "targets/bytecode/compiled_object.hpp"
 #include "targets/bytecode/module.hpp"
 #include "targets/bytecode/register.hpp"
+#include "targets/bytecode/vm/value_type.hpp"
 #include "types/scope.hpp"
 
 namespace kore {
@@ -46,6 +47,8 @@ namespace kore {
             void save_patch_location(kir::BlockId target_block_id);
             void patch_jumps();
 
+            void write_value(const vm::Value& value);
+            void write_constant_table(const ConstantTable& table);
             void write_bytes(const std::string& str);
             void write_bytes(std::vector<std::uint8_t>& bytes);
             void write_bytes(std::initializer_list<std::uint8_t> bytes);
@@ -58,21 +61,6 @@ namespace kore {
             /* void write_bytes(Args&&... args) { */
             /*     _buffer.emplace_back(std::forward(args...)); */
             /* } */
-
-            template<typename T>
-            void write_constant_table(const ConstantTable<T>& table) {
-                write_be32(static_cast<T>(table.tag()));
-
-                if (table.size() > UINT32_MAX) {
-                    // TOOD: How do we handle errors in code generation?
-                }
-
-                write_be32(static_cast<T>(table.size()));
-
-                for (auto it = table.sorted_cbegin(); it != table.sorted_cend(); ++it) {
-                    write_be32(*it);
-                }
-            }
     };
 }
 

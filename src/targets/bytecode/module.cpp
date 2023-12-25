@@ -1,16 +1,12 @@
 #include "module.hpp"
+#include "targets/bytecode/constant_table_tag.hpp"
 
 namespace kore {
     Module::Module() : Module(0, "") {}
 
     Module::Module(ModuleIndex idx, const fs::path& path)
         : _idx(idx),
-          _path(path),
-          _i32_constants(ConstantTableTag::I32),
-          _i64_constants(ConstantTableTag::I64),
-          _f32_constants(ConstantTableTag::F32),
-          _f64_constants(ConstantTableTag::F64),
-          _str_constants(ConstantTableTag::Str) {}
+          _path(path) {}
 
     Module::~Module() {}
 
@@ -35,7 +31,7 @@ namespace kore {
     }
 
     std::string Module::name() const {
-        // TODO
+        // TODO:
         return "main";
     }
 
@@ -51,24 +47,12 @@ namespace kore {
         return _objects.size();
     }
 
-    int Module::constants_count() const {
-        return _i32_constants.size() + _f32_constants.size() + _i64_constants.size() + _f64_constants.size();
+    ConstantTable::index_type Module::add_constant(vm::Value value) {
+        return _constants.add(value);
     }
 
-    int Module::add_i32_constant(i32 constant) {
-        return _i32_constants.add(constant);
-    }
-
-    int Module::add_i64_constant(i64 constant) {
-        return _i64_constants.add(constant);
-    }
-
-    int Module::add_f32_constant(f32 constant) {
-        return _f32_constants.add(constant);
-    }
-
-    int Module::add_f64_constant(f64 constant) {
-        return _f64_constants.add(constant);
+    const ConstantTable& Module::constant_table() const {
+        return _constants;
     }
 
     Module::object_iterator Module::objects_begin() const {
@@ -79,22 +63,6 @@ namespace kore {
 
     Module::object_iterator Module::objects_end() const {
         return _objects.end();
-    }
-
-    const ConstantTable<i32>& Module::i32_constant_table() const {
-        return _i32_constants;
-    }
-
-    const ConstantTable<i64>& Module::i64_constant_table() const {
-        return _i64_constants;
-    }
-
-    const ConstantTable<f32>& Module::f32_constant_table() const {
-        return _f32_constants;
-    }
-
-    const ConstantTable<f64>& Module::f64_constant_table() const {
-        return _f64_constants;
     }
 
     void Module::set_global_indices_count(int count) {
@@ -138,6 +106,10 @@ namespace kore {
         auto it = _function_map.find(name);
 
         return it != _function_map.end() ? it->second : nullptr;
+    }
+
+    CompiledObject* Module::get_function_by_index(int index) {
+        return _objects[index].get();
     }
 
     void Module::add_function(
