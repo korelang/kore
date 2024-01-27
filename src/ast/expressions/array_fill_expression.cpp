@@ -25,14 +25,5 @@ namespace kore {
         return _element_expr.get();
     }
 
-    void ArrayFillExpression::accept(AstVisitor& visitor) {
-        _size_expr->accept(visitor);
-        _element_expr->accept(visitor);
-
-        visitor.visit(*this);
-    }
-
-    void ArrayFillExpression::accept_visit_only(AstVisitor& visitor) {
-        visitor.visit(*this);
-    }
+    KORE_AST_VISITOR_ACCEPT_METHOD_DEFAULT_IMPL(ArrayFillExpression)
 }

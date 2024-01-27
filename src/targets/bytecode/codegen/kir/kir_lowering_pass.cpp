@@ -26,7 +26,7 @@ namespace kore {
             add_kir_function(nullptr);
 
             for (auto const& statement : ast) {
-                statement->accept_visit_only(*this);
+                statement->accept(*this);
             }
 
             // Emit a return instruction at the end of the main function so we
@@ -40,20 +40,71 @@ namespace kore {
         }
 
         void KirLoweringPass::visit(ArrayExpression& expr) {
-            trace_kir("array", std::to_string(expr.size()));
+            trace_kir("array expression", std::to_string(expr.size()));
 
-            /* Regs element_regs; */
+            auto function = current_function();
+            auto array_reg = function.emit_allocate_array(expr.size());
 
-            /* // TODO: This needs to be limited to a threshold for very large */
-            /* // arrays and perhaps use a loop instead */
-            /* for (int idx = 0; idx < expr.size(); ++idx) { */
-            /*     element_regs.push_back(visit_expression(expr[idx])); */
-            /* } */
+            // Visit its expression in the array and store it in the array
+            for (int idx = 0; idx < expr.size(); ++idx) {
+                auto element_expr = expr[idx];
+                Reg element_reg = visit_expression(element_expr);
 
-            push_register(
-                current_function().emit_allocate_array(expr),//, element_regs),
-                expr.type()
-            );
+                // Load the index into a register
+                Reg index_reg = function.emit_load(Bytecode::Cload, idx);
+
+                function.emit_reg3(Bytecode::ArraySet, array_reg, element_reg, index_reg);
+            }
+
+            push_register(array_reg, expr.type());
+        }
+
+        void KirLoweringPass::visit(IndexExpression& expr) {
+            auto function = current_function();
+            Reg reg = function.allocate_register();
+            Reg indexed_reg = visit_expression(expr.expr());
+            Reg index_expr_reg = visit_expression(expr.index_expr());
+
+            // Emit code based on the type of the indexed expression
+            switch (expr.expr()->type()->category()) {
+                case kore::TypeCategory::Array: {
+                    function.emit_reg3(Bytecode::ArrayGet, indexed_reg, index_expr_reg, reg);
+                    break;
+                }
+
+                default: {
+                    // TODO:
+                    break;
+                }
+            }
+
+            push_register(reg);
+        }
+
+        void KirLoweringPass::visit(IndexExpression& expr, ValueContext context) {
+            if (context == ValueContext::RValue) {
+                visit(expr);
+                return;
+            }
+
+            Reg reg = pop_register();
+            Reg indexed_reg = visit_expression(expr.expr());
+            Reg index_expr_reg = visit_expression(expr.index_expr());
+
+            // Emit code based on the type of the indexed expression
+            switch (expr.expr()->type()->category()) {
+                case kore::TypeCategory::Array: {
+                    current_function().emit_reg3(Bytecode::ArraySet, indexed_reg, index_expr_reg, reg);
+                    break;
+                }
+
+                default: {
+                    // TODO:
+                    break;
+                }
+            }
+
+            push_register(indexed_reg);
         }
 
         void KirLoweringPass::visit(BoolExpression& expr) {
@@ -61,17 +112,15 @@ namespace kore {
             push_register(current_function().emit_load(Bytecode::LoadBool, expr, expr.bool_value() ? 1 : 0), expr.type());
         }
 
-        /* void KirLoweringPass::visit(CharExpression& expr) { */
-        /*     trace_kir("char", expr.value()); */
-        /*     current_function().load_constant(expr); */
-        /* } */
-
         void KirLoweringPass::visit(IntegerExpression& expr) {
             trace_kir(expr.type()->name().c_str(), std::to_string(expr.value()));
 
             int index = current_module().constant_table().add(expr.value());
 
-            push_register(current_function().emit_load(Bytecode::Cload, expr, index), expr.type());
+            push_register(
+                current_function().emit_load(Bytecode::Cload, expr, index),
+                expr.type()
+            );
         }
 
         void KirLoweringPass::visit(FloatExpression& expr) {
@@ -79,14 +128,11 @@ namespace kore {
 
             int index = current_module().constant_table().add(expr.value());
 
-            push_register(current_function().emit_load(Bytecode::Cload, expr, index), expr.type());
+            push_register(
+                current_function().emit_load(Bytecode::Cload, expr, index),
+                expr.type()
+            );
         }
-
-        /* void KirLoweringPass::visit(StringExpression& expr) { */
-        /*     trace_kir("str", expr.value()); */
-
-        /*     push_register(current_object()->allocate_register()); */
-        /* } */
 
         void KirLoweringPass::visit(BinaryExpression& expr) {
             trace_kir("binop", expr.op_string());
@@ -114,34 +160,41 @@ namespace kore {
             }
         }
 
-        void KirLoweringPass::visit(VariableAssignment& statement) {
-            trace_kir("assignment", statement.identifier()->name());
+        void KirLoweringPass::visit(Identifier& expr, ValueContext context) {
+            if (context == ValueContext::RValue) {
+                visit(expr);
+                return;
+            }
 
-            auto& func = current_function();
-            auto entry = _scope_stack.find_inner(statement.identifier()->name());
-            auto rhs = statement.expression();
-            Reg src = visit_expression(rhs);
+            trace_kir("identifier (lvalue)", expr.name());
+
+            // Get the register generated by the right-hand side expression
+            Reg rhs_reg = pop_register();
+
             Reg dst;
+            auto& func = current_function();
+            auto entry = _scope_stack.find_inner(expr.name());
 
             if (!entry) {
-                dst = func.allocate_register();
-                _scope_stack.insert(statement.identifier(), dst);
+                // NOTE: Is it always ok to directly use the rhs register?
+                _scope_stack.insert(&expr, rhs_reg);
             } else {
                 dst = entry->reg;
 
-                // Free the lhs register so whatever was there already is freed
+                // Free the register so whatever was there is freed
                 func.free_register(dst);
             }
+        }
 
-            func.emit_move(dst, src);
+        void KirLoweringPass::visit(VariableAssignment& statement) {
+            trace_kir("assignment");
 
-            // If we reference a variable which is not a value type (e.g. an
-            // array), increase its reference count
-            if (rhs->expr_type() == ExpressionType::Identifier) {
-                if (!rhs->type()->is_value_type()) {
-                    func.emit_refinc(src);
-                }
-            }
+            // Generate code for the right-hand side expression and push the resulting
+            // register for the left-hand side
+            push_register(visit_expression(statement.rhs()));
+
+            // Generate code for the left-hand side expression
+            statement.lhs()->accept(*this, ValueContext::LValue);
         }
 
         void KirLoweringPass::visit(IfStatement& ifstatement) {
@@ -185,7 +238,7 @@ namespace kore {
 
                 // Generate code for the branch
                 for (auto& statement : *branch) {
-                    statement->accept_visit_only(*this);
+                    statement->accept(*this);
                 }
 
                 // TODO: This should actually only be generated if this is not
@@ -225,7 +278,7 @@ namespace kore {
             enter_function(func);
 
             for (auto& statement : func) {
-                statement->accept_visit_only(*this);
+                statement->accept(*this);
             }
 
             exit_function();
@@ -347,16 +400,9 @@ namespace kore {
         }
 
         Reg KirLoweringPass::visit_expression(Expression* expr) {
-            expr->accept_visit_only(*this);
+            expr->accept(*this);
 
-            if (_register_stack.empty()) {
-                throw std::runtime_error("No destination register was pushed when visiting expression");
-            }
-
-            auto reg = _register_stack.back();
-            _register_stack.pop_back();
-
-            return reg;
+            return pop_register();
         }
 
         void KirLoweringPass::check_register_state(Identifier& expr, Reg reg) {
@@ -375,6 +421,17 @@ namespace kore {
         void KirLoweringPass::push_register(Reg reg, const Type* type) {
             _register_stack.push_back(reg);
             current_function().set_register_type(reg, type);
+        }
+
+        Reg KirLoweringPass::pop_register() {
+            if (_register_stack.empty()) {
+                throw std::runtime_error("No register was pushed when popping");
+            }
+
+            auto reg = _register_stack.back();
+            _register_stack.pop_back();
+
+            return reg;
         }
     }
 }

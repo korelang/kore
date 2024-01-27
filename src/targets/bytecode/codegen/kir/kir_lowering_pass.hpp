@@ -4,6 +4,7 @@
 #include "analysis/function_name_visitor.hpp"
 #include "ast/ast.hpp"
 #include "ast/ast_visitor.hpp"
+#include "ast/expressions/index_expression.hpp"
 #include "bin/korec/options.hpp"
 #include "errors/errors.hpp"
 #include "targets/bytecode/codegen/kir/function.hpp"
@@ -26,28 +27,20 @@ namespace kore {
                 Module lower(const Ast& ast);
 
                 void visit(ArrayExpression& expr) override;
-                /* virtual void visit(ArrayFillExpression& expr); */
-                /* virtual void visit(ArrayRangeExpression& expr); */
+                void visit(IndexExpression& expr) override;
+                void visit(IndexExpression& expr, ValueContext context) override;
                 void visit(BinaryExpression& expr) override;
                 void visit(BoolExpression& expr) override;
-                /* virtual void visit(CharExpression& expr); */
                 void visit(FloatExpression& expr) override;
                 void visit(Identifier& expr) override;
-                /* virtual void visit(Parameter& expr); */
+                void visit(Identifier& expr, ValueContext context) override;
                 void visit(IntegerExpression& expr) override;
-                /* virtual void visit(StringExpression& expr); */
-                /* void visit(UnaryExpression& expr) override; */
 
-                /* virtual void visit(Branch& statement); */
                 void visit(kore::Function& statement) override;
                 void visit(class Call& statement) override;
                 void visit(IfStatement& statement) override;
-                /* virtual void visit(ImportStatement& statement); */
-                /* virtual void visit(ModuleStatement& statement); */
                 void visit(Return& statement) override;
                 void visit(VariableAssignment& statement) override;
-                /* virtual void visit(VariableDeclaration& statement); */
-                /* virtual void visit(ExpressionStatement& exprstmt); */
 
             private:
                 const ParsedCommandLineArgs* _args;
@@ -75,6 +68,7 @@ namespace kore {
                 void check_register_state(Identifier& expr, Reg reg);
                 void push_register(Reg reg);
                 void push_register(Reg reg, const Type* type);
+                Reg pop_register();
         };
     }
 }

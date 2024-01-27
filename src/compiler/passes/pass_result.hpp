@@ -3,12 +3,13 @@
 
 #include <vector>
 
+#include "diagnostics/diagnostic.hpp"
 #include "errors/error.hpp"
 
 namespace kore {
     struct PassResult {
         const bool proceed;
-        const std::vector<errors::Error> errors;
+        const std::vector<Diagnostic> diagnostics;
     };
 }
 

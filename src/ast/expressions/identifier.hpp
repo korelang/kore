@@ -22,8 +22,7 @@ namespace kore {
             const Type* type() const override;
             bool is_mutable() const;
 
-            void accept(AstVisitor& visitor) override;
-            void accept_visit_only(AstVisitor& visitor) override;
+            KORE_AST_VISITOR_ACCEPT_METHOD_DEFAULT_DEFINITION
 
         protected:
             // Used by function parameters that get constructed with a

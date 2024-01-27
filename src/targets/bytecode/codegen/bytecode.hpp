@@ -118,9 +118,9 @@ namespace kore {
         NeqF64,
 
         // Arrays
-        AllocArray,
-        ArrayIndexGet,
-        ArrayIndexSet,
+        ArrayAlloc,
+        ArrayGet,
+        ArraySet,
 
         // Memory operations
         RefInc,
@@ -135,7 +135,6 @@ namespace kore {
 
         // Function calls
         Call,
-        BuiltinCall,
         Ret
     };
 

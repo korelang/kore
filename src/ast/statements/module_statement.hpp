@@ -13,8 +13,7 @@ namespace kore {
 
             std::string name() const;
 
-            void accept(AstVisitor& visitor) override;
-            void accept_visit_only(AstVisitor& visitor) override;
+            KORE_AST_VISITOR_ACCEPT_METHOD_DEFAULT_DEFINITION
 
         private:
             std::string _name;

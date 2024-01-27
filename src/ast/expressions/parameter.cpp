@@ -14,11 +14,5 @@ namespace kore {
 
     Parameter::~Parameter() {}
 
-    void Parameter::accept(AstVisitor& visitor) {
-        accept_visit_only(visitor);
-    }
-
-    void Parameter::accept_visit_only(AstVisitor& visitor) {
-        visitor.visit(*this);
-    }
+    KORE_AST_VISITOR_ACCEPT_METHOD_DEFAULT_IMPL(Parameter)
 }

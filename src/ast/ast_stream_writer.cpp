@@ -18,7 +18,7 @@ namespace kore {
         write("[");
 
         for (int i = 0; i < expr.size(); ++i) {
-            expr[i]->accept_visit_only(*this);
+            expr[i]->accept(*this);
         }
 
         write("]");
@@ -26,22 +26,22 @@ namespace kore {
 
     void AstStreamWriter::visit(ArrayFillExpression& fill) {
         write("[");
-        fill.size_expr()->accept_visit_only(*this);
+        fill.size_expr()->accept(*this);
         write(": ");
-        fill.expr()->accept_visit_only(*this);
+        fill.expr()->accept(*this);
         write("]");
     }
 
     void AstStreamWriter::visit(ArrayRangeExpression& expr) {
-        expr.start_expr()->accept_visit_only(*this);
+        expr.start_expr()->accept(*this);
         write(" .. ");
-        expr.end_expr()->accept_visit_only(*this);
+        expr.end_expr()->accept(*this);
     }
 
     void AstStreamWriter::visit(BinaryExpression& expr) {
-        expr.left()->accept_visit_only(*this);
+        expr.left()->accept(*this);
         write(" " + expr.op_string() + " ");
-        expr.right()->accept_visit_only(*this);
+        expr.right()->accept(*this);
     }
 
     void AstStreamWriter::visit(BoolExpression& expr) {
@@ -74,13 +74,13 @@ namespace kore {
 
     void AstStreamWriter::visit(UnaryExpression& expr) {
         write(expr.op());
-        expr.expr()->accept_visit_only(*this);
+        expr.expr()->accept(*this);
     }
 
     void AstStreamWriter::visit(Branch& branch) {
         // Only "if" and "else if" branches have conditions
         if (branch.condition()) {
-            branch.condition()->accept_visit_only(*this);
+            branch.condition()->accept(*this);
         }
 
         write("{\n");
@@ -88,7 +88,7 @@ namespace kore {
         auto it = branch.begin();
         
         for (; it != branch.end(); ++it) {
-            (*it)->accept_visit_only(*this);
+            (*it)->accept(*this);
         }
 
         write("}\n");
@@ -110,7 +110,7 @@ namespace kore {
         // Function body
         for (auto it = func.begin(); it != func.end(); ++it) {
             write_indent();
-            (*it)->accept_visit_only(*this);
+            (*it)->accept(*this);
         }
 
         dedent();
@@ -124,7 +124,7 @@ namespace kore {
         int arg_count = call.arg_count();
 
         for (int i = 0; i < arg_count; ++i) {
-            call.arg(i)->accept_visit_only(*this);
+            call.arg(i)->accept(*this);
 
             if (i < arg_count - 1) {
                 write(", ");
@@ -136,26 +136,26 @@ namespace kore {
 
     void AstStreamWriter::visit(IfStatement& ifstatement) {
         write("if ");
-        ifstatement[0]->accept_visit_only(*this);
+        ifstatement[0]->accept(*this);
 
         for (int i = 1; i < ifstatement.branch_count() - 1; ++i) {
             write("else if ");
             indent();
-            ifstatement[i]->accept_visit_only(*this);
+            ifstatement[i]->accept(*this);
             dedent();
         }
 
         if (ifstatement.has_else_branch()) {
             write("else ");
             indent();
-            ifstatement.last_branch()->accept_visit_only(*this);
+            ifstatement.last_branch()->accept(*this);
             dedent();
         }
     }
 
     void AstStreamWriter::visit(ImportStatement& import) {
         write("import ");
-        import.identifier()->accept_visit_only(*this);
+        import.identifier()->accept(*this);
         newline();
     }
 
@@ -169,22 +169,24 @@ namespace kore {
 
         if (ret.expr()) {
             write(" ");
-            ret.expr()->accept_visit_only(*this);
+            ret.expr()->accept(*this);
         }
 
         newline();
     }
 
     void AstStreamWriter::visit(VariableAssignment& assignment) {
-        if (assignment.identifier()->is_mutable()) {
+        if (assignment.is_mutable()) {
             write("var ");
         }
 
-        write(assignment.identifier()->name());
+        /* auto lhs = assignment.lhs(); */
+
+        /* write(lol); */
         write(" ");
         write(assignment.declared_type()->name());
         write(" = ");
-        assignment.expression()->accept_visit_only(*this);
+        assignment.rhs()->accept(*this);
         newline();
     }
 
@@ -202,7 +204,7 @@ namespace kore {
         auto expr = exprstmt.expression();
 
         if (expr) {
-            expr->accept_visit_only(*this);
+            expr->accept(*this);
         }
     }
 

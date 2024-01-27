@@ -208,6 +208,38 @@ namespace kore {
                         break;
                     }
 
+                    case Bytecode::ArrayAlloc: {
+                        Reg reg = GET_REG1(instruction);
+                        int size = GET_VALUE(instruction);
+
+                        _registers[fp + reg] = Value::allocate_array(size);
+                        break;
+                    }
+
+                    case Bytecode::ArrayGet: {
+                        auto array = _registers[fp + GET_REG1(instruction)].as_array();
+                        i32 idx = _registers[fp + GET_REG2(instruction)].as_i32();
+                        Reg dst_reg = GET_REG3(instruction);
+
+                        _registers[fp + dst_reg] = (*array)[idx];
+                        break;
+                    }
+
+                    case Bytecode::ArraySet: {
+                        auto array = _registers[fp + GET_REG1(instruction)].as_array();
+                        int idx = _registers[fp + GET_REG2(instruction)].as_i32();
+                        Value value = _registers[fp + GET_REG3(instruction)];
+
+                        (*array)[idx] = value;
+                        break;
+                    }
+
+                    case Bytecode::Free: {
+                        /* Value value = _registers[fp + GET_REG1(instruction)]; */
+                        /* value.free(); */
+                        break;
+                    }
+
                     case Bytecode::LoadFunction: {
                         Reg reg = GET_REG1(instruction);
                         int func_index = GET_VALUE(instruction);
@@ -477,6 +509,8 @@ namespace kore {
                 // Get the instruction at the return address
                 auto& caller = get_caller();
                 bytecode_type ret = caller.code[frame.old_pc++];
+
+                // TODO: Perhaps just cast to uint8_t here and copy values
 
                 // Copy return registers into destination registers in the
                 // previous call frame

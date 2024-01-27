@@ -14,15 +14,9 @@ namespace kore {
         return _expr.get();
     }
 
-    void Return::accept(AstVisitor& visitor) {
-        if (_expr) {
-            _expr->accept(visitor);
-        }
-
-        visitor.visit(*this);
+    const Expression* Return::expr() const {
+        return _expr.get();
     }
 
-    void Return::accept_visit_only(AstVisitor& visitor) {
-        visitor.visit(*this);
-    }
+    KORE_AST_VISITOR_ACCEPT_METHOD_DEFAULT_IMPL(Return)
 }

@@ -112,6 +112,9 @@ namespace kore {
             /// TypeAlias = [ "export" ] "type" Identifier "=" Type .
             /* void parse_type_alias(Statement* const parent); */
 
+            Owned<Expression> parse_index_expression(const Token* const identifier);
+            Owned<Expression> parse_index_expression(Owned<Expression> identifier);
+
             void parse_declaration(Statement* const parent);
 
             /// IfStmt = "if" [ SimpleStmt ] Block [ "else" ( IfStmt | Block ) ] .

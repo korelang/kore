@@ -19,11 +19,5 @@ namespace kore {
         return static_cast<const Type*>(&_type);
     }
 
-    void IntegerExpression::accept(AstVisitor& visitor) {
-        accept_visit_only(visitor);
-    }
-
-    void IntegerExpression::accept_visit_only(AstVisitor& visitor) {
-        visitor.visit(*this);
-    }
+    KORE_AST_VISITOR_ACCEPT_METHOD_DEFAULT_IMPL(IntegerExpression)
 }

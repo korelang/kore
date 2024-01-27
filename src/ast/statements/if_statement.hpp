@@ -28,8 +28,7 @@ namespace kore {
             Branch* operator[](int index);
             Branch* last_branch();
 
-            void accept(AstVisitor& visitor) override;
-            void accept_visit_only(AstVisitor& visitor) override;
+            KORE_AST_VISITOR_ACCEPT_METHOD_DEFAULT_DEFINITION
 
         private:
             bool _has_else_branch;

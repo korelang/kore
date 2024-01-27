@@ -20,7 +20,7 @@ namespace kore {
         write("[");
 
         for (int i = 0; i < expr.size(); ++i) {
-            expr[i]->accept_visit_only(*this);
+            expr[i]->accept(*this);
         }
 
         write("]");
@@ -30,8 +30,8 @@ namespace kore {
         write_node_name("array fill");
         indent();
         write_indent();
-        fill.size_expr()->accept_visit_only(*this);
-        fill.expr()->accept_visit_only(*this);
+        fill.size_expr()->accept(*this);
+        fill.expr()->accept(*this);
         dedent();
     }
 
@@ -39,8 +39,8 @@ namespace kore {
         write_node_name("array range");
         indent();
         write_indent();
-        expr.start_expr()->accept_visit_only(*this);
-        expr.end_expr()->accept_visit_only(*this);
+        expr.start_expr()->accept(*this);
+        expr.end_expr()->accept(*this);
         dedent();
     }
 
@@ -51,9 +51,9 @@ namespace kore {
         newline();
         indent();
         write_indent();
-        expr.left()->accept_visit_only(*this);
+        expr.left()->accept(*this);
         write_indent();
-        expr.right()->accept_visit_only(*this);
+        expr.right()->accept(*this);
         dedent();
     }
 
@@ -106,20 +106,20 @@ namespace kore {
         newline();
         indent();
         write_indent();
-        expr.expr()->accept_visit_only(*this);
+        expr.expr()->accept(*this);
         dedent();
     }
 
     void AstElementStreamWriter::visit(Branch& branch) {
         // Only "if" and "else if" branches have conditions
         if (branch.condition()) {
-            branch.condition()->accept_visit_only(*this);
+            branch.condition()->accept(*this);
         }
 
         auto it = branch.begin();
         
         for (; it != branch.end(); ++it) {
-            (*it)->accept_visit_only(*this);
+            (*it)->accept(*this);
         }
     }
 
@@ -138,7 +138,7 @@ namespace kore {
         // Function body
         for (auto it = func.begin(); it != func.end(); ++it) {
             write_indent();
-            (*it)->accept_visit_only(*this);
+            (*it)->accept(*this);
         }
 
         dedent();
@@ -155,7 +155,7 @@ namespace kore {
         for (int i = 0; i < arg_count; ++i) {
             newline();
             write_indent();
-            call.arg(i)->accept_visit_only(*this);
+            call.arg(i)->accept(*this);
         }
 
         dedent();
@@ -163,26 +163,26 @@ namespace kore {
 
     void AstElementStreamWriter::visit(IfStatement& ifstatement) {
         write("if " + ifstatement.location().colon_format());
-        ifstatement[0]->accept_visit_only(*this);
+        ifstatement[0]->accept(*this);
 
         for (int i = 1; i < ifstatement.branch_count() - 1; ++i) {
             write("else if " + ifstatement[i]->location().colon_format());
             indent();
-            ifstatement[i]->accept_visit_only(*this);
+            ifstatement[i]->accept(*this);
             dedent();
         }
 
         if (ifstatement.has_else_branch()) {
             write("else " + ifstatement.last_branch()->location().colon_format());
             indent();
-            ifstatement.last_branch()->accept_visit_only(*this);
+            ifstatement.last_branch()->accept(*this);
             dedent();
         }
     }
 
     void AstElementStreamWriter::visit(ImportStatement& import) {
         write("import " + import.identifier()->name() + " " + import.location().colon_format());
-        import.identifier()->accept_visit_only(*this);
+        import.identifier()->accept(*this);
         newline();
     }
 
@@ -201,7 +201,7 @@ namespace kore {
             newline();
             indent();
             write_indent();
-            ret.expr()->accept_visit_only(*this);
+            ret.expr()->accept(*this);
             dedent();
         }
 
@@ -211,11 +211,11 @@ namespace kore {
     void AstElementStreamWriter::visit(VariableAssignment& assignment) {
         write_node_name("assignment ");
 
-        if (assignment.identifier()->is_mutable()) {
+        if (assignment.is_mutable()) {
             write("var ");
         }
 
-        write(assignment.identifier()->name());
+        /* write(assignment.lhs()->name()); */
         write(" ");
         write(assignment.declared_type()->name());
         write_location(assignment);
@@ -223,7 +223,7 @@ namespace kore {
         newline();
         indent();
         write_indent();
-        assignment.expression()->accept_visit_only(*this);
+        assignment.rhs()->accept(*this);
         dedent();
         newline();
     }
@@ -242,7 +242,7 @@ namespace kore {
         auto expr = exprstmt.expression();
 
         if (expr) {
-            expr->accept_visit_only(*this);
+            expr->accept(*this);
         }
     }
 

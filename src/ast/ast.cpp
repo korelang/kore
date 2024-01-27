@@ -43,7 +43,7 @@ namespace kore {
 
     void Ast::write(AstWriter& writer) const {
         for (const auto& statement : _statements) {
-            statement->accept_visit_only(writer);
+            statement->accept(writer);
         }
     }
 }

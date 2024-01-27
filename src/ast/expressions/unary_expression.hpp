@@ -12,8 +12,7 @@ namespace kore {
             std::string op() const;
             Expression* expr();
 
-            void accept(AstVisitor& visitor) override;
-            void accept_visit_only(AstVisitor& visitor) override;
+            KORE_AST_VISITOR_ACCEPT_METHOD_DEFAULT_DEFINITION
 
         private:
             std::string _op;

@@ -32,10 +32,6 @@ set(_KORE_COMPILER_SOURCES
 #     src/bin/korec/main.cpp
 # )
 
-add_definitions("-DNDEBUG")
-add_definitions("-g3")
-add_definitions("-O1")
-
 add_executable(${KORE_COMPILER_NAME} ${_KORE_COMPILER_SOURCES})
 
 include_directories(${KORE_COMPILER_NAME} ${KORE_INCLUDE_DIRS})

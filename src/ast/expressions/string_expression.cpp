@@ -17,11 +17,5 @@ namespace kore {
         return &_type;
     }
 
-    void StringExpression::accept(AstVisitor& visitor) {
-        accept_visit_only(visitor);
-    }
-
-    void StringExpression::accept_visit_only(AstVisitor& visitor) {
-        visitor.visit(*this);
-    }
+    KORE_AST_VISITOR_ACCEPT_METHOD_DEFAULT_IMPL(StringExpression)
 }

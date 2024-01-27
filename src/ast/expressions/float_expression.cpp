@@ -18,11 +18,5 @@ namespace kore {
         return _value;
     }
 
-    void FloatExpression::accept(AstVisitor& visitor) {
-        visitor.visit(*this);
-    }
-
-    void FloatExpression::accept_visit_only(AstVisitor& visitor) {
-        visitor.visit(*this);
-    }
+    KORE_AST_VISITOR_ACCEPT_METHOD_DEFAULT_IMPL(FloatExpression)
 }

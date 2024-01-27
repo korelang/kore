@@ -6,7 +6,7 @@ namespace kore {
             _functions.clear();
 
             for (auto const& statement : ast) {
-                statement->accept_visit_only(*this);
+                statement->accept(*this);
             }
 
             return _functions;

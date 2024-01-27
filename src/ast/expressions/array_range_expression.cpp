@@ -25,14 +25,5 @@ namespace kore {
         return _end_expr.get();
     }
 
-    void ArrayRangeExpression::accept(AstVisitor& visitor) {
-        _start_expr->accept(visitor);
-        _end_expr->accept(visitor);
-
-        visitor.visit(*this);
-    }
-
-    void ArrayRangeExpression::accept_visit_only(AstVisitor& visitor) {
-        visitor.visit(*this);
-    }
+    KORE_AST_VISITOR_ACCEPT_METHOD_DEFAULT_IMPL(ArrayRangeExpression)
 }

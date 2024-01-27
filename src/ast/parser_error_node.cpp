@@ -18,12 +18,4 @@ namespace kore {
     std::string ParserErrorNode::message() const {
         return _message;
     }
-
-    void ParserErrorNode::accept(AstVisitor& visitor) {
-        UNUSED_PARAM(visitor);
-    }
-
-    void ParserErrorNode::accept_visit_only(AstVisitor& visitor) {
-        UNUSED_PARAM(visitor);
-    }
 }

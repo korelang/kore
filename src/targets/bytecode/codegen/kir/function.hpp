@@ -32,13 +32,16 @@ namespace kore {
                 RegisterState register_state(Reg reg);
                 const Type* register_type(Reg reg);
 
+                void emit_reg3(Bytecode opcode, Reg reg1, Reg reg2, Reg reg3);
+
+                Reg emit_load(Bytecode opcode, int index);
                 Reg emit_load(Bytecode opcode, Expression& expr, int index);
                 Reg emit_load_function(int func_index);
                 Reg emit_binop(BinaryExpression& expr, Reg left, Reg right);
                 void emit_unconditional_jump(BlockId target_block_id);
                 void emit_move(Reg src, Reg dst);
                 void emit_conditional_jump(Bytecode opcode, Reg condition, BlockId target_block_id);
-                Reg emit_allocate_array(ArrayExpression& expr);
+                Reg emit_allocate_array(int size);
                 void emit_destroy(Reg reg);
                 /* void destroy(Expression& expr, Reg reg); */
                 void emit_refinc(Reg reg);

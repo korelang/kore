@@ -27,19 +27,5 @@ namespace kore {
         return _statements.end();
     }
 
-    void Branch::accept(AstVisitor& visitor) {
-        if (_condition) {
-            _condition->accept(visitor);
-        }
-
-        for (auto& statement : _statements) {
-            statement->accept(visitor);
-        }
-
-        visitor.visit(*this);
-    }
-
-    void Branch::accept_visit_only(AstVisitor& visitor) {
-        visitor.visit(*this);
-    }
+    KORE_AST_VISITOR_ACCEPT_METHOD_DEFAULT_IMPL(Branch)
 }

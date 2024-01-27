@@ -22,10 +22,6 @@ set(KORE_VM_SOURCES
     main.cpp
 )
 
-add_definitions("-DNDEBUG")
-add_definitions("-g3")
-add_definitions("-O1")
-
 add_executable(${KORE_VM_NAME} ${KORE_VM_SOURCES})
 
 include_directories(${KORE_VM_NAME} ${KORE_INCLUDE_DIRS})

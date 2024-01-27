@@ -3,17 +3,16 @@
 namespace kore {
     std::ostream& operator<<(std::ostream& os, ExpressionType expr_type) {
         switch (expr_type) {
-            case ExpressionType::Array:      os << "array"; break;
-            case ExpressionType::Binary:     os << "binary"; break;
-            case ExpressionType::Call:       os << "call"; break;
-            case ExpressionType::Identifier: os << "identifier"; break;
-            case ExpressionType::Error:      os << "error"; break;
-            case ExpressionType::Literal:    os << "literal"; break;
-            case ExpressionType::Parameter:  os << "parameter"; break;
-            case ExpressionType::Unary:      os << "unary"; break;
+            case ExpressionType::Array:      return os << "array";
+            case ExpressionType::Index:      return os << "index";
+            case ExpressionType::Binary:     return os << "binary";
+            case ExpressionType::Call:       return os << "call";
+            case ExpressionType::Identifier: return os << "identifier";
+            case ExpressionType::Error:      return os << "error";
+            case ExpressionType::Literal:    return os << "literal";
+            case ExpressionType::Parameter:  return os << "parameter";
+            case ExpressionType::Unary:      return os << "unary";
         }
-
-        return os;
     }
 
     Expression::Expression(ExpressionType type, const SourceLocation& location)

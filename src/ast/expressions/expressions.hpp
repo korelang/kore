@@ -1,6 +1,7 @@
 #include "ast/expressions/array_expression.hpp"
 #include "ast/expressions/array_fill_expression.hpp"
 #include "ast/expressions/array_range_expression.hpp"
+#include "ast/expressions/index_expression.hpp"
 #include "ast/expressions/binary_expression.hpp"
 #include "ast/expressions/bool_expression.hpp"
 #include "ast/expressions/call.hpp"

@@ -1,6 +1,7 @@
 #ifndef KORE_LOGGING_HPP
 #define KORE_LOGGING_HPP
 
+#include "diagnostics/diagnostic.hpp"
 #include "errors/error.hpp"
 #include "logging/color_attributes.hpp"
 #include "logging/color.hpp"
@@ -8,6 +9,20 @@
 #include "ast/source_location.hpp"
 
 namespace kore {
+    enum class Level {
+        Debug = 0,
+        Info,
+        Success,
+        Warn,
+        Error,
+        Critical
+    };
+
+    /* void log(const char* const format, ...); */
+    /* void log(int verbosity, int options_verbosity, const char* const format, ...); */
+    /* void log_group(const std::string& group, const char* const format, ...); */
+    /* void log_group(const std::string& group, int verbosity, int options_verbosity, const char* const format, ...); */
+
     void success(const char* const format, ...);
 
     void success(int verbosity, int options_verbosity, const char* const format, ...);
@@ -36,9 +51,24 @@ namespace kore {
 
     void critical_group(const std::string& group, const char* const format, ...);
 
-    void section(const std::string& group, Color color, ColorAttribute attributes, int indent, const char* const format, ...);
+    void section(
+        const std::string& group,
+        Color color,
+        ColorAttribute attributes,
+        int indent,
+        const char* const format,
+        ...
+    );
 
-    void section(const std::string& group, const ColorSpec color_spec, int indent, const char* const format, ...);
+    void section(
+        const std::string& group,
+        const ColorSpec color_spec,
+        int indent,
+        const char* const format,
+        ...
+    );
+
+    void section(const Diagnostic& diagnostic, int indent);
 
     void section_error(const std::string& group, errors::Error error, int indent);
 

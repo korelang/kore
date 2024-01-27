@@ -16,11 +16,5 @@ namespace kore {
         return _name;
     }
 
-    void ModuleStatement::accept(AstVisitor& visitor) {
-        accept_visit_only(visitor);
-    }
-
-    void ModuleStatement::accept_visit_only(AstVisitor& visitor) {
-        visitor.visit(*this);
-    }
+    KORE_AST_VISITOR_ACCEPT_METHOD_DEFAULT_IMPL(ModuleStatement)
 }

@@ -5,12 +5,15 @@
 #include "ast/statements/statement.hpp"
 #include "ast/statements/variable_assignment.hpp"
 #include "ast/statements/variable_declaration.hpp"
+#include "diagnostics/diagnostic.hpp"
+#include "diagnostics/diagnostics.hpp"
 #include "errors/errors.hpp"
 /* #include "targets/bytecode/vm/builtins/builtins.hpp" */
 #include "logging/logging.hpp"
 #include "targets/bytecode/vm/builtins/builtins.hpp"
 #include "types/function_type.hpp"
 #include "types/scope.hpp"
+#include "utils/unused_parameter.hpp"
 
 #include <sstream>
 
@@ -20,13 +23,13 @@ namespace kore {
     TypeChecker::~TypeChecker() {}
 
     int TypeChecker::check(const Ast& ast) {
-        _errors.clear();
+        _diagnostics.clear();
 
         for (auto const& statement : ast) {
-            statement->accept_visit_only(*this);
+            statement->accept(*this);
         }
 
-        return _errors.size();
+        return _diagnostics.size();
     }
 
     void TypeChecker::trace_type_checker(
@@ -50,16 +53,52 @@ namespace kore {
         }
     }
 
-    std::vector<errors::Error> TypeChecker::errors() {
-        return _errors;
+    std::vector<Diagnostic> TypeChecker::diagnostics() {
+        return _diagnostics;
     }
 
-    void TypeChecker::push_error(errors::Error error) {
-        if (_error_threshold != _NO_ERROR_THRESHOLD && static_cast<int>(_errors.size()) >= _error_threshold) {
+    void TypeChecker::push_error(DiagnosticData&& data) {
+        if (_error_threshold != _NO_ERROR_THRESHOLD && static_cast<int>(_diagnostics.size()) >= _error_threshold) {
             return;
         }
 
-        _errors.emplace_back(error);
+        _diagnostics.emplace_back(DiagnosticType::TypeCheck, DiagnosticLevel::Error, data);
+    }
+
+    void TypeChecker::visit(ArrayExpression& array) {
+        auto element_type = array.type();
+
+        // We typecheck an array expression (like [1, 2, 3]) by seeing if we can
+        // unify all element types with the inferred or given type of the array
+        for (int idx = 0; idx < array.size(); ++idx) {
+            auto element_index_type = array[idx]->type();
+
+            if (element_index_type->unify(element_type)->is_unknown()) {
+                push_error(IncompatibleTypes{ &array, array[idx] });
+            }
+        }
+    }
+
+    void TypeChecker::visit(IndexExpression& index_expr) {
+        // TODO: Typecheck this when it may not be an array
+        auto index_expr_type = index_expr.index_expr()->type();
+
+        // We typecheck an array index expression (like a[0]) by checking that
+        // the index type is a 32- or 64-bit integer
+        if (!index_expr_type->is_numeric()) {
+            push_error(ArrayIndexNotNumeric{ &index_expr, index_expr.index_expr() });
+        } else {
+            auto category = index_expr_type->category();
+
+            if (category != TypeCategory::Integer32 && category != TypeCategory::Integer64) {
+                push_error(ArrayIndexNeedsCast{ &index_expr, index_expr.index_expr() });
+            }
+        }
+    }
+
+    void TypeChecker::visit(IndexExpression& array_index, ValueContext context) {
+        UNUSED_PARAM(context);
+        visit(array_index);
     }
 
     void TypeChecker::visit(Identifier& identifier) {
@@ -70,15 +109,63 @@ namespace kore {
 
             identifier.set_type(entry->identifier->type());
         } else {
-            push_error(errors::typing::undefined_variable(identifier));
+            push_error(UndefinedVariable{ &identifier });
+        }
+    }
+
+    void TypeChecker::visit(Identifier& identifier, ValueContext context) {
+        if (context == ValueContext::RValue) {
+            visit(identifier);
+            return;
+        }
+
+        // Lvalue context: Check if the identifier can be assigned to or would
+        // shadow an identifier with the same name in an upper scope
+        auto entry = _scope_stack.find_inner(identifier.name());
+
+        if (!entry) {
+            if (_scope_stack.is_global_scope() && identifier.is_mutable()) {
+                push_error(CannotDeclareMutableGlobal{ &identifier });
+            } else {
+                auto shadowed_entry = _scope_stack.find(identifier.name());
+
+                if (shadowed_entry) {
+                    auto shadowed_identifier = shadowed_entry->identifier;
+
+                    if (shadowed_entry->is_global_scope()) {
+                        push_error(
+                            CannotAssignGlobalVariable{
+                                &identifier,
+                                shadowed_identifier,
+                            }
+                        );
+                    } else {
+                        push_error(
+                            VariableShadows{
+                                &identifier,
+                                shadowed_identifier
+                            }
+                        );
+                    }
+                }
+
+                _scope_stack.insert(&identifier);
+            }
+        } else {
+            // Variable already exists in this scope, check that we are not
+            // redeclaring a constant variable
+            if (!entry->identifier->is_mutable()) {
+                push_error(ConstantVariableRedeclaration{ &identifier, entry->identifier });
+            }
         }
     }
 
     void TypeChecker::visit(VariableAssignment& assignment) {
-        assignment.expression()->accept_visit_only(*this);
+        // Visit the right-hand side expression
+        assignment.rhs()->accept(*this);
 
         auto declared_type = assignment.declared_type();
-        auto expr_type = assignment.expression()->type();
+        auto expr_type = assignment.rhs()->type();
 
         trace_type_checker("assignment", declared_type, expr_type);
 
@@ -86,47 +173,16 @@ namespace kore {
         // type instead
         if (!declared_type->is_unknown()) {
             if (declared_type->unify(expr_type)->is_unknown()) {
-                push_error(errors::typing::cannot_assign(expr_type, declared_type, assignment.location()));
+                push_error(CannotAssign{ &assignment });
+                return;
             }
         }
 
-        auto identifier = assignment.identifier();
-        auto entry = _scope_stack.find_inner(identifier->name());
+        auto lhs = assignment.lhs();
+        lhs->accept(*this, ValueContext::LValue);
 
-        if (!entry) {
-            if (_scope_stack.is_global_scope() && identifier->is_mutable()) {
-                push_error(errors::typing::cannot_declare_mutable_global(*identifier, assignment.location()));
-            } else {
-                auto shadowed_entry = _scope_stack.find(identifier->name());
-
-                if (shadowed_entry) {
-                    auto shadowed_identifier = shadowed_entry->identifier;
-
-                    if (shadowed_entry->is_global_scope()) {
-                        push_error(errors::typing::cannot_assign_global_variable(
-                            identifier,
-                            shadowed_identifier,
-                            assignment.location(),
-                            shadowed_identifier->location()
-                        ));
-                    } else {
-                        push_error(errors::typing::variable_shadows(
-                            identifier,
-                            shadowed_identifier,
-                            assignment.location(),
-                            shadowed_identifier->location()
-                        ));
-                    }
-                }
-
-                _scope_stack.insert(identifier);
-            }
-        } else {
-            // Variable already exists in this scope, check that we are not
-            // redeclaring a constant variable
-            if (!entry->identifier->is_mutable()) {
-                push_error(errors::typing::redeclaration_constant_variable(*identifier, assignment.location(), *entry->identifier));
-            }
+        if (lhs->type()->unify(assignment.rhs()->type())->is_unknown()) {
+            push_error(CannotAssign{ &assignment });
         }
     }
 
@@ -141,7 +197,7 @@ namespace kore {
             auto builtin_function = vm::get_builtin_function_by_name(call.name());
 
             if (!builtin_function) {
-                push_error(errors::typing::unknown_call(call));
+                push_error(UnknownCall{ &call });
                 return;
             }
 
@@ -164,40 +220,29 @@ namespace kore {
         auto type = entry->identifier->type();
 
         if (type->category() != TypeCategory::Function) {
-            push_error(errors::typing::not_a_function(call, type));
+            push_error(CannotCallNonFunction{ &call, type });
             return;
         }
 
         auto func_type = static_cast<const FunctionType*>(type);
 
         if (call.arg_count() != func_type->arity()) {
-            push_error(errors::typing::incorrect_arg_count(
-                call,
-                func_type
-            ));
-
+            push_error(IncorrectArgumentCount{ &call, func_type });
             return;
         }
 
         trace_type_checker("call", func_type);
 
-        // TODO: Move into Call class
         for (int i = 0; i < call.arg_count(); ++i) {
             auto arg = call.arg(i);
-            arg->accept_visit_only(*this);
+            arg->accept(*this);
 
             auto arg_type = arg->type();
             auto param_type = func_type->parameter(i)->type();
             auto unified_type = arg_type->unify(param_type);
 
             if (unified_type->is_unknown()) {
-                push_error(errors::typing::incorrect_parameter_type(
-                    arg,
-                    arg_type,
-                    param_type,
-                    call,
-                    i
-                ));
+                push_error(IncorrectArgumentType{ &call, arg, param_type, i });
             }
         }
 
@@ -208,8 +253,8 @@ namespace kore {
         auto left = binexpr.left();
         auto right = binexpr.right();
 
-        left->accept_visit_only(*this);
-        right->accept_visit_only(*this);
+        left->accept(*this);
+        right->accept(*this);
 
         trace_type_checker("binop", left->type(), right->type());
 
@@ -221,11 +266,25 @@ namespace kore {
 
         // Check if types are compatible with the binary operation
         if (!left_type_compatible) {
-            push_error(errors::typing::binop_operand(left_type, op, "left", left->location()));
+            push_error(
+                IncompatibleBinaryOperation{
+                    left,
+                    right,
+                    op,
+                    IncompatibleBinaryOperation::Context::Left,
+                }
+            );
         }
 
         if (!right_type_compatible) {
-            push_error(errors::typing::binop_operand(right_type, op, "right", right->location()));
+            push_error(
+                IncompatibleBinaryOperation{
+                    left,
+                    right,
+                    op,
+                    IncompatibleBinaryOperation::Context::Right,
+                }
+            );
         }
 
         auto result_type = left_type->unify(right_type);
@@ -233,14 +292,12 @@ namespace kore {
         // Handle type unification errors
         if (left_type_compatible && right_type_compatible) {
             if (result_type->is_unknown()) {
-                push_error(
-                    errors::typing::incompatible_binop(
-                        left_type,
-                        right_type,
-                        op,
-                        binexpr.location()
-                    )
-                );
+                push_error(IncompatibleBinaryOperation{
+                    left,
+                    right,
+                    op,
+                    IncompatibleBinaryOperation::Context::Both
+                });
             } else {
                 binexpr.set_type(result_type);
             }
@@ -253,11 +310,11 @@ namespace kore {
         _scope_stack.enter();
 
         if (branch.condition()) {
-            branch.condition()->accept_visit_only(*this);
+            branch.condition()->accept(*this);
         }
 
         for (auto& statement : branch) {
-            statement->accept_visit_only(*this);
+            statement->accept(*this);
         }
 
         _scope_stack.leave();
@@ -268,11 +325,11 @@ namespace kore {
             auto condition = branch->condition();
 
             if (condition) {
-                condition->accept_visit_only(*this);
+                condition->accept(*this);
             }
 
             for (auto& statement : *branch) {
-                statement->accept_visit_only(*this);
+                statement->accept(*this);
             }
         }
     }
@@ -290,7 +347,7 @@ namespace kore {
         }
 
         for (auto& statement : func) {
-            statement->accept_visit_only(*this);
+            statement->accept(*this);
         }
 
         _scope_stack.leave_function_scope();
@@ -308,15 +365,15 @@ namespace kore {
 
         if (ret.expr()) {
             auto expr = ret.expr();
-            expr->accept_visit_only(*this);
+            expr->accept(*this);
 
             if (expr->type()->unify(func->return_type())->is_unknown()) {
-                push_error(errors::typing::return_type_mismatch(func, expr->type(), ret.location()));
+                push_error(ReturnTypeMismatch{ func, &ret });
                 return;
             }
+            push_error(VoidReturnFromNonVoidFunction{ func, &ret });
         } else {
             if (!func->return_type()->is_void()) {
-                push_error(errors::typing::void_return_from_nonvoid_function(func, ret.location()));
             }
         }
     }

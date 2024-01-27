@@ -87,6 +87,7 @@ namespace kore {
         Value Value::allocate_array(std::size_t size) {
             auto _value = Value();
 
+            // TODO: Handle allocation failure
             _value.tag = ValueTag::Array;
             _value.value._array = ArrayValue::allocate(size);
 

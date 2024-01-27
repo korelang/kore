@@ -4,7 +4,7 @@
 #include "ast/scanner/token.hpp"
 
 namespace kore {
-    Token::Token() : Token(TokenType::invalid, SourceLocation::unknown) {
+    Token::Token() : Token(TokenType::Invalid, SourceLocation::unknown) {
     }
 
     Token::Token(const Token& token)
@@ -13,13 +13,13 @@ namespace kore {
         _value(token.value()),
         _category(token.category())
     {
-        if (_type == TokenType::integer) {
+        if (_type == TokenType::Integer) {
             _internal_value.integer = token.int_value();
-        } else if (_type == TokenType::floatp) {
+        } else if (_type == TokenType::Float) {
             _internal_value.float32 = token.float32_value();
-        } else if (_type == TokenType::keyword) {
+        } else if (_type == TokenType::Keyword) {
             _internal_value.keyword = token.keyword();
-        } else if (_type == TokenType::character) {
+        } else if (_type == TokenType::Character) {
             _internal_value.integer = token.int_value();
         } else {
             _internal_value.str = token.string_value();
@@ -46,13 +46,13 @@ namespace kore {
         _value = token.value();
         _category = token.category();
 
-        if (_type == TokenType::integer) {
+        if (_type == TokenType::Integer) {
             _internal_value.integer = token.int_value();
-        } else if (_type == TokenType::floatp) {
+        } else if (_type == TokenType::Float) {
             _internal_value.float32 = token.float32_value();
-        } else if (_type == TokenType::keyword) {
+        } else if (_type == TokenType::Keyword) {
             _internal_value.keyword = token.keyword();
-        } else if (_type == TokenType::character) {
+        } else if (_type == TokenType::Character) {
             _internal_value.integer = token.int_value();
         } else {
             _internal_value.str = token.string_value();
@@ -78,15 +78,15 @@ namespace kore {
     }
 
     bool Token::is_eof() const noexcept {
-        return _type == TokenType::eof;
+        return _type == TokenType::Eof;
     }
 
     bool Token::is_identifier() const noexcept {
-        return _type == TokenType::identifier;
+        return _type == TokenType::Identifier;
     }
 
     bool Token::is_keyword() const noexcept {
-        return _type == TokenType::keyword;
+        return _type == TokenType::Keyword;
     }
 
     bool Token::is_type() const noexcept {
@@ -109,7 +109,7 @@ namespace kore {
     }
 
     bool Token::is_boolean_keyword() const noexcept {
-        if (type() == TokenType::keyword) {
+        if (type() == TokenType::Keyword) {
             auto kw = keyword();
 
             return kw == Keyword::True || kw == Keyword::False;
@@ -119,8 +119,8 @@ namespace kore {
     }
 
     void Token::as_keyword() {
-        if (type() == TokenType::identifier) {
-            _type = TokenType::keyword;
+        if (type() == TokenType::Identifier) {
+            _type = TokenType::Keyword;
             _internal_value.keyword = keyword_from_string(value());
         }
     }
@@ -150,11 +150,11 @@ namespace kore {
     }
 
     Token Token::make_invalid_token() {
-        return Token(TokenType::invalid, SourceLocation::unknown);
+        return Token(TokenType::Invalid, SourceLocation::unknown);
     }
 
     Token Token::make_eof(std::size_t lnum, std::size_t start, std::size_t end) {
-        return Token(TokenType::eof, SourceLocation(lnum, start, end));
+        return Token(TokenType::Eof, SourceLocation(lnum, start, end));
     }
 
     Token Token::make_token(TokenType type, const SourceLocation& location, const std::string& value) {
@@ -168,7 +168,7 @@ namespace kore {
         std::size_t end,
         const std::string& value
     ) {
-        auto token = Token::make_token(TokenType::integer, SourceLocation(lnum, start, end), value);
+        auto token = Token::make_token(TokenType::Integer, SourceLocation(lnum, start, end), value);
 
         switch (format) {
             case IntegerFormat::dec:
@@ -198,7 +198,7 @@ namespace kore {
         std::size_t end,
         const std::string& value
     ) {
-        auto token = Token::make_token(TokenType::character, SourceLocation(lnum, start, end), value);
+        auto token = Token::make_token(TokenType::Character, SourceLocation(lnum, start, end), value);
         token._internal_value.integer = cp;
 
         return token;
@@ -213,9 +213,9 @@ namespace kore {
     ) {
         auto token = Token::make_token(type, SourceLocation(lnum, start, end), value);
 
-        if (type == TokenType::floatp) {
+        if (type == TokenType::Float) {
             token._internal_value.float32 = std::stof(value);
-        } else if (type == TokenType::keyword) {
+        } else if (type == TokenType::Keyword) {
             token._internal_value.keyword = keyword_from_string(value);
         }
 
@@ -223,9 +223,9 @@ namespace kore {
     }
 
     std::ostream& Token::ostream_value(std::ostream& os) const {
-        if (type() == TokenType::integer) {
+        if (type() == TokenType::Integer) {
             os << _internal_value.integer;
-        } else if (type() == TokenType::floatp) {
+        } else if (type() == TokenType::Float) {
             os << _internal_value.float32;
         } else {
             os << _internal_value.str;

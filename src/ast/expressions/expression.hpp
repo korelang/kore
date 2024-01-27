@@ -21,6 +21,7 @@ namespace kore {
         Binary,
         Call,
         Identifier,
+        Index,
         Error,
         Literal,
         Parameter,

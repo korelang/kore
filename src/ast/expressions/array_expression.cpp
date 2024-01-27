@@ -55,15 +55,5 @@ namespace kore {
         return _type;
     }
 
-    void ArrayExpression::accept(AstVisitor& visitor) {
-        for (const auto& element : _elements) {
-            element->accept(visitor);
-        }
-
-        visitor.visit(*this);
-    }
-
-    void ArrayExpression::accept_visit_only(AstVisitor& visitor) {
-        visitor.visit(*this);
-    }
+    KORE_AST_VISITOR_ACCEPT_METHOD_DEFAULT_IMPL(ArrayExpression)
 }

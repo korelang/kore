@@ -176,14 +176,5 @@ namespace kore {
         return _right.get();
     }
 
-    void BinaryExpression::accept(AstVisitor& visitor) {
-        _left->accept(visitor);
-        _right->accept(visitor);
-
-        visitor.visit(*this);
-    }
-
-    void BinaryExpression::accept_visit_only(AstVisitor& visitor) {
-        visitor.visit(*this);
-    }
+    KORE_AST_VISITOR_ACCEPT_METHOD_DEFAULT_IMPL(BinaryExpression)
 }

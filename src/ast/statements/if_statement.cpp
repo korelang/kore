@@ -56,15 +56,5 @@ namespace kore {
         return _branches[_branches.size()-1].get();
     }
 
-    void IfStatement::accept(AstVisitor& visitor) {
-        for (auto& branch : _branches) {
-            branch->accept(visitor);
-        }
-
-        visitor.visit(*this);
-    }
-
-    void IfStatement::accept_visit_only(AstVisitor& visitor) {
-        visitor.visit(*this);
-    }
+    KORE_AST_VISITOR_ACCEPT_METHOD_DEFAULT_IMPL(IfStatement)
 }

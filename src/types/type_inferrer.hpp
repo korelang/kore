@@ -22,9 +22,13 @@ namespace kore {
 
             void trace_type_inference(const std::string& name, const Type* type = nullptr);
 
+            void visit(ArrayExpression& array) override;
+            void visit(IndexExpression& array_index) override;
+            void visit(IndexExpression& array_index, ValueContext context) override;
             void visit(BinaryExpression& expr) override;
             void visit(class Call& call) override;
             void visit(Identifier& expr) override;
+            void visit(Identifier& expr, ValueContext context) override;
             void visit(UnaryExpression& expr) override;
 
             void visit(VariableAssignment& statement) override;

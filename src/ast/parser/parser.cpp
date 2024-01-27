@@ -2,6 +2,7 @@
 #include <sstream>
 
 #include "ast/expressions/array_fill_expression.hpp"
+#include "ast/expressions/index_expression.hpp"
 #include "ast/expressions/array_range_expression.hpp"
 #include "ast/expressions/bool_expression.hpp"
 #include "ast/expressions/call.hpp"
@@ -128,7 +129,7 @@ namespace kore {
     bool Parser::expect_type(const std::string& name) {
         const Token* const token = current_token();
 
-        if (token->type() == TokenType::keyword && token->value() == name) {
+        if (token->type() == TokenType::Keyword && token->value() == name) {
             next_token();
             return true;
         }
@@ -202,7 +203,7 @@ namespace kore {
         } else {
             if (valid_declaration_start(token)) {
                 parse_declaration(parent);
-            } else if (token->type() == TokenType::lbrace) {
+            } else if (token->type() == TokenType::LeftBrace) {
                 parse_block(parent);
             }
         }
@@ -272,7 +273,7 @@ namespace kore {
     }
 
     void Parser::parse_import_spec() {
-        if (current_token()->type() != TokenType::identifier) {
+        if (current_token()->type() != TokenType::Identifier) {
             emit_parser_error("Expected an identifier after 'import' keyword");
             return;
         }
@@ -284,7 +285,7 @@ namespace kore {
     bool Parser::valid_statement_start(const Token* const token) {
         if (token->is_identifier()) {
             return true;
-        } else if (token->type() == TokenType::lbrace) {
+        } else if (token->type() == TokenType::LeftBrace) {
             return true;
         } else if (token->is_keyword()) {
             switch (token->keyword()) {
@@ -343,6 +344,60 @@ namespace kore {
     /*     add_statement(parent, Statement::make_type_alias(identifier, rhs)); */
     /* } */
 
+    Owned<Expression> Parser::parse_index_expression(
+        const Token* const identifier_token
+    ) {
+        trace_parser("index expression");
+
+        auto expr = parse_expression(operator_base_precedence());
+
+        if (!expect_token_type(TokenType::RightBracket)) {
+            emit_parser_error("Expect ']' in array index expression");
+        }
+
+        auto identifier = Expression::make_expression<Identifier>(*identifier_token);
+        auto location = SourceLocation(
+            identifier_token->location(),
+            current_token()->location()
+        );
+
+        auto index_expr = Expression::make_expression<IndexExpression>(
+            std::move(expr),
+            std::move(identifier),
+            location
+        );
+
+        next_token();
+
+        return index_expr;
+    }
+
+    Owned<Expression> Parser::parse_index_expression(Owned<Expression> identifier) {
+        trace_parser("index expression");
+
+        auto expr = parse_expression(operator_base_precedence());
+
+        if (!expect_token_type(TokenType::RightBracket)) {
+            emit_parser_error("Expect ']' in index expression");
+        }
+
+        auto location = SourceLocation(
+            identifier->location(),
+            current_token()->location()
+        );
+
+        auto index_expr = Expression::make_expression<IndexExpression>(
+            std::move(expr),
+            std::move(identifier),
+            location
+        );
+
+        next_token();
+
+        return index_expr;
+    }
+
+    // TODO: Refactor this function
     void Parser::parse_declaration(Statement* const parent) {
         trace_parser("declaration");
 
@@ -363,11 +418,10 @@ namespace kore {
             token = next_token();
         }
 
-        trace_parser("identifier");
-        auto identifier_token = *token;
+        auto& identifier_token = *token;
         token = next_token();
 
-        if (expect_token_type(TokenType::lparen, false)) {
+        if (expect_token_type(TokenType::LeftParenthesis, false)) {
             if (is_mutable) {
                 emit_parser_error("Function calls cannot be declared variable");
                 return;
@@ -385,23 +439,33 @@ namespace kore {
             return;
         }
 
-        auto decl_type = parse_type();
-        auto type = *token;
+        Owned<Expression> lhs_expr;
+        Owned<Expression> rhs_expr;
+        const Type* decl_type;
+        auto identifier = Expression::make_expression<Identifier>(identifier_token);
 
-        if (!expect_token_type(TokenType::assign)) {
+        if (expect_token_type(TokenType::LeftBracket, true)) {
+            lhs_expr = parse_index_expression(std::move(identifier));
+        } else {
+            lhs_expr = Expression::make_expression<Identifier>(identifier_token);
+            decl_type = parse_type();
+            auto type = *token;
+        }
+
+        if (!expect_token_type(TokenType::Assign)) {
             emit_parser_error("Variable declarations must be initialised");
             return;
         }
 
-        auto expr = parse_expression(operator_base_precedence());
+        rhs_expr = parse_expression(operator_base_precedence());
 
         add_statement(
             parent,
             Statement::make_statement<VariableAssignment>(
                 is_mutable,
-                identifier_token,
                 decl_type,
-                std::move(expr)
+                std::move(lhs_expr),
+                std::move(rhs_expr)
             )
         );
     }
@@ -454,7 +518,7 @@ namespace kore {
 
         auto token = current_token();
 
-        while (token->type() != TokenType::eof) {
+        while (token->type() != TokenType::Eof) {
             if (valid_declaration_start(token)) {
                 parse_declaration(parent);
             } else if (valid_function_start(token)) {
@@ -510,8 +574,8 @@ namespace kore {
     void Parser::parse_function_signature(Function* const func) {
         trace_parser("function signature");
 
-        if (expect_token_type(TokenType::lparen)) {
-            if (!expect_token_type(TokenType::rparen)) {
+        if (expect_token_type(TokenType::LeftParenthesis)) {
+            if (!expect_token_type(TokenType::RightParenthesis)) {
                 parse_function_parameters(func);
             }
 
@@ -543,24 +607,24 @@ namespace kore {
 
         auto token = *current_token();
 
-        if (token.type() == TokenType::identifier) {
+        if (token.type() == TokenType::Identifier) {
             auto parameter = Expression::make_expression<Parameter>(token, Type::unknown());
             token = *next_token();
 
-            if (token.type() != TokenType::comma && token.type() != TokenType::rparen) {
+            if (token.type() != TokenType::Comma && token.type() != TokenType::RightParenthesis) {
                 parameter->set_type(parse_type());
             }
 
             func->add_parameter(std::move(parameter));
-        } else if (token.type() == TokenType::comma) {
+        } else if (token.type() == TokenType::Comma) {
             next_token();
-        } else if (token.type() == TokenType::rparen) {
+        } else if (token.type() == TokenType::RightParenthesis) {
             return false;
         } else {
             emit_parser_error("Unexpected token '%s' in function parameter", token.type());
         }
 
-        return token.type() != TokenType::rparen;
+        return token.type() != TokenType::RightParenthesis;
     }
 
     void Parser::parse_parameter_list(Function* const func) {
@@ -571,7 +635,7 @@ namespace kore {
 
         while (!_scanner.eof() && parse_parameter_decl(func));
 
-        if (!expect_token_type(TokenType::rparen)) {
+        if (!expect_token_type(TokenType::RightParenthesis)) {
             emit_parser_error("Expected ')' after function parameters");
         }
     }
@@ -598,7 +662,7 @@ namespace kore {
                 token = next_token();
                 token = next_token();
 
-                if (token->type() != TokenType::comma) {
+                if (token->type() != TokenType::Comma) {
                     break;
                 }
 
@@ -615,10 +679,10 @@ namespace kore {
     void Parser::parse_block(Statement* const parent) {
         trace_parser("block");
 
-        if (expect_token_type(TokenType::lbrace)) {
+        if (expect_token_type(TokenType::LeftBrace)) {
             parse_statement_list(parent);
 
-            if (!expect_token_type(TokenType::rbrace)) {
+            if (!expect_token_type(TokenType::RightBrace)) {
                 emit_parser_error("Expected '}' to close block");
             }
         }
@@ -635,9 +699,9 @@ namespace kore {
             ArrayType* array_type = nullptr;
 
             do {
-                if (expect_token_type(TokenType::lbracket)) {
+                if (expect_token_type(TokenType::LeftBracket)) {
                     // Array type (possibly nested)
-                    if (!expect_token_type(TokenType::rbracket)) {
+                    if (!expect_token_type(TokenType::RightBracket)) {
                         emit_parser_error("Expected ']' after '[' in array type declaration");
                         return nullptr;
                     }
@@ -647,7 +711,7 @@ namespace kore {
                     } else {
                         array_type->increase_rank();
                     }
-                } else if (expect_token_type(TokenType::question_mark)) {
+                } else if (expect_token_type(TokenType::QuestionMark)) {
                     return Type::make_optional_type(type);
                 } else {
                     return array_type ? array_type : type;
@@ -672,7 +736,7 @@ namespace kore {
         }
 
         switch (token->type()) {
-            case TokenType::integer: {
+            case TokenType::Integer: {
                 result = Expression::make_expression<IntegerExpression>(
                     token->int_value() * sign,
                     token->location()
@@ -681,7 +745,7 @@ namespace kore {
                 break;
             }
 
-            case TokenType::floatp: {
+            case TokenType::Float: {
                 result = Expression::make_expression<FloatExpression>(
                     token->float32_value() * sign,
                     token->location()
@@ -690,14 +754,14 @@ namespace kore {
                 break;
             }
 
-            case TokenType::character: {
+            case TokenType::Character: {
                 // TODO: Handle signed characters
                 result = Expression::make_expression<CharExpression>(token->int_value(), token->location());
                 next_token();
                 break;
             }
 
-            case TokenType::string: {
+            case TokenType::String: {
                 // TODO: Handle signed strings (an error)
                 result = Expression::make_expression<StringExpression>(
                     token->value(),
@@ -707,7 +771,7 @@ namespace kore {
                 break;
             }
 
-            case TokenType::keyword: {
+            case TokenType::Keyword: {
                 if (token->is_boolean_keyword()) {
                     result = Expression::make_expression<BoolExpression>(token->value(), token->location());
                     next_token();
@@ -720,7 +784,7 @@ namespace kore {
                 break;
             }
 
-            case TokenType::lbracket: {
+            case TokenType::LeftBracket: {
                 result = parse_array(token);
                 break;
             }
@@ -737,14 +801,17 @@ namespace kore {
     Owned<Expression> Parser::parse_array(const Token* const lbracket_token) {
         trace_parser("array");
 
+        /* auto& token = *current_token(); */
         next_token();
         auto first_expr = parse_expression(operator_base_precedence());
         Owned<Expression> result = nullptr;
 
-        if (expect_token_type(TokenType::colon)) {
+        if (expect_token_type(TokenType::Colon)) {
             result = parse_array_fill_expression(lbracket_token, std::move(first_expr));
-        } else if (expect_token_type(TokenType::comma)) {
+        } else if (expect_token_type(TokenType::Comma)) {
             result = parse_normal_array_expression(lbracket_token, std::move(first_expr));
+        } else if (expect_token_type(TokenType::RightBracket)) {
+            /* result = parse_index_expression(&token); */
         } else {
             emit_parser_error("Expected ':' or ',' in array literal");
         }
@@ -759,7 +826,7 @@ namespace kore {
         trace_parser("array fill");
         auto fill_expr = parse_expression(operator_base_precedence());
 
-        if (!expect_token_type(TokenType::rbracket)) {
+        if (!expect_token_type(TokenType::RightBracket)) {
             return make_parser_error("Expected ']' after array fill expression");
         }
 
@@ -784,9 +851,9 @@ namespace kore {
             auto element_expr = parse_expression(operator_base_precedence());
             array_expr->add_element(std::move(element_expr));
 
-            if (expect_token_type(TokenType::rbracket)) {
+            if (expect_token_type(TokenType::RightBracket, false)) {
                 break;
-            } else if (!expect_token_type(TokenType::comma)) {
+            } else if (!expect_token_type(TokenType::Comma)) {
                 array_expr->add_element(make_parser_error("Expected ',' after array element expression"));
 
                 return array_expr;
@@ -794,17 +861,18 @@ namespace kore {
         }
 
         array_expr->set_end_location(current_token()->location());
+        next_token();
 
         return array_expr;
     }
 
     Owned<Expression> Parser::parse_array_range_expression(const Token* const lbracket_token) {
-        trace_parser("normal array");
+        trace_parser("array range");
 
         int base_precedence = operator_base_precedence();
         auto start_expr = parse_expression(base_precedence);
 
-        if (!expect_token_type(TokenType::range)) {
+        if (!expect_token_type(TokenType::Range)) {
             return make_parser_error("Expected range '..' in array range expression");
         }
 
@@ -829,7 +897,7 @@ namespace kore {
                 identifier.emplace_back(token->value());
                 token = next_token();
 
-                if (token->type() != TokenType::dot) {
+                if (token->type() != TokenType::Dot) {
                     break;
                 }
 
@@ -862,12 +930,14 @@ namespace kore {
 
         expr = parse_maybe_qualified_identifier();
 
-        if (!expr->is_error()) {
-            return expr;
-        }
+        /* if (!expr->is_error()) { */
+        /*     return expr; */
+        /* } */
 
-        if (expect_token_type(TokenType::lparen)) {
+        if (expect_token_type(TokenType::LeftParenthesis)) {
             return parse_parenthesised_expression();
+        } else if (expect_token_type(TokenType::LeftBracket)) {
+            return parse_index_expression(std::move(expr));
         }
 
         return make_parser_error("Expected an unary expression");
@@ -900,14 +970,18 @@ namespace kore {
         auto expr = parse_operand();
 
         if (expr && expr->is_identifier()) {
-            if (current_token()->type() != TokenType::lparen) {
-                return expr;
-            }
+            auto token = current_token();
 
-            auto call = parse_function_call(std::move(expr));
+            if (token->type() == TokenType::LeftParenthesis) {
+                auto call = parse_function_call(std::move(expr));
 
-            if (!call->is_error()) {
-                return call;
+                if (!call->is_error()) {
+                    return call;
+                } else {
+                    return expr;
+                }
+            } else if (expect_token_type(TokenType::LeftBracket)) {
+                return parse_index_expression(std::move(expr));
             }
         }
 
@@ -944,11 +1018,11 @@ namespace kore {
     }
 
     Owned<Expression> Parser::parse_expression_list(std::vector<Owned<Expression>>& expr_list) {
-        trace_parser("exprlist");
+        trace_parser("expression list");
 
-        if (!expect_token_type(TokenType::lparen)) {
+        if (!expect_token_type(TokenType::LeftParenthesis)) {
             return nullptr;
-        } else if (expect_token_type(TokenType::rparen)) {
+        } else if (expect_token_type(TokenType::RightParenthesis)) {
             next_token();
             return nullptr;
         }
@@ -960,9 +1034,9 @@ namespace kore {
             trace_parser("exprlist:expr");
             expr_list.push_back(std::move(expr));
 
-            if (expect_token_type(TokenType::rparen)) {
+            if (expect_token_type(TokenType::RightParenthesis)) {
                 break;
-            } else if (!expect_token_type(TokenType::comma)) {
+            } else if (!expect_token_type(TokenType::Comma)) {
                 return nullptr;
             }
         }
@@ -974,7 +1048,7 @@ namespace kore {
         trace_parser("parenthesised expression");
         Owned<Expression> expr = parse_expression(operator_base_precedence());
 
-        if (expect_token_type(TokenType::rparen)) {
+        if (expect_token_type(TokenType::RightParenthesis)) {
             expr->set_parenthesised(true);
             return expr;
         }
@@ -983,7 +1057,7 @@ namespace kore {
     }
 
     Owned<Expression> Parser::parse_expression(int precedence) {
-        trace_parser("expression");;
+        trace_parser("expression");
         auto left = parse_unary_expression();
 
         if (left->is_error()) {

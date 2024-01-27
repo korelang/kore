@@ -5,6 +5,7 @@
 #include "logging/logging.hpp"
 #include "types/function_type.hpp"
 #include "types/unknown_type.hpp"
+#include "utils/unused_parameter.hpp"
 
 namespace kore {
     TypeInferrer::TypeInferrer(const ParsedCommandLineArgs& args) : _args(&args) {}
@@ -13,7 +14,7 @@ namespace kore {
 
     void TypeInferrer::infer(Ast& ast) {
         for (auto& statement : ast) {
-            statement->accept_visit_only(*this);
+            statement->accept(*this);
         }
     }
 
@@ -32,9 +33,35 @@ namespace kore {
         }
     }
 
+    void TypeInferrer::visit(ArrayExpression& array) {
+        if (array.size() == 0) {
+            array.set_type(Type::unknown());
+            return;
+        }
+
+        const Type* inferred_type = array[0]->type();
+
+        // We infer the type of an array expression (like [1, 2, 3]) by
+        // unifying all element types
+        for (int idx = 1; idx < array.size(); ++idx) {
+            auto element_index_type = array[idx]->type();
+
+            inferred_type = element_index_type->unify(array[idx]->type());
+        }
+    }
+
+    void TypeInferrer::visit(IndexExpression& array_index) {
+        UNUSED_PARAM(array_index);
+    }
+
+    void TypeInferrer::visit(IndexExpression& array_index, ValueContext context) {
+        UNUSED_PARAM(array_index);
+        UNUSED_PARAM(context);
+    }
+
     void TypeInferrer::visit(BinaryExpression& expr) {
-        expr.left()->accept_visit_only(*this);
-        expr.right()->accept_visit_only(*this);
+        expr.left()->accept(*this);
+        expr.right()->accept(*this);
         expr.set_type(expr.left()->type()->unify(expr.right()->type()));
 
         // TODO: Should expression have names or a ostream operator instead?
@@ -77,8 +104,13 @@ namespace kore {
         trace_type_inference("identifier " + expr.name(), expr.type());
     }
 
+    void TypeInferrer::visit(Identifier& expr, ValueContext context) {
+        UNUSED_PARAM(context);
+        visit(expr);
+    }
+
     void TypeInferrer::visit(UnaryExpression& expr) {
-        expr.expr()->accept_visit_only(*this);
+        expr.expr()->accept(*this);
         expr.set_type(expr.expr()->type());
 
         trace_type_inference("unary expression", expr.type());
@@ -90,15 +122,19 @@ namespace kore {
             return;
         }
 
-        statement.expression()->accept_visit_only(*this);
-        auto expr_type = statement.expression()->type();
+        trace_type_inference("assignment", statement.type());
+
+        statement.rhs()->accept(*this);
+        auto rhs_type = statement.rhs()->type();
 
         // Set the type of the identifier/variable and save it
         // in the symbol table
-        statement.set_type(expr_type);
-        _scope_stack.insert(statement.identifier());
+        statement.set_type(rhs_type);
 
-        trace_type_inference("assignment", statement.type());
+        // Visit the left-hand side expression as an lvalue
+        statement.lhs()->accept(*this, ValueContext::LValue);
+
+        /* _scope_stack.insert(statement.lhs()); */
     }
 
     /* void TypeInferrer::visit(Function& statement) { */
@@ -123,7 +159,7 @@ namespace kore {
         }
 
         for (auto& statement : func) {
-            statement->accept_visit_only(*this);
+            statement->accept(*this);
         }
 
         _scope_stack.leave_function_scope();
@@ -138,7 +174,7 @@ namespace kore {
         trace_type_inference("return");
 
         if (ret.expr()) {
-            ret.expr()->accept_visit_only(*this);
+            ret.expr()->accept(*this);
         }
     }
 
@@ -148,11 +184,11 @@ namespace kore {
         _scope_stack.enter();
 
         if (branch.condition()) {
-            branch.condition()->accept_visit_only(*this);
+            branch.condition()->accept(*this);
         }
 
         for (auto& statement : branch) {
-            statement->accept_visit_only(*this);
+            statement->accept(*this);
         }
 
         _scope_stack.leave();

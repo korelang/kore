@@ -6,9 +6,26 @@ namespace kore {
         ArrayValue::ArrayValue() {}
         ArrayValue::~ArrayValue() {}
 
+        Value& ArrayValue::operator[](int index) {
+            return _values[index];
+        }
+
+        const Value& ArrayValue::operator[](int index) const {
+            return _values[index];
+        }
+
         bool ArrayValue::operator==(const ArrayValue& other) {
-            // FIXME:
-            return size() == other.size();
+            if (size() == other.size()) {
+                return false;
+            }
+
+            for (std::size_t idx = 0; idx < size(); ++idx) {
+                if (!((*this)[idx] == other[idx])) {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         std::vector<Value>::size_type ArrayValue::size() const {

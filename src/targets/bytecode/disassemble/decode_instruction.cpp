@@ -72,7 +72,7 @@ namespace koredis {
 
             case kore::Bytecode::Move:
             case kore::Bytecode::Gstore:
-            case kore::Bytecode::AllocArray: {
+            case kore::Bytecode::ArrayAlloc: {
                 decoded_instruction = Instruction{
                     pos++,
                     byte_pos,
@@ -131,8 +131,8 @@ namespace koredis {
             case kore::Bytecode::NeqI64:
             case kore::Bytecode::NeqF32:
             case kore::Bytecode::NeqF64:
-            case kore::Bytecode::ArrayIndexGet:
-            case kore::Bytecode::ArrayIndexSet: {
+            case kore::Bytecode::ArrayGet:
+            case kore::Bytecode::ArraySet: {
                 decoded_instruction = Instruction{
                     pos++,
                     byte_pos,

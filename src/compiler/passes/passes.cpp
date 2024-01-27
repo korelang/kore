@@ -22,7 +22,7 @@ namespace kore {
                 }
 
                 // TODO: Add errors
-                return PassResult{ !parser.failed(), {} };
+                return PassResult{ !parser.failed() && parser.error_count() == 0, {} };
             }
         };
     }
@@ -53,7 +53,7 @@ namespace kore {
                     error_count += type_checker.check(ast);
                 }
 
-                return PassResult{ error_count == 0, type_checker.errors() };
+                return PassResult{ error_count == 0, type_checker.diagnostics() };
             }
         };
     }

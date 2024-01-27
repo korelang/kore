@@ -7,54 +7,51 @@
 namespace kore {
     VariableAssignment::VariableAssignment(
         bool is_mutable,
-        const Token& identifier,
         const Type* type,
-        Owned<Expression> expr
-    )
-        : Statement(identifier.location(), StatementType::VariableAssignment),
-        _identifier(identifier, is_mutable),
-        _type(std::move(type)),
-        _expr(std::move(expr))
-    {
-        _location = SourceLocation(
-            identifier.location().lnum(),
-            identifier.location().start(),
-            _expr->location().end()
-        );
-
-        _identifier.set_type(type);
+        Owned<Expression> lhs,
+        Owned<Expression> rhs
+    ) : Statement(lhs->location(), StatementType::VariableAssignment) {
+        _mutable = is_mutable;
+        _type = std::move(type);
+        _lhs = std::move(lhs);
+        _rhs = std::move(rhs);
+        _location = SourceLocation(_lhs->location());
+        _lhs->set_type(type);
     }
 
     VariableAssignment::~VariableAssignment() {}
 
-    const Identifier* VariableAssignment::identifier() const {
-        return &_identifier;
+    Expression* VariableAssignment::lhs() {
+        return _lhs.get();
     }
 
-    Expression* VariableAssignment::expression() const {
-        return _expr.get();
+    Expression* VariableAssignment::rhs() {
+        return _rhs.get();
+    }
+
+    const Expression* VariableAssignment::lhs() const {
+        return _lhs.get();
+    }
+
+    const Expression* VariableAssignment::rhs() const {
+        return _rhs.get();
     }
 
     void VariableAssignment::set_type(const Type* type) {
-        _identifier.set_type(type);
+        _lhs->set_type(type);
     }
 
     const Type* VariableAssignment::type() const {
-        return _identifier.type();
+        return _lhs->type();
     }
 
     const Type* VariableAssignment::declared_type() const {
         return _type;
     }
 
-    void VariableAssignment::accept(AstVisitor& visitor) {
-        _expr->accept(visitor);
-        /* _identifier.accept(visitor); */
-
-        visitor.visit(*this);
+    bool VariableAssignment::is_mutable() const {
+        return _mutable;
     }
 
-    void VariableAssignment::accept_visit_only(AstVisitor& visitor) {
-        visitor.visit(*this);
-    }
+    KORE_AST_VISITOR_ACCEPT_METHOD_DEFAULT_IMPL(VariableAssignment)
 }

@@ -17,7 +17,7 @@ namespace kore {
             /* kore::info_group(1, verbosity, "compiler", "end of pass '%s'", pass.name.c_str()); */
 
             // TODO: We can do per-pass timings here
-            if (!result.proceed && result.errors.size() > 0) {
+            if (!result.proceed && result.diagnostics.size() > 0) {
                 print_errors(pass, result);
                 return 1;
             } else {
@@ -38,10 +38,11 @@ namespace kore {
     }
 
     void Compiler::print_errors(const Pass& pass, PassResult result) {
-        error_group(pass.name, "%d %serrors", result.errors.size(), "");
+        // TODO: Not necessarily errors anymore
+        error_group(pass.name, "%d %serrors", result.diagnostics.size(), "");
 
-        for (const auto& error : result.errors) {
-            section_error(error.location.colon_format(), error, 1);
+        for (auto& diagnostic : result.diagnostics) {
+            section(diagnostic, 1);
         }
     }
 }

@@ -15,8 +15,7 @@ namespace kore {
             std::string value() const noexcept;
             const Type* type() const override;
 
-            void accept(AstVisitor& visitor) override;
-            void accept_visit_only(AstVisitor& visitor) override;
+            KORE_AST_VISITOR_ACCEPT_METHOD_DEFAULT_DEFINITION
 
         private:
             std::string _value;

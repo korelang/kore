@@ -30,6 +30,7 @@ set(KORE_SCANNER_SOURCES
 
 set (KORE_AST_EXPRESSION_SOURCES
     ${PROJECT_SOURCE_DIR}/src/ast/expressions/array_expression.cpp
+    ${PROJECT_SOURCE_DIR}/src/ast/expressions/index_expression.cpp
     ${PROJECT_SOURCE_DIR}/src/ast/expressions/array_fill_expression.cpp
     ${PROJECT_SOURCE_DIR}/src/ast/expressions/array_range_expression.cpp
     ${PROJECT_SOURCE_DIR}/src/ast/expressions/binary_expression.cpp
@@ -79,6 +80,7 @@ set(KORE_TYPE_SOURCES
 )
 
 set(KORE_ERRORS_SOURCES
+    ${PROJECT_SOURCE_DIR}/src/diagnostics/diagnostic.cpp
     ${PROJECT_SOURCE_DIR}/src/errors/error.cpp
     ${PROJECT_SOURCE_DIR}/src/errors/errors.cpp
 )
@@ -143,7 +145,7 @@ set(KORE_ANALYSIS_SOURCES
     ${PROJECT_SOURCE_DIR}/src/analysis/function_name_visitor.cpp
 )
 
-set(KORE_SHARED_COMPILE_FLAGS -Wall -Wextra -pedantic -Werror)# -g -O0)
+set(KORE_SHARED_COMPILE_FLAGS -Wall -Wextra -pedantic -Werror -g -O0)
 
 # Build main executables:
 #   - Bytecode compiler (korec)

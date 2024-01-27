@@ -395,7 +395,7 @@ namespace kore {
         }
 
         if (dot) {
-            return make_inline_token(TokenType::floatp, col-1);
+            return make_inline_token(TokenType::Float, col-1);
         } else {
             return make_inline_int_token(IntegerFormat::dec, col-1);
         }
@@ -410,7 +410,7 @@ namespace kore {
             ++col;
         }
 
-        Token token = make_inline_token(TokenType::identifier, col-1);
+        Token token = make_inline_token(TokenType::Identifier, col-1);
 
         if (is_keyword(token.value())) {
             token.as_keyword();
@@ -425,7 +425,7 @@ namespace kore {
 
         while (!eol()) {
             if (expect('"')) {
-                auto token = make_inline_token(TokenType::string, col);
+                auto token = make_inline_token(TokenType::String, col);
                 ++col;
 
                 return token;
@@ -498,12 +498,12 @@ namespace kore {
 
     Token Scanner::scan_equal_or_arrow() {
         if (expect_peek('>')) {
-            return make_inline_token(TokenType::arrow, col, 2);
+            return make_inline_token(TokenType::Arrow, col, 2);
         } else if (expect_peek('=')) {
-            return make_inline_token(TokenType::equal, col, 2);
+            return make_inline_token(TokenType::Equal, col, 2);
         }
 
-        return make_one_char_token(TokenType::assign);
+        return make_one_char_token(TokenType::Assign);
     }
 
     Token Scanner::scan_comment() {
@@ -511,7 +511,7 @@ namespace kore {
             return scan_multiline_comment();
         }
 
-        auto token = make_inline_token(TokenType::single_line_comment, line.length() - 1);
+        auto token = make_inline_token(TokenType::SingleLineComment, line.length() - 1);
 
         // Just read the next line now to skip whitespace on the new line
         read_line();
@@ -521,18 +521,18 @@ namespace kore {
 
     Token Scanner::scan_mult_or_exp() {
         if (expect_peek('*')) {
-            return make_inline_token(TokenType::exp, col, 1);
+            return make_inline_token(TokenType::Exp, col, 1);
         }
 
-        return make_one_char_token(TokenType::mult);
+        return make_one_char_token(TokenType::Mult);
     }
 
     Token Scanner::scan_dot_or_range() {
         if (expect_peek('.')) {
-            return make_inline_token(TokenType::range, col, 1);
+            return make_inline_token(TokenType::Range, col, 1);
         }
 
-        return make_one_char_token(TokenType::dot);
+        return make_one_char_token(TokenType::Dot);
     }
 
     Token Scanner::scan_op_maybe_equal(TokenType op, TokenType equal_op) {
@@ -548,11 +548,11 @@ namespace kore {
             throw_error("Expected '=' after '!'");
         }
 
-        return make_inline_token(TokenType::not_equal, col, 2);
+        return make_inline_token(TokenType::NotEqual, col, 2);
     }
 
     Token Scanner::scan_multiline_comment() {
-        return consume_until(TokenType::multi_line_comment, "*#");
+        return consume_until(TokenType::MultiLineComment, "*#");
     }
 
     Token Scanner::next_token() {
@@ -590,24 +590,24 @@ namespace kore {
         }
 
         switch (byte) {
-            case '+': return make_one_char_token(TokenType::plus);
-            case '-': return make_one_char_token(TokenType::minus);
+            case '+': return make_one_char_token(TokenType::Plus);
+            case '-': return make_one_char_token(TokenType::Minus);
             case '*': return scan_mult_or_exp();
-            case '/': return make_one_char_token(TokenType::div);
-            case '<': return scan_op_maybe_equal(TokenType::lt, TokenType::le);
-            case '>': return scan_op_maybe_equal(TokenType::gt, TokenType::ge);
+            case '/': return make_one_char_token(TokenType::Div);
+            case '<': return scan_op_maybe_equal(TokenType::LessThan, TokenType::LessThanEqual);
+            case '>': return scan_op_maybe_equal(TokenType::GreaterThan, TokenType::GreaterThanEqual);
             case '!': return scan_not_equal();
-            case '(': return make_one_char_token(TokenType::lparen);
-            case ')': return make_one_char_token(TokenType::rparen);
-            case '{': return make_one_char_token(TokenType::lbrace);
-            case '}': return make_one_char_token(TokenType::rbrace);
-            case '[': return make_one_char_token(TokenType::lbracket);
-            case ']': return make_one_char_token(TokenType::rbracket);
-            case ',': return make_one_char_token(TokenType::comma);
-            case '@': return make_one_char_token(TokenType::at);
-            case '?': return make_one_char_token(TokenType::question_mark);
-            case '|': return make_one_char_token(TokenType::bar);
-            case ':': return make_one_char_token(TokenType::colon);
+            case '(': return make_one_char_token(TokenType::LeftParenthesis);
+            case ')': return make_one_char_token(TokenType::RightParenthesis);
+            case '{': return make_one_char_token(TokenType::LeftBrace);
+            case '}': return make_one_char_token(TokenType::RightBrace);
+            case '[': return make_one_char_token(TokenType::LeftBracket);
+            case ']': return make_one_char_token(TokenType::RightBracket);
+            case ',': return make_one_char_token(TokenType::Comma);
+            case '@': return make_one_char_token(TokenType::At);
+            case '?': return make_one_char_token(TokenType::QuestionMark);
+            case '|': return make_one_char_token(TokenType::Bar);
+            case ':': return make_one_char_token(TokenType::Colon);
             case '.': return scan_dot_or_range();
             case '#': return scan_comment();
             case '"': return scan_string();

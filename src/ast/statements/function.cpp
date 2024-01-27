@@ -94,15 +94,5 @@ namespace kore {
         return _body.end();
     }
 
-    void Function::accept(AstVisitor& visitor) {
-        for (auto& statement : _body) {
-            statement->accept(visitor);
-        }
-
-        visitor.visit(*this);
-    }
-
-    void Function::accept_visit_only(AstVisitor& visitor) {
-        visitor.visit(*this);
-    }
+    KORE_AST_VISITOR_ACCEPT_METHOD_DEFAULT_IMPL(Function)
 }

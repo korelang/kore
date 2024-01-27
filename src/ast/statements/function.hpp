@@ -38,8 +38,7 @@ namespace kore {
             body_iterator begin();
             body_iterator end();
 
-            void accept(AstVisitor& visitor) override;
-            void accept_visit_only(AstVisitor& visitor) override;
+            KORE_AST_VISITOR_ACCEPT_METHOD_DEFAULT_DEFINITION
 
         private:
             Identifier _name;

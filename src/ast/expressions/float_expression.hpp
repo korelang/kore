@@ -15,8 +15,7 @@ namespace kore {
             const Type* type() const override;
             f32 value() const noexcept;
 
-            void accept(AstVisitor& visitor) override;
-            void accept_visit_only(AstVisitor& visitor) override;
+            KORE_AST_VISITOR_ACCEPT_METHOD_DEFAULT_DEFINITION
 
         private:
             f32 _value;

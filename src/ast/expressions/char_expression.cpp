@@ -20,11 +20,5 @@ namespace kore {
         return &_type;
     }
 
-    void CharExpression::accept(AstVisitor& visitor) {
-        visitor.visit(*this);
-    }
-
-    void CharExpression::accept_visit_only(AstVisitor& visitor) {
-        visitor.visit(*this);
-    }
+    KORE_AST_VISITOR_ACCEPT_METHOD_DEFAULT_IMPL(CharExpression)
 }

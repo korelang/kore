@@ -171,6 +171,22 @@ namespace kore {
         // TODO: Do we need functions for each expression/statement? Maybe just for
         // each type of instruction + the expression for setting register types?
 
+        void Function::emit_reg3(Bytecode opcode, Reg reg1, Reg reg2, Reg reg3) {
+            add_instruction(Instruction{
+                opcode,
+                ThreeRegisters{ reg1, reg2, reg3 }
+            });
+        }
+
+        Reg Function::emit_load(Bytecode opcode, int index) {
+            Reg reg = allocate_register();
+
+            add_instruction(Instruction{ opcode, RegisterAndValue{ reg, index } });
+            set_register_type(reg, Type::get_type_from_category(TypeCategory::Integer32));
+
+            return reg;
+        }
+
         Reg Function::emit_load(Bytecode opcode, Expression& expr, int index) {
             Reg reg = allocate_register();
 
@@ -217,14 +233,11 @@ namespace kore {
             );
         }
 
-        Reg Function::emit_allocate_array(ArrayExpression& expr) {
+        Reg Function::emit_allocate_array(int size) {
             auto reg = allocate_register();
 
             add_instruction(
-                Instruction{
-                    Bytecode::AllocArray,
-                    RegisterAndValue{ reg, expr.size() },
-                }
+                Instruction{ Bytecode::ArrayAlloc, RegisterAndValue{ reg, size } }
             );
 
             return reg;

@@ -14,9 +14,6 @@ namespace kore {
             bool is_error() const noexcept override;
             std::string message() const;
 
-            void accept(AstVisitor& visitor) override;
-            void accept_visit_only(AstVisitor& visitor) override;
-
         private:
             std::string _message;
     };

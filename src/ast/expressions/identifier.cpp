@@ -73,11 +73,5 @@ namespace kore {
         return _is_mutable;
     }
 
-    void Identifier::accept(AstVisitor& visitor) {
-        visitor.visit(*this);
-    }
-
-    void Identifier::accept_visit_only(AstVisitor& visitor) {
-        visitor.visit(*this);
-    }
+    KORE_AST_VISITOR_ACCEPT_METHOD_DEFAULT_IMPL(Identifier)
 }

@@ -11,24 +11,30 @@ namespace kore {
 
     class VariableAssignment : public Statement {
         public:
-            VariableAssignment(bool is_mutable, const Token& identifier, const Type* type, Owned<Expression> expr);
+            VariableAssignment(
+                bool is_mutable,
+                const Type* type,
+                Owned<Expression> lhs,
+                Owned<Expression> rhs
+            );
             virtual ~VariableAssignment();
 
-            const Identifier* identifier() const;
-            Expression* expression() const;
+            Expression* lhs();
+            Expression* rhs();
+            const Expression* lhs() const;
+            const Expression* rhs() const;
             const Type* type() const;
             const Type* declared_type() const;
             void set_type(const Type* type);
+            bool is_mutable() const;
 
-            void accept(AstVisitor& visitor) override;
-            void accept_visit_only(AstVisitor& visitor) override;
+            KORE_AST_VISITOR_ACCEPT_METHOD_DEFAULT_DEFINITION
 
         private:
-            // TODO: Should this be a variable instead? It is more specific in
-            // this context
-            Identifier _identifier;
+            bool _mutable;
             const Type* _type;
-            Expression::pointer _expr;
+            Owned<Expression> _lhs;
+            Owned<Expression> _rhs;
     };
 }
 

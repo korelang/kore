@@ -177,6 +177,20 @@ namespace kore {
         );
     }
 
+    void section(const Diagnostic& diagnostic, int indent) {
+        va_list args;
+        output(
+            indent,
+            diagnostic.group(),
+            diagnostic.level_string(),
+            diagnostic.color_spec().color,
+            diagnostic.color_spec().attribute,
+            true,
+            diagnostic.message().first.c_str(),
+            args
+        );
+    }
+
     void parser_error(const SourceLocation& location, const char* const format, ...) {
         va_list args;
         va_start(args, format);

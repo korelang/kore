@@ -6,28 +6,28 @@ namespace kore {
             /* case TokenType::identifier: */
             /*     return TokenCategory::identifier; */
 
-            case TokenType::single_line_comment:
-            case TokenType::multi_line_comment:
+            case TokenType::SingleLineComment:
+            case TokenType::MultiLineComment:
                 return TokenCategory::comment;
 
-            case TokenType::character:
-            case TokenType::floatp:
-            case TokenType::integer:
-            case TokenType::string:
+            case TokenType::Character:
+            case TokenType::Float:
+            case TokenType::Integer:
+            case TokenType::String:
                 return TokenCategory::literal;
 
-            case TokenType::div:
-            case TokenType::equal:
-            case TokenType::exp:
-            case TokenType::ge:
-            case TokenType::gt:
-            case TokenType::le:
-            case TokenType::lt:
-            case TokenType::minus:
-            case TokenType::mult:
-            case TokenType::not_equal:
-            case TokenType::plus:
-            case TokenType::range:
+            case TokenType::Div:
+            case TokenType::Equal:
+            case TokenType::Exp:
+            case TokenType::GreaterThanEqual:
+            case TokenType::GreaterThan:
+            case TokenType::LessThanEqual:
+            case TokenType::LessThan:
+            case TokenType::Minus:
+            case TokenType::Mult:
+            case TokenType::NotEqual:
+            case TokenType::Plus:
+            case TokenType::Range:
                 return TokenCategory::bin_op;
 
             default:

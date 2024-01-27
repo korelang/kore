@@ -6,8 +6,22 @@ namespace kore {
 
     AstVisitor::~AstVisitor() {}
 
+    void AstVisitor::visit(Expression& expr, ValueContext context) {
+        UNUSED_PARAM(expr);
+        UNUSED_PARAM(context);
+    }
+
     void AstVisitor::visit(ArrayExpression& expr) {
         UNUSED_PARAM(expr);
+    }
+
+    void AstVisitor::visit(IndexExpression& expr) {
+        UNUSED_PARAM(expr);
+    }
+
+    void AstVisitor::visit(IndexExpression& expr, ValueContext context) {
+        UNUSED_PARAM(expr);
+        UNUSED_PARAM(context);
     }
 
     void AstVisitor::visit(ArrayFillExpression& expr) {
@@ -38,6 +52,11 @@ namespace kore {
         UNUSED_PARAM(expr);
     }
 
+    void AstVisitor::visit(Identifier& expr, ValueContext context) {
+        UNUSED_PARAM(expr);
+        UNUSED_PARAM(context);
+    }
+
     void AstVisitor::visit(Parameter& expr) {
         UNUSED_PARAM(expr);
     }
@@ -51,54 +70,6 @@ namespace kore {
     }
 
     void AstVisitor::visit(UnaryExpression& expr) {
-        UNUSED_PARAM(expr);
-    }
-
-    void AstVisitor::visit_only(ArrayExpression& expr) {
-        UNUSED_PARAM(expr);
-    }
-
-    void AstVisitor::visit_only(ArrayFillExpression& expr) {
-        UNUSED_PARAM(expr);
-    }
-
-    void AstVisitor::visit_only(ArrayRangeExpression& expr) {
-        UNUSED_PARAM(expr);
-    }
-
-    void AstVisitor::visit_only(BinaryExpression& expr) {
-        UNUSED_PARAM(expr);
-    }
-
-    void AstVisitor::visit_only(BoolExpression& expr) {
-        UNUSED_PARAM(expr);
-    }
-
-    void AstVisitor::visit_only(CharExpression& expr) {
-        UNUSED_PARAM(expr);
-    }
-
-    void AstVisitor::visit_only(FloatExpression& expr) {
-        UNUSED_PARAM(expr);
-    }
-
-    void AstVisitor::visit_only(Identifier& expr) {
-        UNUSED_PARAM(expr);
-    }
-
-    void AstVisitor::visit_only(Parameter& expr) {
-        UNUSED_PARAM(expr);
-    }
-
-    void AstVisitor::visit_only(IntegerExpression& expr) {
-        UNUSED_PARAM(expr);
-    }
-
-    void AstVisitor::visit_only(StringExpression& expr) {
-        UNUSED_PARAM(expr);
-    }
-
-    void AstVisitor::visit_only(UnaryExpression& expr) {
         UNUSED_PARAM(expr);
     }
 
@@ -139,46 +110,6 @@ namespace kore {
     }
 
     void AstVisitor::visit(ExpressionStatement& exprstmt) {
-        UNUSED_PARAM(exprstmt);
-    }
-
-    void AstVisitor::visit_only(Branch& statement) {
-        UNUSED_PARAM(statement);
-    }
-
-    void AstVisitor::visit_only(Function& statement) {
-        UNUSED_PARAM(statement);
-    }
-
-    void AstVisitor::visit_only(class Call& statement) {
-        UNUSED_PARAM(statement);
-    }
-
-    void AstVisitor::visit_only(IfStatement& statement) {
-        UNUSED_PARAM(statement);
-    }
-
-    void AstVisitor::visit_only(ImportStatement& statement) {
-        UNUSED_PARAM(statement);
-    }
-
-    void AstVisitor::visit_only(ModuleStatement& statement) {
-        UNUSED_PARAM(statement);
-    }
-
-    void AstVisitor::visit_only(Return& statement) {
-        UNUSED_PARAM(statement);
-    }
-
-    void AstVisitor::visit_only(VariableAssignment& statement) {
-        UNUSED_PARAM(statement);
-    }
-
-    void AstVisitor::visit_only(VariableDeclaration& statement) {
-        UNUSED_PARAM(statement);
-    }
-
-    void AstVisitor::visit_only(ExpressionStatement& exprstmt) {
         UNUSED_PARAM(exprstmt);
     }
 }

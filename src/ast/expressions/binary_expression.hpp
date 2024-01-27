@@ -49,8 +49,7 @@ namespace kore {
             Expression* left() const;
             Expression* right() const;
 
-            void accept(AstVisitor& visitor) override;
-            void accept_visit_only(AstVisitor& visitor) override;
+            KORE_AST_VISITOR_ACCEPT_METHOD_DEFAULT_DEFINITION
 
         private:
             BinOp _op;
