@@ -63,18 +63,22 @@ namespace kore {
         AstWriter& writer,
         const ParsedCommandLineArgs& args
     ) {
-        Ast ast{path};
         Parser parser;
+        ParseResult parse_result;
         auto group = "parse";
 
         if (execute) {
-            debug_time(group, [&expr, &ast, &parser, &args](){ parser.parse_non_module(expr, &ast, args); });
+            debug_time(group, [&parse_result, &expr, &parser, &args](){
+                parse_result = parser.parse_non_module(expr, args);
+            });
         } else {
-            debug_time(group, [&path, &ast, &parser, &args](){ parser.parse_file(path, &ast, args); });
+            debug_time(group, [&parse_result, &path, &parser, &args](){
+                parse_result = parser.parse_file(path, args);
+            });
         }
 
         if (!parser.failed()) {
-            writer.write(ast);
+            writer.write(parse_result.value());
         } else {
             error_group(group, "parse failed with %d errors", parser.error_count());
             return 1;
@@ -135,7 +139,7 @@ int main(int argc, char** argv) {
 
         return 0;
     } else if (args.dump == kore::DumpOption::Parse) {
-        kore::debug_group("scan", "dumping parse");
+        kore::debug_group("parse", "dumping parse");
 
         for (auto& path : args.paths) {
             kore::dump_parse_raw(args.execute, args.expr, path, args);

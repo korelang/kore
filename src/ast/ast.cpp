@@ -41,6 +41,14 @@ namespace kore {
         return _statements.cend();
     }
 
+    Ast& Ast::operator=(Ast&& other) {
+        _module_name = other._module_name;
+        _module_path = other._module_path;
+        _statements = std::move(other._statements);
+
+        return *this;
+    }
+
     void Ast::write(AstWriter& writer) const {
         for (const auto& statement : _statements) {
             statement->accept(writer);

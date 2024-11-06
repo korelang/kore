@@ -1,10 +1,36 @@
 #ifndef KORE_AST_VISITOR_HPP
 #define KORE_AST_VISITOR_HPP
 
-#include "ast/expressions/expressions.hpp"
-#include "ast/statements/statements.hpp"
-
 namespace kore {
+    enum class ValueContext;
+
+    class Expression;
+    class ArrayExpression;
+    class ArrayFillExpression;
+    class IndexExpression;
+    class IndexExpression;
+    class ArrayRangeExpression;
+    class BinaryExpression;
+    class BoolExpression;
+    class CharExpression;
+    class FloatExpression;
+    class FieldAccessExpression;
+    class Identifier;
+    class Parameter;
+    class IntegerExpression;
+    class StringExpression;
+    class UnaryExpression;
+    class Branch;
+    class Function;
+    class Call;
+    class IfStatement;
+    class ImportStatement;
+    class ModuleStatement;
+    class Return;
+    class VariableAssignment;
+    class VariableDeclaration;
+    class ExpressionStatement;
+
     class AstVisitor {
         public:
             AstVisitor();
@@ -21,6 +47,7 @@ namespace kore {
             virtual void visit(BoolExpression& expr);
             virtual void visit(CharExpression& expr);
             virtual void visit(FloatExpression& expr);
+            virtual void visit(FieldAccessExpression& expr);
             virtual void visit(Identifier& expr);
             virtual void visit(Identifier& expr, ValueContext context);
             virtual void visit(Parameter& expr);

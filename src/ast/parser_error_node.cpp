@@ -1,7 +1,5 @@
 #include "ast/ast_visitor.hpp"
-#include "ast/scanner/token_type.hpp"
 #include "ast/parser_error_node.hpp"
-#include "utils/unused_parameter.hpp"
 
 namespace kore {
     ParserErrorNode::ParserErrorNode(const std::string& msg, SourceLocation location)

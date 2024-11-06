@@ -20,7 +20,12 @@ namespace kore {
             bool is_qualified() const noexcept;
             std::size_t size() const noexcept;
             const Type* type() const override;
+
+            /// The declared type of the identifier in the source if any
+            const Type* declared_type() const;
+
             bool is_mutable() const;
+            void set_declared_type(const Type* type);
 
             KORE_AST_VISITOR_ACCEPT_METHOD_DEFAULT_DEFINITION
 
@@ -32,6 +37,7 @@ namespace kore {
         private:
             std::string _value;
             bool _is_mutable = false;
+            const Type* _declared_type;
             std::vector<std::string> _parts;
     };
 }

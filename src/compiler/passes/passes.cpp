@@ -1,7 +1,8 @@
+#include <fstream>
+
 #include "bin/korec/options.hpp"
 #include "compiler/config.hpp"
 #include "compiler/passes/passes.hpp"
-#include "targets/bytecode/bytecode_format_writer.hpp"
 #include "targets/bytecode/codegen/bytecode_codegen2.hpp"
 #include "targets/bytecode/passes/kir_pass.hpp"
 #include "ast/parser/parser.hpp"
@@ -16,9 +17,13 @@ namespace kore {
                 Parser parser;
 
                 for (const auto& path : context.args.paths) {
-                    Ast ast{path};
-                    parser.parse_file(path, &ast, context.args); 
-                    context.asts.push_back(std::move(ast));
+                    auto ast = parser.parse_file(path, context.args); 
+
+                    if (!ast.has_value()) {
+                        return PassResult{ !parser.failed() && parser.error_count() == 0, {} };
+                    }
+
+                    context.asts.push_back(std::move(ast.value()));
                 }
 
                 // TODO: Add errors

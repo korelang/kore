@@ -1,4 +1,3 @@
-#include <sstream>
 #include "instruction.hpp"
 #include "targets/bytecode/register.hpp"
 #include "targets/bytecode/vm/builtins/builtins.hpp"
@@ -65,7 +64,8 @@ namespace koredis {
         // Special-case output for more complex opcodes
         auto instruction_type = instruction.value.type;
 
-        if (auto ins_type = std::get_if<kore::kir::OneRegister>(&instruction_type)) {
+        if (std::get_if<kore::kir::OneRegister>(&instruction_type)) {
+            // TODO:
         } else if (auto ins_type = std::get_if<kore::kir::TwoRegisters>(&instruction_type)) {
             if (instruction.value.opcode == kore::Bytecode::Gstore) {
                 os << " " << constant(ins_type->reg1) << " " << reg(ins_type->reg2);

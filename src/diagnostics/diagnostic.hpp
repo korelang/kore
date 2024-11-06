@@ -48,7 +48,7 @@ namespace kore {
 
     using DiagnosticFormatResult = std::pair<std::string, SourceLocation>;
 
-    /// A diagnostic message emitted the compiler passes
+    /// A diagnostic message emitted by compiler passes
     struct Diagnostic {
         Diagnostic(DiagnosticType type, DiagnosticLevel level, DiagnosticData data);
 

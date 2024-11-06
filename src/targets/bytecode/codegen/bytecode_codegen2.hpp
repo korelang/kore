@@ -25,7 +25,7 @@ namespace kore {
     /// Class for generating bytecode from KIR graphs
     class BytecodeGenerator2 final {
         public:
-            using reg_iterator = std::vector<const Reg>::iterator;
+            using reg_iterator = std::vector<Reg>::iterator;
 
         public:
             BytecodeGenerator2();

@@ -1,6 +1,9 @@
 #include "ast/ast_element_stream_writer.hpp"
+#include "ast/expressions/expressions.hpp"
+#include "ast/statements/statements.hpp"
 #include "logging/color.hpp"
 #include "logging/color_attributes.hpp"
+#include "utils/unused_parameter.hpp"
 
 namespace kore {
     int AstElementStreamWriter::indent_in_spaces = 2;
@@ -197,11 +200,14 @@ namespace kore {
         write_node_name("return");
         write_location(ret);
 
-        if (ret.expr()) {
+        if (ret.expr_count() > 0) {
             newline();
             indent();
             write_indent();
-            ret.expr()->accept(*this);
+
+            for (auto& expr : ret) {
+                expr->accept(*this);
+            }
             dedent();
         }
 
@@ -209,23 +215,24 @@ namespace kore {
     }
 
     void AstElementStreamWriter::visit(VariableAssignment& assignment) {
-        write_node_name("assignment ");
+        UNUSED_PARAM(assignment);
+        /* write_node_name("assignment "); */
 
-        if (assignment.is_mutable()) {
-            write("var ");
-        }
+        /* if (assignment.is_mutable()) { */
+        /*     write("var "); */
+        /* } */
 
-        /* write(assignment.lhs()->name()); */
-        write(" ");
-        write(assignment.declared_type()->name());
-        write_location(assignment);
+        /* /1* write(assignment.lhs()->name()); *1/ */
+        /* write(" "); */
+        /* write(assignment.declared_type()->name()); */
+        /* write_location(assignment); */
 
-        newline();
-        indent();
-        write_indent();
-        assignment.rhs()->accept(*this);
-        dedent();
-        newline();
+        /* newline(); */
+        /* indent(); */
+        /* write_indent(); */
+        /* assignment.rhs()->accept(*this); */
+        /* dedent(); */
+        /* newline(); */
     }
 
     void AstElementStreamWriter::visit(VariableDeclaration& decl) {

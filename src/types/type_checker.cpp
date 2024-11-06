@@ -1,21 +1,19 @@
 #include "type_checker.hpp"
 #include "ast/expressions/binary_expression.hpp"
 #include "ast/expressions/expression.hpp"
+#include "ast/expressions/expressions.hpp"
 #include "ast/statements/branch.hpp"
+#include "ast/statements/if_statement.hpp"
+#include "ast/statements/return_statement.hpp"
 #include "ast/statements/statement.hpp"
 #include "ast/statements/variable_assignment.hpp"
-#include "ast/statements/variable_declaration.hpp"
 #include "diagnostics/diagnostic.hpp"
-#include "diagnostics/diagnostics.hpp"
 #include "errors/errors.hpp"
-/* #include "targets/bytecode/vm/builtins/builtins.hpp" */
 #include "logging/logging.hpp"
 #include "targets/bytecode/vm/builtins/builtins.hpp"
 #include "types/function_type.hpp"
 #include "types/scope.hpp"
 #include "utils/unused_parameter.hpp"
-
-#include <sstream>
 
 namespace kore {
     TypeChecker::TypeChecker(const ParsedCommandLineArgs& args) : _args(&args) {}
@@ -102,6 +100,7 @@ namespace kore {
     }
 
     void TypeChecker::visit(Identifier& identifier) {
+        trace_type_checker("identifier", identifier.type());
         auto entry = _scope_stack.find(identifier.name());
 
         if (entry) {
@@ -161,28 +160,45 @@ namespace kore {
     }
 
     void TypeChecker::visit(VariableAssignment& assignment) {
-        // Visit the right-hand side expression
-        assignment.rhs()->accept(*this);
+        trace_type_checker("assignment");
 
-        auto declared_type = assignment.declared_type();
-        auto expr_type = assignment.rhs()->type();
+        // Typecheck the right-hand side expressions
+        for (int idx = 0; idx < assignment.rhs_count(); ++idx) {
+            assignment.rhs(idx)->accept(*this);
+        }
 
-        trace_type_checker("assignment", declared_type, expr_type);
+        // TODO: Use one of the two loops below
+        for (int idx = 0; idx < assignment.lhs_count(); ++idx) {
+            auto lhs_expr = assignment.lhs(idx);
 
-        // If the variable was not given an explicit type, rely on inferred
-        // type instead
-        if (!declared_type->is_unknown()) {
-            if (declared_type->unify(expr_type)->is_unknown()) {
-                push_error(CannotAssign{ &assignment });
-                return;
+            if (lhs_expr->is_identifier()) {
+                auto declared_type = lhs_expr->as<Identifier>()->declared_type();
+                auto rhs_type = assignment.rhs_type(idx);
+
+                // If the variable was not given an explicit type, rely on inferred
+                // type instead
+                if (!declared_type->is_unknown()) {
+                    if (declared_type->unify(rhs_type)->is_unknown()) {
+                        push_error(CannotAssign{ &assignment, idx });
+                        return;
+                    }
+                }
             }
         }
 
-        auto lhs = assignment.lhs();
-        lhs->accept(*this, ValueContext::LValue);
+        for (int idx = 0; idx < assignment.lhs_count(); ++idx) {
+            auto lhs_expr = assignment.lhs(idx);
+            lhs_expr->accept(*this, ValueContext::LValue);
+            auto rhs_type = assignment.rhs_type(idx);
 
-        if (lhs->type()->unify(assignment.rhs()->type())->is_unknown()) {
-            push_error(CannotAssign{ &assignment });
+            if (lhs_expr->type()->is_unknown() && !rhs_type->is_unknown()) {
+                // No declared type so use the known right-hand side type
+                lhs_expr->set_type(rhs_type);
+            } else {
+                if (lhs_expr->type()->unify(rhs_type)->is_unknown()) {
+                    push_error(CannotAssign{ &assignment, idx });
+                }
+            }
         }
     }
 
@@ -203,7 +219,7 @@ namespace kore {
 
             // TODO: Typecheck builtin function calls
 
-            if (call.arg_count() != builtin_function->arity) {
+            if (call.arg_count() != builtin_function->type->arity()) {
                 /* push_error(errors::typing::incorrect_arg_count( */
                 /*     call, */
                 /*     func_type */
@@ -212,7 +228,7 @@ namespace kore {
                 return;
             }
 
-            call.set_type(builtin_function->ret_types[0]);
+            call.set_type(builtin_function->type->return_type(0));
 
             return;
         }
@@ -233,20 +249,21 @@ namespace kore {
 
         trace_type_checker("call", func_type);
 
-        for (int i = 0; i < call.arg_count(); ++i) {
-            auto arg = call.arg(i);
+        for (int idx = 0; idx < call.arg_count(); ++idx) {
+            auto arg = call.arg(idx);
             arg->accept(*this);
 
             auto arg_type = arg->type();
-            auto param_type = func_type->parameter(i)->type();
+            auto param_type = func_type->get_parameter_type(idx);
             auto unified_type = arg_type->unify(param_type);
 
             if (unified_type->is_unknown()) {
-                push_error(IncorrectArgumentType{ &call, arg, param_type, i });
+                push_error(IncorrectArgumentType{ &call, arg, param_type, idx });
             }
         }
 
-        call.set_type(func_type->return_type());
+        // Set the type of the call to the function type and handle return types later
+        call.set_type(func_type);
     }
 
     void TypeChecker::visit(BinaryExpression& binexpr) {
@@ -363,17 +380,18 @@ namespace kore {
 
         auto func = _scope_stack.enclosing_function();
 
-        if (ret.expr()) {
-            auto expr = ret.expr();
-            expr->accept(*this);
+        if (ret.expr_count() > 0) {
+            for (int idx = 0; idx < ret.expr_count(); ++idx) {
+                auto expr = ret.get_expr(idx);
+                expr->accept(*this);
 
-            if (expr->type()->unify(func->return_type())->is_unknown()) {
-                push_error(ReturnTypeMismatch{ func, &ret });
-                return;
+                if (expr->type()->unify(func->type()->return_type(idx))->is_unknown()) {
+                    push_error(ReturnTypeMismatch{ func, &ret, idx });
+                }
             }
-            push_error(VoidReturnFromNonVoidFunction{ func, &ret });
         } else {
-            if (!func->return_type()->is_void()) {
+            if (!func->type()->return_type(0)->is_void()) {
+                push_error(VoidReturnFromNonVoidFunction{ func, &ret });
             }
         }
     }

@@ -167,6 +167,13 @@ namespace kore {
         return _type_cache.get_array_type(element_type);
     }
 
+    const FunctionType* Type::make_function_type(
+        const std::vector<const Type*>& parameter_types,
+        const std::vector<const Type*>& return_types
+    ) {
+        return _type_cache.get_function_type(parameter_types, return_types);
+    }
+
     const Optional* Type::make_optional_type(const Type* contained_type) {
         return _type_cache.get_optional_type(contained_type);
     }

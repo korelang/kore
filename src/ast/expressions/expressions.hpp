@@ -7,6 +7,7 @@
 #include "ast/expressions/call.hpp"
 #include "ast/expressions/char_expression.hpp"
 #include "ast/expressions/float_expression.hpp"
+#include "ast/expressions/field_access_expression.hpp"
 #include "ast/expressions/identifier.hpp"
 #include "ast/expressions/integer_expression.hpp"
 #include "ast/expressions/parameter.hpp"

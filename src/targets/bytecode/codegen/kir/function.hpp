@@ -27,6 +27,7 @@ namespace kore {
                 void set_register_state(Reg reg, RegisterState state);
                 void set_register_type(Reg reg, const Type* type);
                 Reg allocate_register();
+                std::vector<Reg> allocate_registers(int count);
                 void free_register(Reg reg);
                 void free_registers();
                 RegisterState register_state(Reg reg);
@@ -52,7 +53,7 @@ namespace kore {
                     const std::vector<kore::Reg>& return_registers
                 );
                 void emit_return();
-                void emit_return(Reg retreg);
+                void emit_return(const std::vector<Reg>& regs);
 
                 FuncIndex index() const noexcept;
                 std::string name() const;

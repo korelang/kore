@@ -4,7 +4,6 @@
 #include <vector>
 
 #include "ast/ast.hpp"
-#include "ast/expressions/array_expression.hpp"
 #include "ast/expressions/expression.hpp"
 #include "ast/expressions/identifier.hpp"
 #include "ast/statements/function.hpp"
@@ -15,7 +14,9 @@
 #include "bin/korec/options.hpp"
 
 namespace kore {
+    using ExpressionList = std::vector<Owned<Expression>>;
     using IdentifierList = std::vector<Owned<Identifier>>;
+    using ParseResult = std::optional<Ast>;
 
     /// The parser. Each parse method is annotated with a comment with the /
     /// particular part of the grammar that it handles. It is a recursive descent
@@ -35,13 +36,22 @@ namespace kore {
             /// Parse a non-module string without requiring a module declaration
             /// and normal program structure. This is used to parse expressions
             /// and statements given on the command line or in the REPL
-            void parse_non_module(const std::string& value, Ast* ast, const ParsedCommandLineArgs& args);
+            ParseResult parse_non_module(
+                const std::string& value,
+                const ParsedCommandLineArgs& args
+            );
 
             /// Parse a program in a string 
-            void parse_string(const std::string& value, Ast* ast, const ParsedCommandLineArgs& args);
+            ParseResult parse_string(
+                const std::string& value,
+                const ParsedCommandLineArgs& args
+            );
 
             /// Parse a program in a file
-            void parse_file(const std::string& path, Ast* ast, const ParsedCommandLineArgs& args);
+            ParseResult parse_file(
+                const std::string& path,
+                const ParsedCommandLineArgs& args
+            );
 
         private:
             std::string _module_name;
@@ -54,10 +64,16 @@ namespace kore {
             Ast* _ast;
             const ParsedCommandLineArgs* _args;
 
+            static const std::string MUTABLE_PREFIX;
+
             void trace_parser(const std::string& name);
 
             /* std::vector<ParserWarnings> _warnings; */
             /* std::vector<ParserError> _errors; */
+
+            ParseResult handle_parse_result(Ast& ast);
+
+            void reset();
 
             const Token* current_token();
 
@@ -112,16 +128,17 @@ namespace kore {
             /// TypeAlias = [ "export" ] "type" Identifier "=" Type .
             /* void parse_type_alias(Statement* const parent); */
 
-            Owned<Expression> parse_index_expression(const Token* const identifier);
-            Owned<Expression> parse_index_expression(Owned<Expression> identifier);
+            Owned<Expression> parse_index_expression(Owned<Expression> index_expr);
 
-            void parse_declaration(Statement* const parent);
+            Owned<Expression> parse_field_access_expression(Owned<Expression> expr);
+
+            void parse_declaration(Statement* const parent = nullptr);
 
             /// IfStmt = "if" [ SimpleStmt ] Block [ "else" ( IfStmt | Block ) ] .
             void parse_if_statement(Statement* const parent);
 
             /// TopLevelDecl = Declaration | Function .
-            void parse_toplevel(Statement* const parent);
+            void parse_toplevel(Statement* const parent = nullptr);
 
             /// Function = [ "export" ] "func" FunctionName FuncSignature [ FunctionBody ] .
             void parse_function(Statement* const parent);
@@ -145,6 +162,8 @@ namespace kore {
             IdentifierList parse_identifier_list();
 
             const Type* parse_type();
+
+            std::vector<const Type*> parse_type_list();
 
             /// Block = "{" StatementList "}" .
             void parse_block(Statement* const parent);
@@ -183,11 +202,17 @@ namespace kore {
 
             Owned<Expression> parse_function_call(Owned<Expression> func_name);
 
-            Owned<Expression> parse_expression_list(std::vector<Owned<Expression>>& expr_list);
+            ExpressionList parse_expression_list();
+
+            std::pair<Owned<Expression>, bool> parse_lhs_expression();
+
+            /// Parse a list of expressions that are only valid on the left-hand
+            /// side of an assignment
+            ExpressionList parse_lhs_expression_list();
 
             /// Expression = UnaryExpr | Expression binary_op Expression .
             /// Expresions are parsed using "precedence climbing"
-            Owned<Expression> parse_expression(int precedence);
+            Owned<Expression> parse_expression(int precedence = operator_base_precedence());
     };
 }
 

@@ -3,26 +3,23 @@
 
 #include <vector>
 
-#include "ast/expressions/expression.hpp"
-#include "pointer_types.hpp"
 #include "types/type.hpp"
 
 namespace kore {
-    class Parameter;
-
-    using ParameterList = std::vector<Owned<Identifier>>;
-
     class FunctionType : public Type {
         public:
             FunctionType();
             virtual ~FunctionType();
 
             std::string name() const override;
-            void add_parameter(Owned<Parameter>&& parameter);
-            int arity() const;
-            const Identifier* parameter(int param_index) const;
-            const Type* return_type() const;
-            void set_return_type(const Type* type);
+            void add_parameter_type(const Type* parameter_type);
+            int arity() const noexcept;
+            int return_arity() const noexcept;
+            const Type* get_parameter_type(int idx) const;
+            void set_parameter_types(const std::vector<const Type*> parameter_types);
+            const Type* return_type(int idx) const;
+            void set_return_types(const std::vector<const Type*> return_types);
+            void add_return_type(const Type* type);
 
             const Type* unify(const Type* other_type) const override;
             const Type* unify(const FunctionType* func_type) const override;
@@ -32,11 +29,17 @@ namespace kore {
 
             void write(AstWriter* const writer) const override;
 
-        private:
-            const Type* _return_type;
-            ParameterList _parameters;
+            static std::string create_function_type_name(
+                const std::vector<const Type*>& parameter_types,
+                const std::vector<const Type*>& return_types
+            );
 
-            std::string create_name(bool with_arg_names) const;
+        private:
+            std::string _name;
+            std::vector<const Type*> _parameter_types;
+            std::vector<const Type*> _return_types;
+
+            std::string create_name();
     };
 }
 

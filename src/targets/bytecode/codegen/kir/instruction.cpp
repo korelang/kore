@@ -1,6 +1,4 @@
 #include "targets/bytecode/codegen/kir/instruction.hpp"
-#include <ios>
-#include "utils/unused_parameter.hpp"
 
 namespace kore {
     namespace kir {
@@ -22,8 +20,8 @@ namespace kore {
                 os << " " << ins_type->reg << " " << ins_type->value;
             } else if (auto ins_type = std::get_if<kir::Value>(&instruction.type)) {
                 os << " " << ins_type->value;
-            } else if (auto ins_type = std::get_if<kir::CallV>(&instruction.type)) {
-            } else if (auto ins_type = std::get_if<kir::ReturnV>(&instruction.type)) {
+            } else if (/*auto ins_type = */std::get_if<kir::CallV>(&instruction.type)) {
+            } else if (/*auto ins_type = */std::get_if<kir::ReturnV>(&instruction.type)) {
             }
 
             return os;

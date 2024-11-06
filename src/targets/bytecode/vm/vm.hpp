@@ -82,7 +82,7 @@ namespace kore {
 
                 void dump_registers(std::ostream& os);
 
-                /// Set a return value from builtin function
+                /// Set a return value a from builtin function
                 void set_return_value(const Value& value);
 
                 void vm_fatal_error(const std::string& message);

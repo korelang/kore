@@ -9,51 +9,51 @@ namespace kore {
     const std::string _USAGE_MESSAGE
         = R"(kore - Compiler for the kore programming language
 
-        kore [options] filename
+    kore [options] filename
 
-    Options:
+Options:
 
-        Defaults in brackets after option description if relevant.
+    Defaults in brackets after option description if relevant.
 
-        -h, --help                  Show this help message.
-        --version                   Show the current version information.
+    -h, --help                  Show this help message.
+    --version                   Show the current version information.
 
-        -t, --timings               Show timings from scanning + parsing
-                                    and typechecking.
-        -d, --disassemble           Disassemble a compiled bytecode file.
-        -x, --execute=<expr>        Parse and run an expression or statement.
-        -t, --target=<bytecode>     Select a code generation target [bytecode].
-        -v, --verbose               Increase the amount of program debugging
-                                    output. Can be supplied multiple times to a
-                                    level of three. Repetitions beyond three are
-                                    ignored.
-        --env-vars                  List all available environment variables.
-        --colors, --colours         Control colored output.
-        --c, --compile-only         Only compile to bytecode, do not run. Only
-                                    applicable when --target is 'bytecode'.
-        --typecheck-only            Only perform type checking, then exit.
-        -m, --mem-stats             Show useful memory statistics while running.
+    -t, --timings               Show timings from scanning + parsing
+                                and typechecking.
+    -d, --disassemble           Disassemble a compiled bytecode file.
+    -x, --execute=<expr>        Parse and run an expression or statement.
+    -t, --target=<bytecode>     Select a code generation target [bytecode].
+    -v, --verbose               Increase the amount of program debugging
+                                output. Can be supplied multiple times to a
+                                level of three. Repetitions beyond three are
+                                ignored.
+    --env-vars                  List all available environment variables.
+    --colors, --colours         Control colored output.
+    --c, --compile-only         Only compile to bytecode, do not run. Only
+                                applicable when --target is 'bytecode'.
+    --typecheck-only            Only perform type checking, then exit.
+    -m, --mem-stats             Show useful memory statistics while running.
 
-        Debugging options:
+    Debugging options:
 
-            --trace=<pass>    Output trace information for a compiler pass. Accepted
-                              values are:
+        --trace=<pass>    Output trace information for a compiler pass. Accepted
+                          values are:
 
-                                * scan REMOVE THIS?
-                                * parse
-                                * type_inference
-                                * type_check
-                                * codegen
+                            * scan REMOVE THIS?
+                            * parse
+                            * type_inference
+                            * type_check
+                            * codegen
 
-            --dump=<pass>     Stop at and dump information from various steps of
-                              the compilation process to stderr. Accepted values are:
+        --dump=<pass>     Stop at and dump information from various steps of
+                          the compilation process to stderr. Accepted values are:
 
-                                * scan     Only perform scanning and dump scanned tokens
-                                * parse    Only parse and dump parsed ast elements
-                                * ast      Only parse and dump parsed ast
-                                * kir      Dump intermediate representation
-                                * codegen  Dump generated code for target
-    )";
+                            * scan     Only perform scanning and dump scanned tokens
+                            * parse    Only parse and dump parsed ast elements
+                            * ast      Only parse and dump parsed ast
+                            * kir      Dump intermediate representation
+                            * codegen  Dump generated code for target
+)";
 
     std::map<std::string, TraceOption> arg_to_trace_option{
         { "scan",           TraceOption::Scan },
@@ -186,9 +186,7 @@ namespace kore {
                     return parsed_args;
                 }
             } else {
-                if (i != 0) {
-                    parsed_args.paths.push_back(arg);
-                }
+                parsed_args.paths.push_back(arg);
             }
 
             ++i;

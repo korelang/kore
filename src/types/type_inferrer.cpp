@@ -1,10 +1,11 @@
 #include "type_inferrer.hpp"
 #include "ast/expressions/expression.hpp"
+#include "ast/expressions/expressions.hpp"
+#include "ast/statements/statements.hpp"
 #include "ast/expressions/binary_expression.hpp"
 #include "bin/korec/options.hpp"
 #include "logging/logging.hpp"
 #include "types/function_type.hpp"
-#include "types/unknown_type.hpp"
 #include "utils/unused_parameter.hpp"
 
 namespace kore {
@@ -39,14 +40,14 @@ namespace kore {
             return;
         }
 
-        const Type* inferred_type = array[0]->type();
+        // const Type* inferred_type = array[0]->type();
 
         // We infer the type of an array expression (like [1, 2, 3]) by
         // unifying all element types
         for (int idx = 1; idx < array.size(); ++idx) {
-            auto element_index_type = array[idx]->type();
+            // auto element_index_type = array[idx]->type();
 
-            inferred_type = element_index_type->unify(array[idx]->type());
+            // inferred_type = element_index_type->unify(array[idx]->type());
         }
     }
 
@@ -78,7 +79,7 @@ namespace kore {
                 auto func_type = static_cast<const FunctionType*>(entry->identifier->type());
 
                 // The resulting type of calling a function is its return type
-                call.set_type(func_type->return_type());
+                call.set_type(func_type);
             } else {
                 // Otherwise, the type of the call is unknown
                 call.set_type(Type::unknown());
@@ -116,25 +117,33 @@ namespace kore {
         trace_type_inference("unary expression", expr.type());
     }
 
-    void TypeInferrer::visit(VariableAssignment& statement) {
-        // Do not infer types for variable assignments with an explicit type
-        if (!statement.type()->is_unknown()) {
-            return;
+    void TypeInferrer::visit(VariableAssignment& assignment) {
+        // Visit the right-hand side expressions
+        for (int idx = 0; idx < assignment.rhs_count(); ++idx) {
+            assignment.rhs(idx)->accept(*this);
         }
 
-        trace_type_inference("assignment", statement.type());
+        for (int idx = 0; idx < assignment.lhs_count(); ++idx) {
+            auto lhs_expr = assignment.lhs(idx);
 
-        statement.rhs()->accept(*this);
-        auto rhs_type = statement.rhs()->type();
+            if (lhs_expr->is_identifier()) {
+                auto declared_type = lhs_expr->as<Identifier>()->declared_type();
 
-        // Set the type of the identifier/variable and save it
-        // in the symbol table
-        statement.set_type(rhs_type);
+                // Do not infer types for variable assignments with an explicit type
+                if (!declared_type->is_unknown()) {
+                    continue;
+                }
 
-        // Visit the left-hand side expression as an lvalue
-        statement.lhs()->accept(*this, ValueContext::LValue);
+                auto rhs_type = assignment.rhs_type(idx);
 
-        /* _scope_stack.insert(statement.lhs()); */
+                // Set the type of the identifier/variable and save it
+                // in the symbol table
+                lhs_expr->set_type(rhs_type);
+
+                // Visit the left-hand side expression as an lvalue
+                lhs_expr->accept(*this, ValueContext::LValue);
+            }
+        }
     }
 
     /* void TypeInferrer::visit(Function& statement) { */
@@ -173,8 +182,10 @@ namespace kore {
     void TypeInferrer::visit(Return& ret) {
         trace_type_inference("return");
 
-        if (ret.expr()) {
-            ret.expr()->accept(*this);
+        if (ret.expr_count() > 0) {
+            for (int idx = 0; idx < ret.expr_count(); ++idx) {
+                ret.get_expr(idx)->accept(*this);
+            }
         }
     }
 

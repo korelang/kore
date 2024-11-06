@@ -9,6 +9,7 @@
 #include "types/type_cache.hpp"
 #include "unknown_type.hpp"
 #include "void_type.hpp"
+#include "types/function_type.hpp"
 
 #include <memory>
 
@@ -29,6 +30,32 @@ namespace kore {
 
     const Optional* TypeCache::get_optional_type(const Type* contained_type) {
         return get_non_simple_type(contained_type, _optional_type_cache);
+    }
+
+    const FunctionType* TypeCache::get_function_type(
+        const std::vector<const Type*>& parameter_types,
+        const std::vector<const Type*>& return_types
+    ) {
+        // TODO: Does this need to account for modules?
+        auto full_name = FunctionType::create_function_type_name(
+            parameter_types,
+            return_types
+        );
+
+        auto it = _function_type_cache.find(full_name);
+
+        if (it == _function_type_cache.end()) {
+            auto function_type = std::make_unique<FunctionType>();
+
+            function_type->set_parameter_types(parameter_types);
+            function_type->set_return_types(return_types);
+
+            auto result = _function_type_cache.insert({ full_name, std::move(function_type) });
+
+            it = result.first;
+        }
+
+        return it->second.get();
     }
 
     void TypeCache::define_basic_builtin_types() {

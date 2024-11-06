@@ -17,10 +17,7 @@ namespace kore {
             BuiltinFunctionIndex index;
             BuiltinFunctionPointer func;
             std::string name;
-            int arity;
-            int ret_count;
-            std::vector<const Type*> arg_types;
-            std::vector<const Type*> ret_types;
+            const FunctionType* type;
         };
 
         const BuiltinFunction* get_builtin_function_by_index(BuiltinFunctionIndex idx);

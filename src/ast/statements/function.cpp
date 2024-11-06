@@ -12,21 +12,21 @@ namespace kore {
         : Statement(SourceLocation::unknown, StatementType::Function),
         _name("<missing>"),
         _exported(false),
-        _type(std::make_unique<FunctionType>()) {
+        _type(nullptr) {
     }
 
     Function::Function(bool exported, const Token& token)
         : Statement(token.location(), StatementType::Function),
         _name(token),
         _exported(exported),
-        _type(std::make_unique<FunctionType>()) {
+        _type(nullptr) {
     }
 
     Function::Function(bool exported)
         : Statement(SourceLocation::unknown, StatementType::Function),
         _name("<missing>"),
         _exported(exported),
-        _type(std::make_unique<FunctionType>()) {
+        _type(nullptr) {
     }
 
     Function::~Function() {}
@@ -47,29 +47,20 @@ namespace kore {
         return _type->arity();
     }
 
-    FunctionType* Function::type() const {
-        return _type.get();
+    const FunctionType* Function::type() const {
+        return _type;
     }
 
-    const Type* Function::return_type() const {
-        return _type->return_type();
+    FunctionType* Function::type() {
+        return _type;
     }
 
-    const Identifier* Function::parameter(int param_index) {
-        return _type->parameter(param_index);
+    const Parameter* Function::parameter(int idx) const {
+        return _parameters[idx].get();
     }
 
     void Function::add_parameter(Owned<Parameter>&& parameter) {
-        _type->add_parameter(std::move(parameter));
-    }
-
-    void Function::set_return_type(const Type* type) {
-        _type->set_return_type(type);
-
-        // After parsing the return type, and therefore the parameters,
-        // set the type of the identifier associated with the function
-        // which will later be saved in lexical scopes
-        _name.set_type(_type.get());
+        _parameters.emplace_back(std::move(parameter));
     }
 
     void Function::add_statement(Owned<Statement> statement) {

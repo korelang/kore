@@ -32,7 +32,7 @@ namespace kore {
     class Module final {
         public:
             using pointer = Owned<Module>;
-            using object_iterator = std::vector<CompiledObject::const_pointer>::const_iterator;
+            using object_iterator = std::vector<CompiledObject::pointer>::const_iterator;
 
         public:
             Module();

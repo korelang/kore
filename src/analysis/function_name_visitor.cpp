@@ -1,4 +1,5 @@
 #include "function_name_visitor.hpp"
+#include "ast/statements/function.hpp"
 
 namespace kore {
     namespace analysis {

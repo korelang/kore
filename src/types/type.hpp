@@ -38,7 +38,7 @@ namespace kore {
             virtual const Type* unify(const Type* other_type) const;
             virtual const Type* unify(const IntegerType* int_type) const;
             virtual const Type* unify(const FloatType* int_type) const;
-            virtual const Type* unify(const CharType* str_type) const;
+            virtual const Type* unify(const CharType* char_type) const;
             virtual const Type* unify(const StrType* str_type) const;
             virtual const Type* unify(const BoolType* bool_type) const;
             virtual const Type* unify(const Optional* optional) const;
@@ -52,15 +52,24 @@ namespace kore {
             static const VoidType* void_type();
             static ArrayType* make_array_type(const Type* element_type);
             static const Optional* make_optional_type(const Type* contained_type);
+            static const FunctionType* make_function_type(
+                const std::vector<const Type*>& parameter_types,
+                const std::vector<const Type*>& return_types
+            );
             static const Type* get_type_from_category(TypeCategory category);
-
             static const Type* from_token(const Token& token);
+
+            template<typename T>
+            const T* as() const {
+                return static_cast<const T*>(this);
+            }
 
         protected:
             Type(TypeCategory type_type);
 
         private:
             TypeCategory _category;
+            /* bool _inferred = false; */
 
             // Static methods for getting common types
             static TypeCache _type_cache;

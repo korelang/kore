@@ -16,6 +16,8 @@
 namespace kore {
     Statement::Statement() : AstNode(SourceLocation::unknown) {}
 
+    Statement::Statement(StatementType statement_type) : _statement_type(statement_type) {}
+
     Statement::Statement(SourceLocation location, StatementType statement_type)
         : AstNode(location), _statement_type(statement_type) {}
 

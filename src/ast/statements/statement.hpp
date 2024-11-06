@@ -28,6 +28,7 @@ namespace kore {
 
         public:
             Statement();
+            Statement(StatementType statement_type);
             Statement(SourceLocation location, StatementType statement_type);
             virtual ~Statement();
 

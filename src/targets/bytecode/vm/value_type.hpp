@@ -20,6 +20,8 @@ namespace kore {
             /* Str, */
         };
 
+        class ArrayValue;
+
         /// The types for the vm's runtime values implemented
         /// as a tagged union
         struct Value {

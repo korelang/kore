@@ -17,12 +17,14 @@ namespace kore {
 
             public:
                 ArrayValue();
+                ArrayValue(std::size_t size);
                 ~ArrayValue();
 
                 Value& operator[](int index);
                 const Value& operator[](int index) const;
                 bool operator==(const ArrayValue& other);
                 std::vector<Value>::size_type size() const;
+                void clear();
 
                 static ArrayValue* allocate(std::size_t size);
 

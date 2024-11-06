@@ -11,6 +11,7 @@ namespace kore {
         Float32,
         Float64,
         Function,
+        Generic,
         Integer32,
         Integer64,
         Map,

@@ -68,6 +68,12 @@ namespace kore {
         return oss.str();
     }
 
+    void SourceLocation::merge(const SourceLocation& location) {
+        _lnum = std::min(_lnum, location.lnum());
+        _start_col = std::min(_start_col, location.start());
+        _end_col = std::max(_end_col, location.end());
+    }
+
     const SourceLocation SourceLocation::unknown = SourceLocation();
 
     std::ostream& operator<<(std::ostream& os, const SourceLocation& location) {

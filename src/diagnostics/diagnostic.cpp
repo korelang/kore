@@ -2,7 +2,6 @@
 #include "ast/expressions/call.hpp"
 #include "ast/statements/function.hpp"
 #include "ast/statements/return_statement.hpp"
-#include "diagnostics/diagnostics.hpp"
 #include "logging/color.hpp"
 #include "logging/color_attributes.hpp"
 #include "types/function_type.hpp"
@@ -31,10 +30,12 @@ namespace kore {
         }
 
         DiagnosticFormatResult operator()(CannotAssign data) {
+            auto rhs_type = data.assignment->rhs_type(data.lhs_idx);
+
             auto message = "cannot assign expression of type "
-                + data.assignment->lhs()->type()->name()
+                + rhs_type->name()
                 + " to variable of type "
-                + data.assignment->rhs()->type()->name()
+                + data.assignment->lhs(data.lhs_idx)->type()->name()
                 + " without conversion";
 
             return { message, data.assignment->location() };
@@ -64,15 +65,15 @@ namespace kore {
 
         DiagnosticFormatResult operator()(ReturnTypeMismatch data) {
             auto message = "trying to return "
-                + data.ret->expr()->type()->name()
+                + data.ret->get_expr(data.idx)->type()->name()
                 + " from function " + quote(data.function->name())
-                + " returning " + data.function->return_type()->name();
+                + " returning " + data.function->type()->return_type(data.idx)->name();
 
             return { message, data.ret->location() };
         }
 
         DiagnosticFormatResult operator()(VoidReturnFromNonVoidFunction data) {
-            auto message = "trying to return void from non-void function "
+            auto message = "cannot return void from non-void function "
                 + quote(data.function->name());
 
             return { message, data.ret->location() };

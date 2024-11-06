@@ -4,6 +4,7 @@
 #include "targets/bytecode/vm/builtins/builtins.hpp"
 #include "targets/bytecode/vm/config.hpp"
 #include "targets/bytecode/vm/vm.hpp"
+#include "types/function_type.hpp"
 #include "utils/unused_parameter.hpp"
 
 #define BINARY_OP(arg_type, ret_type, op) {\
@@ -486,7 +487,7 @@ namespace kore {
             // instruction by the caller which is either the next instruction
             // to execute or the one containing argument/return registers if
             // there were any
-            if (callable.builtin->arity + callable.builtin->ret_count > 0) {
+            if (callable.builtin->type->arity() + callable.builtin->type->return_arity() > 0) {
                 ++_context.pc;
             }
         }

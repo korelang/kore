@@ -50,7 +50,9 @@ namespace kore {
             AstNode(const SourceLocation& location);
             virtual ~AstNode();
 
-            SourceLocation location() const;
+            SourceLocation& location();
+            const SourceLocation& location() const;
+            void set_location(const SourceLocation& location);
 
             virtual void accept(AstVisitor& visitor);
             virtual void accept(AstVisitor& visitor, ValueContext context);

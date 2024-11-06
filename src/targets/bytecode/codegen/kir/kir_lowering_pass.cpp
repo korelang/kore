@@ -7,7 +7,9 @@
 #include "targets/bytecode/codegen/kir/kir_lowering_pass.hpp"
 #include "targets/bytecode/register.hpp"
 #include "targets/bytecode/vm/builtins/builtins.hpp"
-#include "utils/unused_parameter.hpp"
+#include "types/function_type.hpp"
+
+#include <cassert>
 
 namespace kore {
     namespace kir {
@@ -186,15 +188,20 @@ namespace kore {
             }
         }
 
-        void KirLoweringPass::visit(VariableAssignment& statement) {
+        void KirLoweringPass::visit(VariableAssignment& assignment) {
             trace_kir("assignment");
 
             // Generate code for the right-hand side expression and push the resulting
             // register for the left-hand side
-            push_register(visit_expression(statement.rhs()));
+            for (int idx = 0; idx < assignment.rhs_count(); ++idx) {
+                push_register(visit_expression(assignment.rhs(idx)));
+            }
 
-            // Generate code for the left-hand side expression
-            statement.lhs()->accept(*this, ValueContext::LValue);
+            // Generate code for the left-hand side expression. Right-hand side
+            // registers were pushed in LIFO order so start from the end
+            for (int idx = assignment.lhs_count() - 1; idx >= 0; --idx) {
+                assignment.lhs(idx)->accept(*this, ValueContext::LValue);
+            }
         }
 
         void KirLoweringPass::visit(IfStatement& ifstatement) {
@@ -294,40 +301,39 @@ namespace kore {
             return arg_registers;
         }
 
-        Regs KirLoweringPass::allocate_function_return_registers(class Call& call) {
-            UNUSED_PARAM(call);
-
-            // TODO: Support multiple return values. We need to know how many
-            // values are being expected to be returned from the parser
-            return { current_function().allocate_register() };
-        }
-
         void KirLoweringPass::visit(class Call& call) {
             auto& func = current_function();
             Regs arg_registers = visit_function_arguments(call);
-            Regs return_registers = allocate_function_return_registers(call);
+            int func_index = -1;
+            int return_register_count = 0;
 
             // Check if this is a built-in function
             auto builtin_function = vm::get_builtin_function_by_name(call.name());
 
             if (builtin_function) {
                 trace_kir("builtin call", call.name());
-                Regs builtin_return_registers;
-
-                if (builtin_function->ret_count > 0) {
-                    builtin_return_registers = return_registers;
-                }
-
-                func.emit_call(func.emit_load_function(builtin_function->index), arg_registers, builtin_return_registers);
+                func_index = builtin_function->index;
+                return_register_count = builtin_function->type->return_arity();
             } else {
                 trace_kir("call", call.name());
 
-                int func_index = _functions[call.name()].first;
-                func.emit_call(func.emit_load_function(func_index), arg_registers, return_registers);
+                auto user_func = _functions[call.name()];
+                func_index = user_func.first;
+                return_register_count = user_func.second->type()->return_arity();
             }
 
-            // Push single destination (return) register
-            push_register(return_registers[0]);
+            Regs return_registers = func.allocate_registers(return_register_count);
+
+            func.emit_call(
+                func.emit_load_function(func_index),
+                arg_registers,
+                return_registers
+            );
+
+            // Push all return registers
+            for (auto reg : return_registers) {
+                push_register(reg);
+            }
         }
 
         void KirLoweringPass::visit(Return& ret) {
@@ -336,10 +342,18 @@ namespace kore {
 
             // If the return statement returns an expression, generate code
             // for it, then get its register
-            if (ret.expr()) {
-                auto reg = visit_expression(ret.expr());
-                func.emit_return(reg);
-                func.set_register_state(reg, RegisterState::Moved);
+            if (ret.expr_count() > 0) {
+                std::vector<Reg> regs;
+
+                for (auto& expr : ret) {
+                    regs.push_back(visit_expression(expr.get()));
+                }
+
+                func.emit_return(regs);
+
+                for (auto reg : regs) {
+                    func.set_register_state(reg, RegisterState::Moved);
+                }
             } else {
                 // Otherwise return zero registers
                 func.emit_return();
