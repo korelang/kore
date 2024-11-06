@@ -1,0 +1,4 @@
+module main
+
+a i64 = 1
+b f64 = 2.0

@@ -1,0 +1,12 @@
+module main
+
+func test(cond bool) i32 {
+    if cond {
+        return 10
+    } else {
+        return 5
+    }
+}
+
+test(true)
+test(false)

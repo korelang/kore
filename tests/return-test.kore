@@ -1,0 +1,7 @@
+module main
+
+func test(a i32, b i32) i32 {
+    return a + b
+}
+
+c = test(1, 2)

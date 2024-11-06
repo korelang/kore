@@ -1,0 +1,8 @@
+module main
+
+func reg_test(x i32, y i32) i32 {
+    var z = x + y
+    z = z * z
+
+    return z
+}

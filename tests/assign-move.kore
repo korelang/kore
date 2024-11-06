@@ -1,0 +1,8 @@
+module main
+
+func test() {
+    a = 10
+    b = a
+}
+
+test()

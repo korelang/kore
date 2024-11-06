@@ -1,0 +1,10 @@
+module main
+
+g = 100
+
+func test(value i32) i32 {
+    return g - value
+}
+
+test(25)
+test(82)

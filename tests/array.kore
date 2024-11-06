@@ -1,0 +1,12 @@
+module main
+
+{
+    a = [1, 2, 3]
+
+    b = a
+
+    # Error: Can't mutate a through borrow b
+    # b[0] = 10
+
+    print(b)
+}

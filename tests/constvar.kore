@@ -1,0 +1,8 @@
+#module main
+
+func testvar() {
+    var a = 10
+    a = 20
+    b = 1
+    c = 2
+}
