@@ -114,6 +114,7 @@ namespace kore {
 
         // Arrays
         ArrayAlloc,
+        ArrayFree,
         ArrayGet,
         ArraySet,
 
