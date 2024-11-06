@@ -1,10 +1,12 @@
-module main
+# module main
 
-#a = 1 + 2
-arr i32[] = [1, 2, 3, 4]
-#flag bool = true
-#symbol char = '€'
-#unicode str = "你好，世界"
-maybe str? = "yes"
+func test() {
+    a = [1, 2, 3]
 
-#b str? = 'b'?
+    print(a)
+    print(a[0])
+    print(a[1])
+    print(a[2])
+}
+
+test()

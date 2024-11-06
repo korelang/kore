@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <iostream>
+#include <sstream>
 
 #include "logging/logging.hpp"
 
@@ -35,6 +36,34 @@ namespace kore {
         std::cerr << "] " << ColorAttribute::Reset;
 
         std::vfprintf(stderr, format, args);
+
+        if (newline) {
+            std::cerr << std::endl;
+        }
+    }
+
+    void output_stream(
+        int indent,
+        const std::string& level,
+        const std::string& group,
+        const Color& color,
+        const ColorAttribute& attribute,
+        bool newline,
+        const std::ostringstream& oss
+    ) {
+        std::cerr << color << attribute;
+
+        if (indent > 0) {
+            std::cerr << "    ";
+        }
+
+        std::cerr << "[" << level;
+
+        if (!group.empty()) {
+            std::cerr << ":" << group;
+        }
+
+        std::cerr << "] " << ColorAttribute::Reset << oss.str();
 
         if (newline) {
             std::cerr << std::endl;
@@ -89,6 +118,10 @@ namespace kore {
         va_start(args, format);
         output(0, "debug", group, Color::Cyan, ColorAttribute::None, true, format, args);
         va_end(args);
+    }
+
+    void log_group(const std::string& group, const std::ostringstream& oss, const std::string& level) {
+        output_stream(0, level, group, Color::Cyan, ColorAttribute::None, true, oss);
     }
 
     void info(const char* const format, ...) {

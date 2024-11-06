@@ -35,6 +35,8 @@ namespace kore {
 
     void debug_group(const std::string& group, const char* const format, ...);
 
+    void log_group(const std::string& group, const std::ostringstream& oss, const std::string& level);
+
     void info(const char* const format, ...);
 
     void info_group(const std::string& group, const char* const format, ...);

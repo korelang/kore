@@ -19,6 +19,14 @@ namespace kore {
     using ModuleIndex = unsigned int;
     using function_map = std::unordered_map<std::string, CompiledObject*>;
 
+    template<typename T>
+    using enabled_constant_value_type = std::disjunction<
+        std::enable_if_t<std::is_same_v<T, kore::i32>>,
+        std::enable_if_t<std::is_same_v<T, kore::i64>>,
+        std::enable_if_t<std::is_same_v<T, kore::f32>>,
+        std::enable_if_t<std::is_same_v<T, kore::f64>>
+    >;
+
     /// A module represents a kore module and is a collection of constants and
     /// compiled code
     class Module final {
