@@ -10,7 +10,7 @@ notes/
 *.kc
 chunk.hpp
 buffered_input_stream.*
-diagnostics.hpp
+src/diagnostics.hpp
 example-errors.txt
 source_file.*
 test.html
