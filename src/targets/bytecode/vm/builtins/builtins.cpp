@@ -39,6 +39,10 @@ namespace kore {
         
         /* static_assert(_builtins.size() == _builtins_by_name.size()); */
 
+        int builtin_function_count() {
+            return _builtins.size();
+        }
+
         const BuiltinFunction* get_builtin_function_by_index(BuiltinFunctionIndex idx) {
             if (idx >= _builtins.size()) {
                 return nullptr;

@@ -121,7 +121,7 @@ namespace kore {
                 throw std::runtime_error("register overflow");
             }
 
-            std::vector<Reg> regs{ count };
+            std::vector<Reg> regs;
 
             for (int idx = 0; idx < count; ++idx) {
                 Reg reg = _reg_count++;

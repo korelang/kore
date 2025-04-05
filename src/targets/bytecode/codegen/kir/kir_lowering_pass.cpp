@@ -318,8 +318,8 @@ namespace kore {
                 trace_kir("call", call.name());
 
                 auto user_func = _functions[call.name()];
-                func_index = user_func.first;
-                return_register_count = user_func.second->type()->return_arity();
+                func_index = user_func.func_index;
+                return_register_count = user_func.func->type()->return_arity();
             }
 
             Regs return_registers = func.allocate_registers(return_register_count);

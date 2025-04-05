@@ -81,5 +81,11 @@ namespace kore {
         _declared_type = type;
     }
 
-    KORE_AST_VISITOR_ACCEPT_METHOD_DEFAULT_IMPL(Identifier)
+    void Identifier::accept(AstVisitor& visitor) {
+        visitor.visit(*this);
+    }
+
+    void Identifier::accept(AstVisitor& visitor, ValueContext context) {
+        visitor.visit(*this, context);
+    }
 }

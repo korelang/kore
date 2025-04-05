@@ -216,23 +216,23 @@ namespace kore {
 
     void AstElementStreamWriter::visit(VariableAssignment& assignment) {
         UNUSED_PARAM(assignment);
-        /* write_node_name("assignment "); */
+        write_node_name("assignment ");
 
-        /* if (assignment.is_mutable()) { */
-        /*     write("var "); */
-        /* } */
-
-        /* /1* write(assignment.lhs()->name()); *1/ */
-        /* write(" "); */
-        /* write(assignment.declared_type()->name()); */
-        /* write_location(assignment); */
-
-        /* newline(); */
-        /* indent(); */
-        /* write_indent(); */
-        /* assignment.rhs()->accept(*this); */
-        /* dedent(); */
-        /* newline(); */
+        // if (assignment.is_mutable()) {
+        //     write("var ");
+        // }
+        //
+        // write(assignment.lhs()->name());
+        // write(" ");
+        // write(assignment.declared_type()->name());
+        // write_location(assignment);
+        //
+        // newline();
+        // indent();
+        // write_indent();
+        // assignment.rhs()->accept(*this);
+        // dedent();
+        // newline();
     }
 
     void AstElementStreamWriter::visit(VariableDeclaration& decl) {

@@ -37,8 +37,12 @@ namespace kore {
         private:
             std::string _value;
             bool _is_mutable = false;
-            const Type* _declared_type;
             std::vector<std::string> _parts;
+
+            // The declared type (in source code) of the identifier which
+            // differs from the resolved type of the expression (base class)
+            // as resolved in the type inference pass
+            const Type* _declared_type = Type::unknown();
     };
 }
 

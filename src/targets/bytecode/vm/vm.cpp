@@ -353,7 +353,7 @@ namespace kore {
             return true;
         }
 
-        void Vm::deallocate_local_stack(const CallFrame& call_frame) {
+        void Vm::deallocate_frame(const CallFrame& call_frame) {
             _context.sp -= call_frame.reg_count;
         }
 
@@ -414,29 +414,28 @@ namespace kore {
 
         int Vm::push_function_arguments(bytecode_type instruction, std::size_t old_fp) {
             int arg_count = GET_REG2(instruction);
-            int shift = 24;
 
             if (arg_count > 0) {
                 CallFrame& frame = current_frame();
-
-                // Get the instruction containing the beginning of the argument
-                // registers
-                instruction = frame.code[_context.pc];
+                auto code = reinterpret_cast<const std::uint8_t*>(frame.code);
 
                 // Move argument registers into the callee's register window
-                for (int i = 0; i < arg_count; ++i, shift -= 8) {
-                    Reg dst_reg = _context.fp + i;
-                    Reg src_reg = old_fp + ((instruction >> shift) & 0xff);
+                for (int idx = 0; idx < arg_count; ++idx) {
+                    int dst_reg = _context.fp + idx;
+                    int src_reg = old_fp + code[idx];
+
                     move(dst_reg, src_reg);
 
-                    if (shift == 0) {
-                        shift = 24;
-                        instruction = frame.code[_context.pc++];
+                    if (idx % 4 == 0) {
+                        ++_context.pc;
                     }
                 }
+
+                // Adjust program counter
+                _context.pc += std::ceil(arg_count / 4);
             }
 
-            return shift;
+            return arg_count;
         }
 
         void Vm::push_call_frame(CallFrame call_frame) {
@@ -505,42 +504,37 @@ namespace kore {
             int ret_count = GET_REG1(instruction);
 
             if (ret_count > 0) {
-                auto shift = frame.shift;
+                // Get the return instruction of the current frame
+                auto ret_code = reinterpret_cast<const std::uint8_t*>(frame.code);
 
                 // Get the instruction at the return address
                 auto& caller = get_caller();
-                bytecode_type ret = caller.code[frame.old_pc++];
+                auto dst_code = reinterpret_cast<const std::uint8_t*>(caller.code);
+                int src_ins_idx = 2; // ret opcode + ret count
+                int dst_ins_idx = frame.shift;
 
-                // TODO: Perhaps just cast to uint8_t here and copy values
-
-                // Copy return registers into destination registers in the
-                // previous call frame
-                for (int i = 0, ret_shift = 8; i < ret_count; ++i, shift -= 8, ret_shift -= 8) {
-                    // Get a source register from the return instruction
-                    Reg src_reg = _context.fp + ((instruction >> ret_shift) & 0xff);
-
-                    // Get a destination register from the return address instruction
-                    // which is a register encoded in the original call instruction
-                    Reg dst_reg = frame.old_fp + ((ret >> shift) & 0xff);
+                for (int i = 0; i < ret_count; ++i) {
+                    int src_reg = _context.fp + ret_code[src_ins_idx];
+                    int dst_reg = frame.old_fp + dst_code[dst_ins_idx];
 
                     move(dst_reg, src_reg);
 
-                    if (shift == 0) {
-                        shift = 24;
-                        instruction = caller.code[frame.old_pc++];
+                    // Adjust the old and current (32-bit) program counters
+                    if (++src_ins_idx % 4 == 0) {
+                        ++_context.pc;
                     }
 
-                    if (ret_shift == 0) {
-                        ret_shift = 24;
-                        ret = frame.code[_context.pc++];
+                    if (++dst_ins_idx % 4 == 0) {
+                        ++frame.old_pc;
                     }
                 }
             }
 
-            // Reset the stack pointer to the base of the current call frame
-            // just beyond the register window of the caller. Restore the old
-            // frame pointer and program counter
-            deallocate_local_stack(frame);
+            // Deallocate the current call frame by resetting the stack pointer
+            // to the base of it just beyond the register window of the caller.
+            deallocate_frame(frame);
+
+            // Restore the old frame pointer and program counter
             _context.restore(frame);
 
             _call_frames.pop_back();
@@ -573,8 +567,8 @@ namespace kore {
             return _context.sp - 1;
         }
 
-        void Vm::move(Reg dst_reg, Reg src_reg) {
-            _registers[dst_reg] = _registers[src_reg];
+        void Vm::move(Reg dst_reg_pos, Reg src_reg_pos) {
+            _registers[dst_reg_pos] = _registers[src_reg_pos];
         }
 
         void Vm::add_module(Module& module) {

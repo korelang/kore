@@ -119,7 +119,7 @@ namespace kore {
                 bool allocate_local_stack(const CompiledObject* const obj);
 
                 /// Deallocate local stack space for a call frame
-                void deallocate_local_stack(const CallFrame& call_frame);
+                void deallocate_frame(const CallFrame& call_frame);
 
                 void vm_error(const std::string& message);
                 void vm_error_unknown_opcode(Bytecode opcode);
@@ -167,7 +167,7 @@ namespace kore {
                 inline int top();
 
                 /// Move a value from a source register to a destination register
-                inline void move(Reg src_reg, Reg dst_reg);
+                inline void move(Reg dst_reg_pos, Reg src_reg_pos);
 
                 void add_module(Module& module);
 

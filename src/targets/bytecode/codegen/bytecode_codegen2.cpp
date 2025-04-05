@@ -279,7 +279,7 @@ namespace kore {
             auto registers = ins_type->registers;
 
             if (registers.empty()) {
-                write_be32(KORE_MAKE_INSTRUCTION0(opcode));
+                write_be32(KORE_MAKE_INSTRUCTION1(opcode, 0));
             } else {
                 std::vector<std::uint8_t> bytes{
                     static_cast<std::uint8_t>(opcode),

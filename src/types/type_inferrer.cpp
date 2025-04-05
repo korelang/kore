@@ -76,7 +76,7 @@ namespace kore {
             auto type = entry->identifier->type();
 
             if (type->is_function()) {
-                auto func_type = static_cast<const FunctionType*>(entry->identifier->type());
+                auto func_type = static_cast<const FunctionType*>(type);
 
                 // The resulting type of calling a function is its return type
                 call.set_type(func_type);
@@ -126,22 +126,24 @@ namespace kore {
         for (int idx = 0; idx < assignment.lhs_count(); ++idx) {
             auto lhs_expr = assignment.lhs(idx);
 
+            lhs_expr->accept(*this, ValueContext::LValue);
+
             if (lhs_expr->is_identifier()) {
                 auto declared_type = lhs_expr->as<Identifier>()->declared_type();
 
                 // Do not infer types for variable assignments with an explicit type
-                if (!declared_type->is_unknown()) {
-                    continue;
+                if (declared_type->is_unknown()) {
+                    lhs_expr->set_type(assignment.rhs_type(idx));
+                } else {
+                    lhs_expr->set_type(declared_type);
                 }
-
-                auto rhs_type = assignment.rhs_type(idx);
-
-                // Set the type of the identifier/variable and save it
-                // in the symbol table
-                lhs_expr->set_type(rhs_type);
-
-                // Visit the left-hand side expression as an lvalue
-                lhs_expr->accept(*this, ValueContext::LValue);
+            } else {
+                if (lhs_expr->type()->is_unknown()) {
+                    // If the type is still unknown, it is being assigned for the first time
+                    // here and it has no declared type so use the type of the right-hand side
+                    // value
+                    lhs_expr->set_type(assignment.rhs_type(idx));
+                }
             }
         }
     }

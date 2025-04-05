@@ -32,7 +32,7 @@ namespace kore {
     }
 
     Return::iterator Return::end() {
-        return _exprs.begin();
+        return _exprs.end();
     }
 
     KORE_AST_VISITOR_ACCEPT_METHOD_DEFAULT_IMPL(Return)

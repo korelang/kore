@@ -65,7 +65,7 @@ namespace kore {
             CompiledObject* main_object();
             /* const CompiledObject* main_object() const; */
             CompiledObject* get_function(const std::string& name);
-            CompiledObject* get_function_by_index(int index);
+            CompiledObject* get_function_by_index(size_t index);
             void add_function(
                 const std::string& name,
                 int lnum,

@@ -28,6 +28,7 @@ namespace kore {
             int arity() const;
             FunctionType* type();
             const FunctionType* type() const;
+            void set_type(FunctionType* type);
 
             const Parameter* parameter(int idx) const;
             void add_parameter(Owned<Parameter>&& parameter);
@@ -44,6 +45,8 @@ namespace kore {
             Identifier _name;
             bool _exported;
             FunctionType* _type;
+            // TODO: Should we remove or duplicate parameter types in function
+            // type?
             std::vector<Owned<Parameter>> _parameters;
             StatementList _body;
             std::vector<Statement*> _returns;

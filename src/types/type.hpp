@@ -56,6 +56,7 @@ namespace kore {
                 const std::vector<const Type*>& parameter_types,
                 const std::vector<const Type*>& return_types
             );
+            static void set_function_type(std::unique_ptr<FunctionType>&& func_type);
             static const Type* get_type_from_category(TypeCategory category);
             static const Type* from_token(const Token& token);
 

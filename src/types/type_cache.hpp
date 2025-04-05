@@ -5,6 +5,7 @@
 #include "type_category.hpp"
 
 #include <unordered_map>
+#include <vector>
 
 namespace kore {
     class Type;
@@ -29,6 +30,7 @@ namespace kore {
                 const std::vector<const Type*>& parameter_types,
                 const std::vector<const Type*>& return_types
             );
+            void set_function_type(std::unique_ptr<FunctionType>&& func_type);
 
         private:
             void _add_type(Owned<Type>&& type);

@@ -1,4 +1,5 @@
 #include "instruction.hpp"
+#include "targets/bytecode/module_load_error.hpp"
 #include "targets/bytecode/register.hpp"
 #include "targets/bytecode/vm/builtins/builtins.hpp"
 
@@ -36,7 +37,7 @@ namespace koredis {
         for (std::size_t i = 0; i < _regs.size(); ++i) {
             os << reg(_regs[i]);
 
-            if (i - 1 < _regs.size()) {
+            if (i < _regs.size() - 1) {
                 os << " ";
             }
         }
@@ -95,10 +96,18 @@ namespace koredis {
                 if (builtin) {
                     name = builtin->name;
                 } else {
-                    name = module.get_function_by_index(index)->name();
+                    auto obj = module.get_function_by_index(index);
+
+                    // TODO: Perhaps move this check to decode_instruction so
+                    // that this function is only concerned with formatting
+                    if (!obj) {
+                        throw kore::ModuleLoadError("Failed to decode instruction");
+                    }
+
+                    name = obj->name();
                 }
 
-                os << " [" << name;
+                os << " " << index << " [" << name;
 
                 if (builtin) {
                     os << " (builtin)";

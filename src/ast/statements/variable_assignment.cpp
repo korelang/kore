@@ -51,7 +51,7 @@ namespace kore {
             if (expr->expr_type() == ExpressionType::Call) {
                 auto func_type = expr->type()->as<FunctionType>();
 
-                if (rhs_idx + func_type->return_arity() < idx) {
+                if (idx < rhs_idx + func_type->return_arity()) {
                     return func_type->return_type(idx - rhs_idx);
                 } else {
                     rhs_idx += func_type->return_arity();

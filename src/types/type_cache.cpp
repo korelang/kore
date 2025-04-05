@@ -21,7 +21,13 @@ namespace kore {
     TypeCache::~TypeCache() {}
 
     const Type* TypeCache::get_type(TypeCategory category) {
-        return _type_cache[category].get();
+        const auto& type = _type_cache[category];
+
+        if (!type) {
+            throw std::runtime_error("No type found in cache for category");
+        }
+
+        return type.get();
     }
 
     ArrayType* TypeCache::get_array_type(const Type* contained_type) {
@@ -36,7 +42,7 @@ namespace kore {
         const std::vector<const Type*>& parameter_types,
         const std::vector<const Type*>& return_types
     ) {
-        // TODO: Does this need to account for modules?
+        // TODO: This needs to account for modules
         auto full_name = FunctionType::create_function_type_name(
             parameter_types,
             return_types
@@ -56,6 +62,16 @@ namespace kore {
         }
 
         return it->second.get();
+    }
+
+    void TypeCache::set_function_type(std::unique_ptr<FunctionType>&& func_type) {
+        // TODO: This needs to account for modules
+        auto full_name = func_type->create_function_type_name();
+        auto it = _function_type_cache.find(full_name);
+
+        if (it == _function_type_cache.end()) {
+            _function_type_cache[full_name] = std::move(func_type);
+        }
     }
 
     void TypeCache::define_basic_builtin_types() {

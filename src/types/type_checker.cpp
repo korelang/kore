@@ -167,37 +167,14 @@ namespace kore {
             assignment.rhs(idx)->accept(*this);
         }
 
-        // TODO: Use one of the two loops below
-        for (int idx = 0; idx < assignment.lhs_count(); ++idx) {
-            auto lhs_expr = assignment.lhs(idx);
-
-            if (lhs_expr->is_identifier()) {
-                auto declared_type = lhs_expr->as<Identifier>()->declared_type();
-                auto rhs_type = assignment.rhs_type(idx);
-
-                // If the variable was not given an explicit type, rely on inferred
-                // type instead
-                if (!declared_type->is_unknown()) {
-                    if (declared_type->unify(rhs_type)->is_unknown()) {
-                        push_error(CannotAssign{ &assignment, idx });
-                        return;
-                    }
-                }
-            }
-        }
-
         for (int idx = 0; idx < assignment.lhs_count(); ++idx) {
             auto lhs_expr = assignment.lhs(idx);
             lhs_expr->accept(*this, ValueContext::LValue);
             auto rhs_type = assignment.rhs_type(idx);
 
-            if (lhs_expr->type()->is_unknown() && !rhs_type->is_unknown()) {
-                // No declared type so use the known right-hand side type
-                lhs_expr->set_type(rhs_type);
-            } else {
-                if (lhs_expr->type()->unify(rhs_type)->is_unknown()) {
-                    push_error(CannotAssign{ &assignment, idx });
-                }
+            // FIX: Null pointer access here
+            if (lhs_expr->type()->unify(rhs_type)->is_unknown()) {
+                push_error(CannotAssign{ &assignment, idx });
             }
         }
     }

@@ -13,9 +13,6 @@ namespace kore {
             virtual ~Parameter();
 
             KORE_AST_VISITOR_ACCEPT_METHOD_DEFAULT_DEFINITION
-
-        private:
-            std::string _name;
     };
 }
 

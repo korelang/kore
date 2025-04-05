@@ -31,6 +31,7 @@ namespace kore {
     class VariableDeclaration;
     class ExpressionStatement;
 
+    // TODO: Split this up into AstExprVisitor and AstStatementVisitor classes
     class AstVisitor {
         public:
             AstVisitor();

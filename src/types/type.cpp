@@ -174,6 +174,10 @@ namespace kore {
         return _type_cache.get_function_type(parameter_types, return_types);
     }
 
+    void Type::set_function_type(std::unique_ptr<FunctionType>&& func_type) {
+        _type_cache.set_function_type(std::move(func_type));
+    }
+
     const Optional* Type::make_optional_type(const Type* contained_type) {
         return _type_cache.get_optional_type(contained_type);
     }

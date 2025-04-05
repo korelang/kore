@@ -212,6 +212,8 @@ namespace kore {
 
     void section(const Diagnostic& diagnostic, int indent) {
         va_list args;
+
+        // TODO: Output a possible source location here as well
         output(
             indent,
             diagnostic.group(),

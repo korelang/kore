@@ -83,6 +83,8 @@ namespace kore {
 
             bool expect_named_identifier(const std::string& name);
 
+            bool expect_identifier(const std::string& error_message);
+
             bool expect_keyword(const Keyword& keyword);
 
             bool expect_token_type(
@@ -150,7 +152,7 @@ namespace kore {
             void parse_function_parameters(Function* const func);
 
             /// ParameterDecl = [ IdentifierList ] [ "..." ] Type .
-            bool parse_parameter_decl(Function* const func);
+            void parse_parameter_decl(Function* const func);
 
             /// ParameterList = ParameterDecl { "," ParameterDecl } .
             void parse_parameter_list(Function* const func);

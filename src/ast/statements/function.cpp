@@ -55,6 +55,14 @@ namespace kore {
         return _type;
     }
 
+    void Function::set_type(FunctionType* type) {
+        _type = type;
+
+        // The function's name (identifier) has the type of the function itself.
+        // Identifiers are what is stored in the scope stack
+        _name.set_type(type);
+    }
+
     const Parameter* Function::parameter(int idx) const {
         return _parameters[idx].get();
     }

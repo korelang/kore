@@ -97,6 +97,10 @@ namespace kore {
         return _name;
     }
 
+    std::string FunctionType::create_function_type_name() {
+        return create_function_type_name(_parameter_types, _return_types);
+    }
+
     std::string FunctionType::create_function_type_name(
         const std::vector<const Type*>& parameter_types,
         const std::vector<const Type*>& return_types
