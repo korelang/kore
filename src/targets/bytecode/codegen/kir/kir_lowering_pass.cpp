@@ -304,6 +304,7 @@ namespace kore {
         void KirLoweringPass::visit(class Call& call) {
             auto& func = current_function();
             Regs arg_registers = visit_function_arguments(call);
+            auto opcode = Bytecode::LoadFunction;
             int func_index = -1;
             int return_register_count = 0;
 
@@ -312,6 +313,7 @@ namespace kore {
 
             if (builtin_function) {
                 trace_kir("builtin call", call.name());
+                opcode = Bytecode::LoadBuiltin;
                 func_index = builtin_function->index;
                 return_register_count = builtin_function->type->return_arity();
             } else {
@@ -325,7 +327,7 @@ namespace kore {
             Regs return_registers = func.allocate_registers(return_register_count);
 
             func.emit_call(
-                func.emit_load_function(func_index),
+                func.emit_load_function(func_index, opcode),
                 arg_registers,
                 return_registers
             );

@@ -37,7 +37,7 @@ namespace kore {
 
                 Reg emit_load(Bytecode opcode, int index);
                 Reg emit_load(Bytecode opcode, Expression& expr, int index);
-                Reg emit_load_function(int func_index);
+                Reg emit_load_function(int func_index, Bytecode opcode);
                 Reg emit_binop(BinaryExpression& expr, Reg left, Reg right);
                 void emit_unconditional_jump(BlockId target_block_id);
                 void emit_move(Reg src, Reg dst);

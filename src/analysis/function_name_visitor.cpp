@@ -15,10 +15,7 @@ namespace kore {
         }
 
         void FunctionNameVisitor::visit(Function& statement) {
-            // Start user function indices after the number of builtin functions
-            // TODO: Should we just have a separate instruction to load builtin
-            // functions? Probably easier
-            int func_index = vm::builtin_function_count() + _functions.size() + 1;
+            int func_index = _functions.size() + 1;
 
             _functions[statement.name()] = { func_index, &statement };
         }

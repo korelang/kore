@@ -216,11 +216,11 @@ namespace kore {
             return reg;
         }
 
-        Reg Function::emit_load_function(int func_index) {
+        Reg Function::emit_load_function(int func_index, Bytecode opcode) {
             Reg reg = allocate_register();
 
             add_instruction(
-                Instruction{ Bytecode::LoadFunction, RegisterAndValue{ reg, func_index } }
+                Instruction{ opcode, RegisterAndValue{ reg, func_index } }
             );
 
             return reg;

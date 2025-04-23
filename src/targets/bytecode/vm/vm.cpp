@@ -5,7 +5,6 @@
 #include "targets/bytecode/vm/config.hpp"
 #include "targets/bytecode/vm/vm.hpp"
 #include "types/function_type.hpp"
-#include "utils/unused_parameter.hpp"
 
 #define BINARY_OP(arg_type, ret_type, op) {\
     Reg dest_reg = GET_REG1(instruction);\
@@ -241,19 +240,18 @@ namespace kore {
                         break;
                     }
 
-                    case Bytecode::LoadFunction: {
+                    case Bytecode::LoadBuiltin: {
                         Reg reg = GET_REG1(instruction);
                         int func_index = GET_VALUE(instruction);
                         auto builtin = get_builtin_function_by_index(func_index);
-                        Value function_value;
+                        _registers[fp + reg] = Value::from_builtin_function(builtin);
+                        break;
+                    }
 
-                        if (builtin) {
-                            function_value = Value::from_builtin_function(builtin);
-                        } else {
-                            function_value = Value::from_function(get_function(func_index));
-                        }
-
-                        _registers[fp + reg] = function_value;
+                    case Bytecode::LoadFunction: {
+                        Reg reg = GET_REG1(instruction);
+                        int func_index = GET_VALUE(instruction);
+                        _registers[fp + reg] = Value::from_function(get_function(func_index));;
                         break;
                     }
 

@@ -61,13 +61,8 @@ namespace kore {
         Gstore,
         LoadBool,
         Cload,
+        LoadBuiltin,
         LoadFunction,
-
-        // Load locals (TODO: Remove?)
-        LloadI32,
-        LloadI64,
-        LloadF32,
-        LloadF64,
 
         // Arithmetic opcodes
         AddI32,
