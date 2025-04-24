@@ -33,9 +33,18 @@ namespace kore {
                 const CompiledObject* obj
             );
 
+            // The number of values returned by the function of the call frame
             int ret_count;
+
+            // The number of registers needed for running the function's code
             int reg_count;
+
+            // The bitshift for the start of the return registers in the
+            // previous call frame
             int shift;
+
+            // The old frame pointer and program counter that we need to
+            // restore when we pop this call frame
             std::size_t old_fp;
             std::size_t old_pc;
 
@@ -140,11 +149,13 @@ namespace kore {
                 inline void push_register(Reg reg);
 
                 /// When in a function call, get the caller of that function
-                inline const CallFrame& get_caller();
+                inline const CallFrame* get_caller();
 
                 void push_call_frame(CallFrame call_frame);
 
                 int push_function_arguments(bytecode_type instruction, std::size_t old_fp);
+
+                void pop_call_frame(const CallFrame& call_frame);
 
                 /// Push a new call frame
                 void do_function_call(
