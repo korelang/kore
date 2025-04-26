@@ -100,7 +100,7 @@ namespace kore {
         const class Call* call;
         const Expression* arg;
         const Type* parameter_type;
-        const int paramter_idx;
+        const int parameter_idx;
     };
 }
 

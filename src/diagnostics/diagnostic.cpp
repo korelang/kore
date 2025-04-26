@@ -66,7 +66,9 @@ namespace kore {
         DiagnosticFormatResult operator()(ReturnTypeMismatch data) {
             auto message = "trying to return "
                 + data.ret->get_expr(data.idx)->type()->name()
+                + " for return value " + std::to_string(data.idx + 1)
                 + " from function " + quote(data.function->name())
+                + " with type " + data.function->type()->create_function_type_name()
                 + " returning " + data.function->type()->return_type(data.idx)->name();
 
             return { message, data.ret->location() };
@@ -151,7 +153,7 @@ namespace kore {
         DiagnosticFormatResult operator()(IncorrectArgumentType data) {
             auto message = "call to function " + data.call->name()
                 + " expected type of argument "
-                + std::to_string(data.paramter_idx + 1)
+                + std::to_string(data.parameter_idx + 1)
                 + " to be "
                 + data.parameter_type->name()
                 + " but got "

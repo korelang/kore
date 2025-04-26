@@ -29,7 +29,7 @@ namespace kore {
 
             void write(AstWriter* const writer) const override;
 
-            std::string create_function_type_name();
+            std::string create_function_type_name() const;
 
             static std::string create_function_type_name(
                 const std::vector<const Type*>& parameter_types,
