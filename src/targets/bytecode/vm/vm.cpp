@@ -6,6 +6,8 @@
 #include "targets/bytecode/vm/vm.hpp"
 #include "types/function_type.hpp"
 
+#define GET_REG_SHIFT(instruction, shift) (instruction >> shift) & 0xff;
+
 #define BINARY_OP(arg_type, ret_type, op) {\
     Reg dest_reg = GET_REG1(instruction);\
     Reg op1_reg = GET_REG2(instruction), op2_reg = GET_REG3(instruction);\
@@ -129,7 +131,7 @@ namespace kore {
             }
 
             _context.reset();
-            main_call_frame_reg_count = current_frame().reg_count;
+            main_call_frame_reg_count = current_frame()->reg_count;
             _context.sp += main_call_frame_reg_count;
 
             _running = true;
@@ -137,7 +139,7 @@ namespace kore {
 
             // Main interpreter dispatch loop
             while (_call_frames.size() > 0 && _running) {
-                auto instruction = current_frame().code[_context.pc++];
+                auto instruction = current_frame()->code[_context.pc++];
                 auto opcode = GET_OPCODE(instruction);
                 auto fp = _context.fp;
 
@@ -351,10 +353,6 @@ namespace kore {
             return true;
         }
 
-        void Vm::deallocate_frame(const CallFrame& call_frame) {
-            _context.sp -= call_frame.reg_count;
-        }
-
         void Vm::vm_error(const std::string& message) {
             error_group(log_group, "%s", message.c_str());
             /* critical_group(log_group, message); */
@@ -384,14 +382,15 @@ namespace kore {
             return _loaded_functions[func_index];
         }
 
-        CallFrame& Vm::current_frame() {
+        CallFrame* Vm::current_frame() {
             #if KORE_DEBUG_VM
             if (_call_frames.size() == 0) {
                 vm_fatal_error("No call frames when trying to get current call frame");
+                return nullptr;
             }
             #endif
 
-            return _call_frames.back();
+            return &_call_frames.back();
         }
 
         void Vm::push_i32(i32 value) {
@@ -422,21 +421,25 @@ namespace kore {
             int shift = 24;
 
             if (arg_count > 0) {
-                CallFrame& frame = current_frame();
+                CallFrame* frame = current_frame();
+
+                if (!frame) {
+                    return 0;
+                }
 
                 // Get the instruction containing the beginning of the argument
                 // registers
-                instruction = frame.code[_context.pc];
+                instruction = frame->code[_context.pc];
 
                 // Move argument registers into the callee's register window
                 for (int idx = 0; idx < arg_count; ++idx, shift -= 8) {
                     Reg dst_reg = _context.fp + idx;
-                    Reg src_reg = old_fp + ((instruction >> shift) & 0xff);
+                    Reg src_reg = old_fp + GET_REG_SHIFT(instruction, shift);
                     move(dst_reg, src_reg);
 
                     if (shift == 0) {
                         shift = 24;
-                        instruction = frame.code[_context.pc++];
+                        instruction = frame->code[_context.pc++];
                     }
                 }
             }
@@ -517,13 +520,17 @@ namespace kore {
         void Vm::do_function_return(bytecode_type instruction) {
             KORE_DEBUG_VM_LOG("pop call frame", std::string());
 
-            CallFrame& frame = current_frame();
+            CallFrame* frame = current_frame();
+
+            if (!frame) {
+                return;
+            }
+
             int ret_count = GET_REG1(instruction);
 
             // NOTE: Might want to specialse for returning one argument
-            // TODO: Rename variables to be clearer
             if (ret_count > 0) {
-                auto caller_shift = frame.shift;
+                auto caller_shift = frame->shift;
                 auto callee_shift = 8; // Ret opcode + return count
 
                 // Get the instruction at the return address
@@ -533,51 +540,57 @@ namespace kore {
                     return;
                 }
 
-                auto caller_ins = caller->code[frame.old_pc++];
+                auto caller_ins = caller->code[frame->old_pc++];
 
                 // Copy return registers into destination registers in the
                 // previous call frame
                 for (int idx = 0; idx < ret_count; caller_shift -= 8, callee_shift -= 8) {
                     // Get a source register from the caller instruction
-                    Reg src_reg = _context.fp + ((instruction >> callee_shift) & 0xff);
+                    Reg src_reg = _context.fp + GET_REG_SHIFT(instruction, callee_shift);
 
                     // Get a destination register from the return address instruction
                     // which is a register encoded in the original call instruction
-                    Reg dst_reg = frame.old_fp + ((caller_ins >> caller_shift) & 0xff);
+                    Reg dst_reg = frame->old_fp + GET_REG_SHIFT(caller_ins, caller_shift);
 
                     move(dst_reg, src_reg);
 
                     // Exit loop if we are done and don't increment any program counters
+                    // which might otherwise skip an instruction if the last register is
+                    // aligned to a 4-byte boundary
                     if (++idx >= ret_count) {
                         break;
                     }
 
                     if (caller_shift == 0) {
                         caller_shift = 24;
-                        instruction = caller->code[frame.old_pc++];
+                        instruction = caller->code[frame->old_pc++];
                     }
 
                     if (callee_shift == 0) {
                         callee_shift = 24;
-                        caller_ins = frame.code[_context.pc++];
+                        caller_ins = frame->code[_context.pc++];
                     }
                 }
             }
 
-            pop_call_frame(frame);
+            pop_call_frame(*frame);
         }
 
         void Vm::set_return_value(const Value& value) {
             // Getting the current call frame here is the caller since calling a
             // builtin function does not push a call frame onto the stack
-            CallFrame& frame = current_frame();
+            CallFrame* frame = current_frame();
 
-            auto instruction = frame.code[_context.pc];
+            if (!frame) {
+                return;
+            }
+
+            auto instruction = frame->code[_context.pc];
 
             // Copy the value into a destination register in the caller's
             // register window. Get the destination register encoded in the
             // caller's call instruction
-            Reg dst_reg = (instruction >> _context.shift) & 0xff;
+            Reg dst_reg = GET_REG_SHIFT(instruction, _context.shift);
 
             _registers[_context.fp + dst_reg] = value;
 
@@ -594,8 +607,8 @@ namespace kore {
             return _context.sp - 1;
         }
 
-        void Vm::move(Reg dst_reg_pos, Reg src_reg_pos) {
-            _registers[dst_reg_pos] = _registers[src_reg_pos];
+        void Vm::move(Reg dst_reg, Reg src_reg) {
+            _registers[dst_reg] = _registers[src_reg];
         }
 
         void Vm::add_module(Module& module) {

@@ -127,9 +127,6 @@ namespace kore {
                 /// Reserve local stack space for a called function
                 bool allocate_local_stack(const CompiledObject* const obj);
 
-                /// Deallocate local stack space for a call frame
-                void deallocate_frame(const CallFrame& call_frame);
-
                 void vm_error(const std::string& message);
                 void vm_error_unknown_opcode(Bytecode opcode);
 
@@ -137,7 +134,7 @@ namespace kore {
                 CompiledObject* get_function(int func_index);
 
                 /// Get the current call frame
-                CallFrame& current_frame();
+                CallFrame* current_frame();
 
                 /// Push an i32 value onto a call frame's stack
                 inline void push_i32(i32 value);
@@ -178,7 +175,7 @@ namespace kore {
                 inline int top();
 
                 /// Move a value from a source register to a destination register
-                inline void move(Reg dst_reg_pos, Reg src_reg_pos);
+                inline void move(Reg dst_reg, Reg src_reg);
 
                 void add_module(Module& module);
 

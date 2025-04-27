@@ -1,6 +1,5 @@
 #include "function_name_visitor.hpp"
 #include "ast/statements/function.hpp"
-#include "targets/bytecode/vm/builtins/builtins.hpp"
 
 namespace kore {
     namespace analysis {
@@ -14,10 +13,10 @@ namespace kore {
             return _functions;
         }
 
-        void FunctionNameVisitor::visit(Function& statement) {
+        void FunctionNameVisitor::visit(Function& func) {
             int func_index = _functions.size() + 1;
 
-            _functions[statement.name()] = { func_index, &statement };
+            _functions[func.name()] = { func_index, &func };
         }
     }
 }

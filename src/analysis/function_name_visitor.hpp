@@ -4,8 +4,6 @@
 #include "ast/ast.hpp"
 #include "ast/ast_visitor.hpp"
 
-#include <utility>
-
 namespace kore {
     namespace analysis {
         struct FunctionAnalysisResult {
@@ -30,7 +28,7 @@ namespace kore {
             private:
                 FunctionMap _functions;
 
-                void visit(Function& statement) override;
+                void visit(Function& func) override;
         };
     }
 }

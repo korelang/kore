@@ -64,7 +64,7 @@ namespace kore {
         return it->second.get();
     }
 
-    void TypeCache::set_function_type(std::unique_ptr<FunctionType>&& func_type) {
+    void TypeCache::set_function_type(Owned<FunctionType>&& func_type) {
         // TODO: This needs to account for modules
         auto full_name = func_type->create_function_type_name();
         auto it = _function_type_cache.find(full_name);

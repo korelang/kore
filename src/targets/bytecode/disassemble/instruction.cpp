@@ -101,7 +101,7 @@ namespace koredis {
                     // TODO: Perhaps move this check to decode_instruction so
                     // that this function is only concerned with formatting
                     if (!obj) {
-                        throw kore::ModuleLoadError("Failed to decode instruction");
+                        throw kore::ModuleLoadError("Could not find function from index");
                     }
 
                     name = obj->name();

@@ -179,52 +179,11 @@ namespace kore {
         }
     }
 
-    void TypeChecker::visit(class Call& call) {
-        trace_type_checker("call", call.type());
-
-        // Find an scoped entry in the current or enclosing scopes for a
-        // function definition
-        auto entry = _scope_stack.find(call.name());
-
-        if (!entry) {
-            auto builtin_function = vm::get_builtin_function_by_name(call.name());
-
-            if (!builtin_function) {
-                push_error(UnknownCall{ &call });
-                return;
-            }
-
-            // TODO: Typecheck builtin function calls
-
-            if (call.arg_count() != builtin_function->type->arity()) {
-                /* push_error(errors::typing::incorrect_arg_count( */
-                /*     call, */
-                /*     func_type */
-                /* )); */
-
-                return;
-            }
-
-            call.set_type(builtin_function->type->return_type(0));
-
-            return;
-        }
-
-        auto type = entry->identifier->type();
-
-        if (type->category() != TypeCategory::Function) {
-            push_error(CannotCallNonFunction{ &call, type });
-            return;
-        }
-
-        auto func_type = static_cast<const FunctionType*>(type);
-
+    void TypeChecker::type_check_function_call(class Call& call, const FunctionType* func_type) {
         if (call.arg_count() != func_type->arity()) {
             push_error(IncorrectArgumentCount{ &call, func_type });
             return;
         }
-
-        trace_type_checker("call", func_type);
 
         for (int idx = 0; idx < call.arg_count(); ++idx) {
             auto arg = call.arg(idx);
@@ -235,9 +194,48 @@ namespace kore {
             auto unified_type = arg_type->unify(param_type);
 
             if (unified_type->is_unknown()) {
-                push_error(IncorrectArgumentType{ &call, arg, param_type, idx });
+                push_error(IncorrectArgumentType{
+                    &call,
+                    arg,
+                    param_type,
+                    idx,
+                });
             }
         }
+    }
+
+    void TypeChecker::visit(class Call& call) {
+        trace_type_checker("call", call.type());
+
+        const FunctionType* func_type;
+
+        // Find an scoped entry in the current or enclosing scopes for a
+        // function definition
+        auto entry = _scope_stack.find(call.name());
+
+        if (entry) {
+            auto type = entry->identifier->type();
+
+            if (type->category() != TypeCategory::Function) {
+                push_error(CannotCallNonFunction{ &call, type });
+                return;
+            }
+
+            func_type = type->as<const FunctionType>();
+        } else {
+            // No function definition within scope, see if it is a builtin function
+            auto builtin_function = vm::get_builtin_function_by_name(call.name());
+
+            if (!builtin_function) {
+                push_error(UnknownCall{ &call });
+                return;
+            }
+
+            func_type = builtin_function->type;
+        }
+
+        trace_type_checker("call", func_type);
+        type_check_function_call(call, func_type);
 
         // Set the type of the call to the function type and handle return types later
         call.set_type(func_type);

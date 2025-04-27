@@ -123,9 +123,7 @@ namespace kore {
     }
 
     bool Parser::expect_identifier(const std::string& error_message) {
-        const Token* const token = current_token();
-
-        if (token->is_identifier()) {
+        if (current_token()->is_identifier()) {
             return true;
         }
 

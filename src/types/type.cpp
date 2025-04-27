@@ -174,7 +174,7 @@ namespace kore {
         return _type_cache.get_function_type(parameter_types, return_types);
     }
 
-    void Type::set_function_type(std::unique_ptr<FunctionType>&& func_type) {
+    void Type::set_function_type(Owned<FunctionType>&& func_type) {
         _type_cache.set_function_type(std::move(func_type));
     }
 
