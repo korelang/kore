@@ -41,6 +41,11 @@ namespace kore {
             return;
         }
 
+        // Infer the types of all array elements
+        for (int idx = 1; idx < array.size(); ++idx) {
+            array[idx]->accept(*this);
+        }
+
         const Type* inferred_element_type = array[0]->type();
 
         // We infer the element type of an array expression (like [1, 2, 3]) by
@@ -66,7 +71,7 @@ namespace kore {
             }
 
             default: {
-                // TODO:
+                break;
             }
         }
     }
