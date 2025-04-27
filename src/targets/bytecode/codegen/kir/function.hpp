@@ -24,15 +24,17 @@ namespace kore {
                 Graph& graph();
                 const Graph& graph() const;
                 void add_instruction(Instruction instruction);
-                void set_register_state(Reg reg, RegisterState state);
                 void set_register_type(Reg reg, const Type* type);
                 Reg allocate_register();
                 std::vector<Reg> allocate_registers(int count);
                 void free_register(Reg reg);
                 void free_registers();
+                void free_registers(const std::vector<Reg> ret_regs);
                 RegisterState register_state(Reg reg);
                 const Type* register_type(Reg reg);
 
+                void emit_reg1(Bytecode opcode, Reg reg);
+                void emit_reg2(Bytecode opcode, Reg reg1, Reg reg2);
                 void emit_reg3(Bytecode opcode, Reg reg1, Reg reg2, Reg reg3);
 
                 Reg emit_load(Bytecode opcode, int index);
@@ -40,7 +42,7 @@ namespace kore {
                 Reg emit_load_function(int func_index, Bytecode opcode);
                 Reg emit_binop(BinaryExpression& expr, Reg left, Reg right);
                 void emit_unconditional_jump(BlockId target_block_id);
-                void emit_move(Reg src, Reg dst);
+                void emit_move(Reg dst, Reg src);
                 void emit_conditional_jump(Bytecode opcode, Reg condition, BlockId target_block_id);
                 Reg emit_allocate_array(int size);
                 void emit_destroy(Reg reg);

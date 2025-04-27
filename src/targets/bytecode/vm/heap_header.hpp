@@ -3,8 +3,10 @@
 
 namespace kore {
     namespace vm {
+        using RefCount = unsigned int;
+
         struct HeapHeader {
-            unsigned int refcount;
+            RefCount refcount;
         };
     }
 }

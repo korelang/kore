@@ -54,11 +54,21 @@ namespace kore {
             const SourceLocation& location() const;
             void set_location(const SourceLocation& location);
 
+            /// A name for the ast node such as "my_func" or "+"
+            virtual std::string name() const;
+
+            /// A string representation of the ast node as given in the source
+            /// such as "1 + 2"
+            // TODO: Could either get the string via the scanner lines and
+            // source location or create it from the expression. What about
+            // locations spanning multiple lines?
+            virtual std::string to_string() const;
+
             virtual void accept(AstVisitor& visitor);
             virtual void accept(AstVisitor& visitor, ValueContext context);
 
         protected:
-            SourceLocation _location;
+            SourceLocation _location = SourceLocation::unknown;
     };
 }
 

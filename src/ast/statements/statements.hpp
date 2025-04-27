@@ -6,4 +6,3 @@
 #include "ast/statements/import_statement.hpp"
 #include "ast/statements/module_statement.hpp"
 #include "ast/statements/variable_assignment.hpp"
-#include "ast/statements/variable_declaration.hpp"

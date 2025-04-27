@@ -27,6 +27,8 @@ namespace kore {
                 Module lower(const Ast& ast);
 
                 void visit(ArrayExpression& expr) override;
+                // void visit(ArrayFillExpression& expr) override;
+                // void visit(ArrayRangeExpression& expr) override;
                 void visit(IndexExpression& expr) override;
                 void visit(IndexExpression& expr, ValueContext context) override;
                 void visit(BinaryExpression& expr) override;
@@ -59,7 +61,7 @@ namespace kore {
                 Function& current_function();
                 Module& current_module();
                 void enter_function(kore::Function& func);
-                void exit_function();
+                void exit_function(kore::Function& func);
                 void add_kir_function(kore::Function* function);
                 Regs visit_function_arguments(class Call& call);
                 Regs allocate_function_return_registers(class Call& call);

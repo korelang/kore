@@ -17,6 +17,10 @@ namespace kore {
 
     Type::~Type() {}
 
+    std::string Type::name() const {
+        return unknown()->name();
+    }
+
     void Type::set_optional(bool value) {
         UNUSED_PARAM(value);
     }

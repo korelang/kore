@@ -1,7 +1,6 @@
 #ifndef KORE_SCOPES_HPP
 #define KORE_SCOPES_HPP
 
-#include <map>
 #include <vector>
 
 #include "ast/expressions/identifier.hpp"
@@ -18,42 +17,79 @@ namespace kore {
         bool is_global_scope() const;
     };
 
-    namespace {
-        using ScopeMap = std::map<std::string, ScopeEntry>;
+    /// A single lexical scope including all the variables defined in it
+    class Scope {
+        private:
+            using ScopeMap = std::vector<ScopeEntry>;
 
-        struct Scope {
-            Scope(bool func_scope_start)
-                : func_scope_start(func_scope_start) {}
+        public:
+            using iterator = ScopeMap::iterator;
 
             ScopeEntry* find(const std::string& name);
 
-            bool func_scope_start;
+            void add(const ScopeEntry& entry);
+
+            /// Get the function that contains this scope if any
+            Function* function();
+
+            iterator begin();
+            iterator end();
+
+        private:
             ScopeMap _map;
-        };
-    }
+            Function* _func = nullptr;
+    };
 
-    // TODO: Convert to a linked list of scopes instead?
-
-    /// A (lexical) scope keeps track of all variables at each level
+    /// A stack of scopes going from the outermost to the innermost scope
     class ScopeStack final {
         public:
+            using iterator = std::vector<Scope>::iterator;
+
             ScopeStack();
             virtual ~ScopeStack();
 
-            int levels() const;
+            /// The depth of scopes
+            int depth() const;
+
+            /// Enter a new scope
             void enter();
+
+            /// Enter a function scope
             void enter_function_scope(Function* func);
+
+            /// Leave a scope
             void leave();
+
+            /// Leave a function scope
             void leave_function_scope();
+
+            /// Find identifiers by name
             ScopeEntry* find(const std::string& name);
             ScopeEntry* find_inner(const std::string& name);
             ScopeEntry* find_enclosing(const std::string& name);
+
+            /// Get the enclosing function, if any, of the current scope
             Function* enclosing_function();
+
+            /// Insert identifiers into the current scope
             void insert(const Identifier* identifier);
             void insert(const Identifier* identifier, Reg reg);
+
+            Scope* current_scope();
+
             bool is_global_scope() const;
             bool in_function_scope() const;
+
+            /// Clear the scope stack
             void clear();
+
+            iterator begin();
+            iterator end();
+
+            // TODO: Make a custom iterator that goes through all scopes except
+            // the global scope or outside the current function scope
+            iterator func_begin();
+            iterator func_end();
 
         private:
             int _scope_level = 0;

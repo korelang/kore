@@ -98,7 +98,7 @@ namespace kore {
 
         DiagnosticFormatResult operator()(CannotAssignGlobalVariable data) {
             auto message = "cannot assign to global variable previously declared at "
-                + data.global_identifier->location().colon_format();
+                + data.global_identifier->location().format();
 
             return { message, data.identifier->location() };
         }
@@ -112,7 +112,7 @@ namespace kore {
                 + " shadows variable "
                 + quote(shadowed_identifier->name())
                 + " declared at "
-                + shadowed_identifier->location().colon_format();
+                + shadowed_identifier->location().format();
 
             return { message, identifier->location() };
         }
@@ -121,7 +121,7 @@ namespace kore {
             auto message = "redeclaration of constant variable '"
                 + data.identifier->name()
                 + "', previously declared at "
-                + data.previous_identifier->location().colon_format();
+                + data.previous_identifier->location().format();
 
             return { message, data.identifier->location() };
         }

@@ -4,40 +4,28 @@
 #include "types/unknown_type.hpp"
 
 namespace kore {
-    ArrayExpression::ArrayExpression()
-        : Expression(ExpressionType::Array, SourceLocation::unknown),
-        _start(SourceLocation::unknown),
-        _end(SourceLocation::unknown),
-        _type(Type::make_array_type(Type::unknown())) {
-    }
+    ArrayExpression::ArrayExpression() : ArrayExpression(SourceLocation::unknown) {}
 
     ArrayExpression::ArrayExpression(const SourceLocation& location)
-        : Expression(ExpressionType::Array, location),
-        _start(location),
-        _end(SourceLocation::unknown) {
-    }
+        : Expression(ExpressionType::Array, location)
+    {}
 
     ArrayExpression::~ArrayExpression() {}
 
     void ArrayExpression::set_start_location(const SourceLocation& location) {
-        _start = location;
+        _location = location;
     }
 
     void ArrayExpression::set_end_location(const SourceLocation& location) {
-        _end = location;
+        _location.merge(location);
     }
 
     void ArrayExpression::add_element(Owned<Expression> expr) {
-        if (_elements.empty()) {
-            _type = Type::make_array_type(expr->type());
-        } else {
-            _type->unify_element_type(expr->type());
-        }
-
         _elements.emplace_back(std::move(expr));
     }
 
     bool ArrayExpression::uses_constants_only() const {
+        // TODO:
         return false;
     }
 
@@ -53,6 +41,10 @@ namespace kore {
 
     const Type* ArrayExpression::type() const {
         return _type;
+    }
+
+    const ArrayType* ArrayExpression::array_type() const {
+        return _type->as<const ArrayType>();
     }
 
     KORE_AST_VISITOR_ACCEPT_METHOD_DEFAULT_IMPL(ArrayExpression)

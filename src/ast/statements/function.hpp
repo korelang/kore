@@ -22,7 +22,7 @@ namespace kore {
             Function(bool exported, const Token& token);
             virtual ~Function();
 
-            std::string name() const;
+            std::string name() const override;
             const Identifier* identifier() const;
             bool exported() const noexcept;
             int arity() const;

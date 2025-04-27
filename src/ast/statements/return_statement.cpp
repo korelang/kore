@@ -15,6 +15,10 @@ namespace kore {
 
     Return::~Return() {}
 
+    std::string Return::name() const {
+        return "return";
+    }
+
     int Return::expr_count() const noexcept {
         return _exprs.size();
     }

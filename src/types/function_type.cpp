@@ -25,6 +25,10 @@ namespace kore {
     }
 
     int FunctionType::return_arity() const noexcept {
+        if (_return_types.size() == 1 && _return_types[0]->is_void()) {
+            return 0;
+        }
+
         return _return_types.size();
     }
 
@@ -122,13 +126,18 @@ namespace kore {
 
         oss << ") => ";
 
-        for (size_t idx = 0; idx < return_types.size(); ++idx) {
-            auto& return_type = return_types[idx];
+        if (return_types.empty()) {
+            // Since we may not have inferred any return types yet
+            oss << Type::unknown()->name();
+        } else {
+            for (size_t idx = 0; idx < return_types.size(); ++idx) {
+                auto& return_type = return_types[idx];
 
-            oss << return_type->name();
+                oss << return_type->name();
 
-            if (idx != return_types.size() - 1) {
-                oss << ", ";
+                if (idx != return_types.size() - 1) {
+                    oss << ", ";
+                }
             }
         }
 

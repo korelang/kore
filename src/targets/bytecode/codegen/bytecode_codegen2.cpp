@@ -181,9 +181,9 @@ namespace kore {
 
         auto location = function.location();
         /* write_string(location.path()); */
-        write_be32(location.lnum());
-        write_be32(location.start());
-        write_be32(location.end());
+        write_be32(location.start_line());
+        write_be32(location.start_col());
+        write_be32(location.end_col());
 
         write_be32(function.index());
         /* write_be32(function.locals_count()); */
@@ -274,25 +274,21 @@ namespace kore {
             bytes.insert(bytes.end(), arg_registers.cbegin(), arg_registers.cend());
             bytes.insert(bytes.end(), ret_registers.cbegin(), ret_registers.cend());
 
-            write_bytes(bytes);
+            write_aligned_bytes(bytes, sizeof(Bytecode));
         } else if (auto ins_type = std::get_if<kir::ReturnV>(&instruction.type)) {
             auto registers = ins_type->registers;
 
             if (registers.empty()) {
                 write_be32(KORE_MAKE_INSTRUCTION1(opcode, 0));
             } else {
-                std::vector<std::uint8_t> bytes{
-                    static_cast<std::uint8_t>(opcode),
-                    static_cast<std::uint8_t>(registers.size()),
+                Buffer bytes{
+                    static_cast<byte>(opcode),
+                    static_cast<byte>(registers.size()),
                 };
 
                 bytes.insert(bytes.end(), registers.cbegin(), registers.cend());
 
-                if (bytes.size() < 4) {
-                    bytes.insert(bytes.cend(), 4 - bytes.size(), 0);
-                }
-
-                write_bytes(bytes);
+                write_aligned_bytes(bytes, sizeof(Bytecode));
             }
         }
     }
@@ -323,6 +319,27 @@ namespace kore {
 
     void BytecodeGenerator2::write_bytes(std::initializer_list<std::uint8_t> bytes) {
         _buffer.insert(_buffer.end(), bytes);
+    }
+
+    void BytecodeGenerator2::write_aligned_bytes(std::vector<std::uint8_t>& bytes, int alignment) {
+        int padding = bytes.size() % alignment;
+
+        if (padding > 0) {
+            bytes.insert(bytes.end(), 4 - padding, 0);
+        }
+
+        write_bytes(bytes);
+
+        // for (size_t idx = 0; idx < bytes.size(); idx += 4) {
+        //     auto value =
+        //         static_cast<std::uint8_t>(bytes[idx] << 24) |
+        //         static_cast<std::uint8_t>(bytes[idx + 1] << 16) |
+        //         static_cast<std::uint8_t>(bytes[idx + 2] << 8) |
+        //         static_cast<std::uint8_t>(bytes[idx + 3]);
+        //
+        //     ::kore::write_le32(value, _buffer);
+        //     // write_be32(value);
+        // }
     }
 
     void BytecodeGenerator2::write_string(const std::string& str) {

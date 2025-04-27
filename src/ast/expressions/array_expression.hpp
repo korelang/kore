@@ -21,13 +21,12 @@ namespace kore {
             int size() const;
             Expression* operator[](int index);
             const Type* type() const override;
+            const ArrayType* array_type() const;
 
             KORE_AST_VISITOR_ACCEPT_METHOD_DEFAULT_DEFINITION
 
         private:
-            SourceLocation _start, _end;
             std::vector<Owned<Expression>> _elements;
-            ArrayType* _type;
     };
 }
 

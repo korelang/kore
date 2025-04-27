@@ -70,7 +70,8 @@ namespace kore {
         {"u16",    Keyword::U16},
         {"u32",    Keyword::U32},
         {"u64",    Keyword::U64},
-        {"var",    Keyword::Var}
+        {"var",    Keyword::Var},
+        {"void",    Keyword::Void}
     };
 
     bool is_keyword(const std::string& identifier) {

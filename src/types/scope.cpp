@@ -1,14 +1,33 @@
 #include "types/scope.hpp"
+#include "targets/bytecode/register.hpp"
 
 namespace kore {
-     bool ScopeEntry::is_global_scope() const {
-         return level == 1;
-     }
+    bool ScopeEntry::is_global_scope() const {
+        return level == 1;
+    }
 
     ScopeEntry* Scope::find(const std::string& name) {
-        auto entry = _map.find(name);
+        auto entry = std::find_if(_map.begin(), _map.end(), [&name](ScopeEntry& _entry) {
+            return _entry.identifier->name() == name;
+        });
 
-        return entry != _map.end() ? &entry->second : nullptr;
+        return entry != _map.end() ? &*entry : nullptr;
+    }
+
+    void Scope::add(const ScopeEntry& entry) {
+        _map.push_back(entry);
+    }
+
+    Function* Scope::function() {
+        return _func;
+    }
+
+    Scope::iterator Scope::begin() {
+        return _map.begin();
+    }
+
+    Scope::iterator Scope::end() {
+        return _map.end();
     }
 
     ScopeStack::ScopeStack() {
@@ -18,16 +37,16 @@ namespace kore {
 
     ScopeStack::~ScopeStack() {}
 
-    int ScopeStack::levels() const {
+    int ScopeStack::depth() const {
         return _scopes.size();
     }
 
     void ScopeStack::enter() {
-        _scopes.emplace_back(false);
+        _scopes.emplace_back();
     }
 
     void ScopeStack::enter_function_scope(Function* func) {
-        _scopes.emplace_back(true);
+        _scopes.emplace_back();
         _functions.push_back(func);
     }
 
@@ -41,17 +60,17 @@ namespace kore {
     }
 
     ScopeEntry* ScopeStack::find(const std::string& name) {
-        return find_in_range(name, levels(), 1);
+        return find_in_range(name, depth(), 1);
     }
 
     ScopeEntry* ScopeStack::find_inner(const std::string& name) {
-        int inner_scope = levels();
+        int inner_scope = depth();
 
         return find_in_range(name, inner_scope, inner_scope);
     }
 
     ScopeEntry* ScopeStack::find_enclosing(const std::string& name) {
-        return find_in_range(name, levels() - 1, 2);
+        return find_in_range(name, depth() - 1, 2);
     }
 
     Function* ScopeStack::enclosing_function() {
@@ -59,7 +78,7 @@ namespace kore {
     }
 
     void ScopeStack::insert(const Identifier* identifier) {
-        insert(identifier, -1);
+        insert(identifier, INVALID_REGISTER);
     }
 
     void ScopeStack::insert(const Identifier* identifier, Reg reg) {
@@ -71,11 +90,11 @@ namespace kore {
             identifier,
         };
 
-        active_scope._map.emplace(identifier->name(), entry);
+        active_scope.add(entry);
     }
 
     bool ScopeStack::is_global_scope() const {
-        return levels() == 1;
+        return depth() == 1;
     }
 
     void ScopeStack::clear() {
@@ -83,11 +102,23 @@ namespace kore {
         enter();
     }
 
-    ScopeEntry* ScopeStack::find_in_range(
-        const std::string& name,
-        int start_lvl,
-        int end_lvl
-    ) {
+    ScopeStack::iterator ScopeStack::begin() {
+        return _scopes.begin();
+    }
+
+    ScopeStack::iterator ScopeStack::end() {
+        return _scopes.end();
+    }
+
+    ScopeStack::iterator ScopeStack::func_begin() {
+        return _scopes.begin();
+    }
+
+    ScopeStack::iterator ScopeStack::func_end() {
+        return _scopes.end();
+    }
+
+    ScopeEntry* ScopeStack::find_in_range(const std::string& name, int start_lvl, int end_lvl) {
         for (auto lvl = start_lvl - 1; lvl >= end_lvl - 1; --lvl) {
             auto& scope = _scopes[lvl];
             auto entry = scope.find(name);
@@ -95,12 +126,6 @@ namespace kore {
             if (entry) {
                 return entry;
             }
-
-            /* if (scope.func_scope_start) { */
-            /*     // This scope was entered when entering a function, so don't */
-            /*     // start searching the function's outer scopes */
-            /*     return nullptr; */
-            /* } */
         }
 
         return nullptr;

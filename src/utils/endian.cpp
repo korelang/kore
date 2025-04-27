@@ -33,19 +33,11 @@ namespace kore {
         std::array<char, 4> data;
         is.read(data.data(), 4);
 
-        if (is_big_endian()) {
-            return
-                (data[3] & 0xff) << 24 |
-                (data[2] & 0xff) << 16 |
-                (data[1] & 0xff) << 8 |
-                (data[0] & 0xff);
-        } else {
-            return
-                (data[0] & 0xff) << 24 |
-                (data[1] & 0xff) << 16 |
-                (data[2] & 0xff) << 8 |
-                (data[3] & 0xff);
-        }
+        return
+            (data[0] & 0xff) << 24 |
+            (data[1] & 0xff) << 16 |
+            (data[2] & 0xff) << 8 |
+            (data[3] & 0xff);
     }
 
     std::uint32_t read_le32(std::istream& is) {
@@ -179,17 +171,7 @@ namespace kore {
     }
 
     void write_be32(std::uint32_t value, Buffer& buffer) {
-        if (is_big_endian()) {
-            buffer.insert(
-                buffer.end(),
-                {
-                    static_cast<std::uint8_t>(value & 0xff),
-                    static_cast<std::uint8_t>((value >> 8) & 0xff),
-                    static_cast<std::uint8_t>((value >> 16) & 0xff),
-                    static_cast<std::uint8_t>(value >> 24)
-                }
-            );
-        } else {
+        // if (is_big_endian()) {
             buffer.insert(
                 buffer.end(),
                 {
@@ -199,7 +181,17 @@ namespace kore {
                     static_cast<std::uint8_t>(value & 0xff)
                 }
             );
-        }
+        // } else {
+        //     buffer.insert(
+        //         buffer.end(),
+        //         {
+        //             static_cast<std::uint8_t>(value & 0xff),
+        //             static_cast<std::uint8_t>((value >> 8) & 0xff),
+        //             static_cast<std::uint8_t>((value >> 16) & 0xff),
+        //             static_cast<std::uint8_t>(value >> 24)
+        //         }
+        //     );
+        // }
     }
 
     void read_be32_bytes(std::istream& is, std::size_t count, std::vector<std::uint32_t>& buffer) {

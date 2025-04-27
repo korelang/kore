@@ -7,29 +7,42 @@
 namespace kore {
     /// A location of a token in an input source
     class SourceLocation {
+        using Pos = int;
+
         public:
             SourceLocation();
-            SourceLocation(const SourceLocation& location);
+            SourceLocation( const SourceLocation& location);
             SourceLocation(const SourceLocation& start, const SourceLocation& end);
-            SourceLocation(int lnum, int start_col, int end_col);
+            SourceLocation(Pos line, Pos start_col, Pos end_col);
+            SourceLocation(Pos start_line, Pos end_line, Pos start_col, Pos end_col);
             virtual ~SourceLocation();
 
-            int lnum() const noexcept;
-            int start() const noexcept;
-            int end() const noexcept;
-            bool is_single_pos() const noexcept;
+            Pos start_line() const noexcept;
+            Pos end_line() const noexcept;
+            Pos start_col() const noexcept;
+            Pos end_col() const noexcept;
+
+            bool is_single_col() const noexcept;
+            bool is_multiline() const noexcept;
             bool is_unknown() const noexcept;
+
+            std::string format_lines() const;
             std::string format_columns() const;
-            std::string colon_format() const;
+            std::string format() const;
+            std::string format_verbose() const;
 
             void merge(const SourceLocation& location);
 
             static const SourceLocation unknown;
 
         private:
-            int _lnum;
-            int _start_col;
-            int _end_col;
+            Pos _start_line;
+            Pos _end_line;
+            Pos _start_col;
+            Pos _end_col;
+
+            static char _RANGE_SEP;
+            static char _SEP;
     };
 
     std::ostream& operator<<(std::ostream& os, const SourceLocation& location);

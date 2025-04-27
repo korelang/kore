@@ -33,11 +33,19 @@ namespace kore {
         _statements.emplace_back(std::move(statement));
     }
 
-    Ast::ConstIter Ast::begin() const {
+    Ast::iterator Ast::begin() {
+        return _statements.begin();
+    }
+
+    Ast::iterator Ast::end() {
+        return _statements.end();
+    }
+
+    Ast::const_iterator Ast::begin() const {
         return _statements.cbegin();
     }
 
-    Ast::ConstIter Ast::end() const {
+    Ast::const_iterator Ast::end() const {
         return _statements.cend();
     }
 

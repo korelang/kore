@@ -3,10 +3,11 @@
 
 #include <cstddef>
 
-#include "targets/bytecode/vm/value_type.hpp"
-
 namespace kore {
     namespace vm {
+        struct Value;
+        class ArrayValue;
+
         // An abstraction of kore's vm heap. Currently uses the system/host
         // language allocator (malloc/free)
         class Heap {
@@ -20,7 +21,6 @@ namespace kore {
 
                 void deallocate_raw(void* mem);
                 void deallocate_array(Value& array_value, bool ignore_refcount);
-                void deallocate_array(ArrayValue* array_value, bool ignore_refcount);
                 /* FunctionValue deallocate_closure(); */
         };
     }

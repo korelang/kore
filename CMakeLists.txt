@@ -58,7 +58,6 @@ set(KORE_AST_STATEMENT_SOURCES
     ${PROJECT_SOURCE_DIR}/src/ast/statements/return_statement.cpp
     ${PROJECT_SOURCE_DIR}/src/ast/statements/statement.cpp
     ${PROJECT_SOURCE_DIR}/src/ast/statements/variable_assignment.cpp
-    ${PROJECT_SOURCE_DIR}/src/ast/statements/variable_declaration.cpp
 )
 
 set(KORE_TYPE_SOURCES
@@ -140,6 +139,7 @@ set(KORE_TARGETS_BYTECODE_SOURCES
     ${PROJECT_SOURCE_DIR}/src/targets/bytecode/vm/values/array_value.cpp
     ${PROJECT_SOURCE_DIR}/src/targets/bytecode/vm/values/function_value.cpp
     ${PROJECT_SOURCE_DIR}/src/targets/bytecode/vm/vm.cpp
+    ${PROJECT_SOURCE_DIR}/src/targets/bytecode/vm/heap.cpp
 )
 
 set(KORE_ANALYSIS_SOURCES

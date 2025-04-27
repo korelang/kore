@@ -21,6 +21,14 @@ namespace kore {
         _location = location;
     }
 
+    std::string AstNode::name() const {
+        return "<AstNode::name not implemented>";
+    }
+
+    std::string AstNode::to_string() const {
+        return "<AstNode::to_string not implemented>";
+    }
+
     void AstNode::accept(AstVisitor& visitor) {
         UNUSED_PARAM(visitor);
     }

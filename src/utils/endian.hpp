@@ -6,7 +6,8 @@
 #include <vector>
 
 namespace kore {
-    using Buffer = std::vector<std::uint8_t>;
+    using byte = std::uint8_t;
+    using Buffer = std::vector<byte>;
 
     bool is_big_endian();
 

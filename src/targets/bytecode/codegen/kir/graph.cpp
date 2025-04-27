@@ -62,8 +62,20 @@ namespace kore {
             _current_block = id;
         }
 
+        bool Graph::empty() const {
+            return size() == 0;
+        }
+
         std::size_t Graph::size() const {
             return _blocks.size();
+        }
+
+        BasicBlock* Graph::last_block() {
+            if (empty()) {
+                return nullptr;
+            }
+
+            return &_blocks.back();
         }
 
         bool Graph::has_predecessors(BlockId id) const {

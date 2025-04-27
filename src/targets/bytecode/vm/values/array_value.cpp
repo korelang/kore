@@ -37,8 +37,32 @@ namespace kore {
             return _values.size();
         }
 
+        void ArrayValue::copy_to(ArrayValue& dst) const {
+            dst._values = _values;
+        }
+
         void ArrayValue::clear() {
             _values.clear();
+        }
+
+        HeapHeader& ArrayValue::heap_header() {
+            return _heap_header;
+        }
+
+        RefCount ArrayValue::ref_count() const {
+            return _heap_header.refcount;
+        }
+
+        bool ArrayValue::uniquely_referenced() const {
+            return ref_count() == 1;
+        }
+
+        RefCount ArrayValue::incref() {
+            return ++_heap_header.refcount;
+        }
+
+        RefCount ArrayValue::decref() {
+            return --_heap_header.refcount;
         }
 
         ArrayValue* ArrayValue::allocate(std::size_t size) {

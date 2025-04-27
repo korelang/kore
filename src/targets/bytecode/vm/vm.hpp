@@ -181,6 +181,9 @@ namespace kore {
                 /// Move a value from a source register to a destination register
                 inline void move(Reg dst_reg, Reg src_reg);
 
+                /// Copy a value from a source register to a destination register
+                inline void copy(Reg dst_reg, Reg src_reg);
+
                 void add_module(Module& module);
 
                 void dump_call_stack(std::ostream& os);

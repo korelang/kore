@@ -65,8 +65,12 @@ namespace koredis {
         // Special-case output for more complex opcodes
         auto instruction_type = instruction.value.type;
 
-        if (std::get_if<kore::kir::OneRegister>(&instruction_type)) {
-            // TODO:
+        if (auto ins_type = std::get_if<kore::kir::OneRegister>(&instruction_type)) {
+            if (instruction.value.opcode == kore::Bytecode::Noop) {
+                return os;
+            }
+
+            os << " " << reg(ins_type->reg);
         } else if (auto ins_type = std::get_if<kore::kir::TwoRegisters>(&instruction_type)) {
             if (instruction.value.opcode == kore::Bytecode::Gstore) {
                 os << " " << constant(ins_type->reg1) << " " << reg(ins_type->reg2);
@@ -89,31 +93,32 @@ namespace koredis {
             } else if (opcode == kore::Bytecode::LoadBool) {
                 os << " " << (value == 1 ? "true" : "false");
             } else if (opcode == kore::LoadFunction) {
-                std::string name;
+                auto index = ins_type->value;
+                auto obj = module.get_function_by_index(index);
+
+                // TODO: Perhaps move this check to decode_instruction so
+                // that this function is only concerned with formatting
+                if (!obj) {
+                    throw kore::ModuleLoadError("Could not find function from index");
+                }
+
+                auto name = obj->name();
+
+                os << " " << index << " [" << name << "]";
+            } else if (opcode == kore::Bytecode::LoadBuiltin) {
                 auto index = ins_type->value;
                 auto builtin = kore::vm::get_builtin_function_by_index(index);
 
-                if (builtin) {
-                    name = builtin->name;
-                } else {
-                    auto obj = module.get_function_by_index(index);
-
-                    // TODO: Perhaps move this check to decode_instruction so
-                    // that this function is only concerned with formatting
-                    if (!obj) {
-                        throw kore::ModuleLoadError("Could not find function from index");
-                    }
-
-                    name = obj->name();
+                if (!builtin) {
+                    // TODO: Provide index in message
+                    throw kore::ModuleLoadError("Could not find builtin function from index");
                 }
 
-                os << " " << index << " [" << name;
-
-                if (builtin) {
-                    os << " (builtin)";
-                }
-
-                os << "]";
+                os << " " << index << " [" << builtin->name << " (builtin)]";
+            } else if (opcode == kore::Bytecode::ArrayAlloc) {
+                os << " " << value;
+            } else if (opcode == kore::Bytecode::Cload) {
+                os << " " << constant(value) << " [" << module.constant_table().get(value) << "]";
             } else {
                 os << " " << constant(value);
             }
@@ -123,10 +128,17 @@ namespace koredis {
 
             os << " " << value << " [target: " << target_pos << "]";
         } else if (auto ins_type = std::get_if<kore::kir::CallV>(&instruction_type)) {
-            os << " " << reg(ins_type->func_index)
-               << " " << regs(ins_type->arg_registers)
-               << " " << regs(ins_type->ret_registers)
-               << " [args: "
+            os << " " << reg(ins_type->func_index);
+
+            if (ins_type->arg_registers.size() > 0) {
+                os << " " << regs(ins_type->arg_registers);
+            }
+
+            if (ins_type->ret_registers.size() > 0) {
+                os << " " << regs(ins_type->ret_registers);
+            }
+
+            os << " [args: "
                << ins_type->arg_registers.size()
                << ", returns: "
                << ins_type->ret_registers.size() << "]";

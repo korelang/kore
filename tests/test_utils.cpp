@@ -14,9 +14,9 @@ namespace kore {
         REQUIRE(token.value() == value);
 
         if (!token.is_eof()) {
-            REQUIRE(token.location().lnum() == lnum);
-            REQUIRE(token.location().start() == start);
-            REQUIRE(token.location().end() == end);
+            REQUIRE(token.location().start_line() == lnum);
+            REQUIRE(token.location().start_col() == start);
+            REQUIRE(token.location().end_col() == end);
         }
     }
 }

@@ -10,7 +10,7 @@
 #include "utils/unused_parameter.hpp"
 
 namespace kore {
-    TypeInferrer::TypeInferrer(const ParsedCommandLineArgs& args) : _args(&args) {}
+    TypeInferrer::TypeInferrer(const ParsedCommandLineArgs& args) : _args(args) {}
 
     TypeInferrer::~TypeInferrer() {}
 
@@ -20,17 +20,34 @@ namespace kore {
         }
     }
 
+    void TypeInferrer::trace_type_inference(const Expression& expr) {
+        if (_args.trace == TraceOption::TypeInference) {
+            debug_group(
+                _debug_group,
+                "inferred type %s for %s expression at %s",
+                expr.type()->name().c_str(),
+                expr.type_name().c_str(),
+                expr.location().format().c_str()
+            );
+        }
+    }
+
     void TypeInferrer::trace_type_inference(
-        const std::string& name,
+        const Statement& statement,
         const Type* type
     ) {
-        if (_args && _args->trace == TraceOption::TypeInference) {
-            const std::string group = "type_inference";
-
+        if (_args.trace == TraceOption::TypeInference) {
             if (type) {
-                debug_group(group, "%s (type: %s)", name.c_str(), type->name().c_str());
+                debug_group(
+                    _debug_group,
+                    "statement %s with type %s at %s",
+                    statement.name().c_str(),
+                    type->name().c_str(),
+                    statement.location().format().c_str()
+
+                );
             } else {
-                debug_group(group, "%s", name.c_str());
+                debug_group(_debug_group, "%s", statement.name().c_str());
             }
         }
     }
@@ -41,17 +58,21 @@ namespace kore {
             return;
         }
 
+        // Infer the types of all array elements
+        for (int idx = 0; idx < array.size(); ++idx) {
+            array[idx]->accept(*this);
+        }
+
         const Type* inferred_element_type = array[0]->type();
 
         // We infer the element type of an array expression (like [1, 2, 3]) by
         // unifying all element types
         for (int idx = 1; idx < array.size(); ++idx) {
-            auto element_index_type = array[idx]->type();
-
-            inferred_element_type = element_index_type->unify(array[idx]->type());
+            inferred_element_type = inferred_element_type->unify(array[idx]->type());
         }
 
         array.set_type(Type::make_array_type(inferred_element_type));
+        trace_type_inference(array);
     }
 
     void TypeInferrer::visit(IndexExpression& index_expr) {
@@ -66,7 +87,7 @@ namespace kore {
             }
 
             default: {
-                // TODO:
+                break;
             }
         }
     }
@@ -82,7 +103,7 @@ namespace kore {
         expr.set_type(expr.left()->type()->unify(expr.right()->type()));
 
         // TODO: Should expression have names or a ostream operator instead?
-        trace_type_inference("binop", expr.type());
+        trace_type_inference(expr);
     }
 
     void TypeInferrer::visit(class Call& call) {
@@ -104,21 +125,25 @@ namespace kore {
             call.set_type(Type::unknown());
         }
 
-        trace_type_inference("call to " + call.name(), call.type());
+        trace_type_inference(call);
     }
 
     void TypeInferrer::visit(Identifier& expr) {
         auto entry = _scope_stack.find(expr.name());
 
-        // If no identifier was found, this is an undefined variable which is
-        // caught by the type checker
         if (entry) {
             expr.set_type(entry->identifier->type());
         } else {
-            expr.set_type(Type::unknown());
+            auto declared_type = expr.declared_type();
+
+            if (!declared_type->is_unknown()) {
+                expr.set_type(declared_type);
+            }
+
+            _scope_stack.insert(&expr);
         }
 
-        trace_type_inference("identifier " + expr.name(), expr.type());
+        trace_type_inference(expr);
     }
 
     void TypeInferrer::visit(Identifier& expr, ValueContext context) {
@@ -130,7 +155,7 @@ namespace kore {
         expr.expr()->accept(*this);
         expr.set_type(expr.expr()->type());
 
-        trace_type_inference("unary expression", expr.type());
+        trace_type_inference(expr);
     }
 
     void TypeInferrer::visit(VariableAssignment& assignment) {
@@ -141,26 +166,16 @@ namespace kore {
 
         for (int idx = 0; idx < assignment.lhs_count(); ++idx) {
             auto lhs_expr = assignment.lhs(idx);
-
             lhs_expr->accept(*this, ValueContext::LValue);
 
-            if (lhs_expr->is_identifier()) {
-                auto declared_type = lhs_expr->as<Identifier>()->declared_type();
-
-                // Do not infer types for variable assignments with an explicit type
-                if (declared_type->is_unknown()) {
-                    lhs_expr->set_type(assignment.rhs_type(idx));
-                } else {
-                    lhs_expr->set_type(declared_type);
-                }
-            } else {
-                if (lhs_expr->type()->is_unknown()) {
-                    // If the type is still unknown, it is being assigned for the first time
-                    // here and it has no declared type so use the type of the right-hand side
-                    // value
-                    lhs_expr->set_type(assignment.rhs_type(idx));
-                }
+            if (lhs_expr->type()->is_unknown()) {
+                // If the type is still unknown, it is being assigned for the first time
+                // here and it has no declared type so use the type of the right-hand side
+                // value
+                lhs_expr->set_type(assignment.rhs_type(idx));
             }
+
+            trace_type_inference(*lhs_expr);
         }
     }
 
@@ -173,7 +188,7 @@ namespace kore {
     /* } */
 
     void TypeInferrer::visit(Function& func) {
-        trace_type_inference("function " + func.name(), func.type());
+        trace_type_inference(func, func.type());
 
         // Enter a new function scope and add all function
         // arguments to that scope
@@ -198,7 +213,7 @@ namespace kore {
     }
 
     void TypeInferrer::visit(Return& ret) {
-        trace_type_inference("return");
+        trace_type_inference(ret);
 
         if (ret.expr_count() > 0) {
             for (int idx = 0; idx < ret.expr_count(); ++idx) {
@@ -208,7 +223,7 @@ namespace kore {
     }
 
     void TypeInferrer::visit(Branch& branch) {
-        trace_type_inference("branch");
+        trace_type_inference(branch);
 
         _scope_stack.enter();
 
@@ -222,4 +237,6 @@ namespace kore {
 
         _scope_stack.leave();
     }
+
+    std::string TypeInferrer::_debug_group = "type_inference";
 }
