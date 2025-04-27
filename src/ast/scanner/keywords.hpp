@@ -16,10 +16,10 @@ namespace kore {
         False,
         For,
         Func,
-        I8,
         I16,
         I32,
         I64,
+        I8,
         If,
         Import,
         In,
@@ -34,10 +34,11 @@ namespace kore {
         True,
         Try,
         Type,
-        U8,
         U16,
         U32,
         U64,
+        U8,
+        Var
     };
 
     bool is_keyword(const std::string& identifier);

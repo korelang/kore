@@ -1,5 +1,6 @@
 #include "module.hpp"
 #include "targets/bytecode/constant_table_tag.hpp"
+#include "targets/bytecode/vm/builtins/builtins.hpp"
 
 namespace kore {
     Module::Module() : Module(0, "") {}
@@ -108,7 +109,11 @@ namespace kore {
         return it != _function_map.end() ? it->second : nullptr;
     }
 
-    CompiledObject* Module::get_function_by_index(int index) {
+    CompiledObject* Module::get_function_by_index(size_t index) {
+        if (index <= 0 || index >= _objects.size()) {
+            return nullptr;
+        }
+
         return _objects[index].get();
     }
 

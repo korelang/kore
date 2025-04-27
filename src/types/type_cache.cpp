@@ -9,6 +9,7 @@
 #include "types/type_cache.hpp"
 #include "unknown_type.hpp"
 #include "void_type.hpp"
+#include "types/function_type.hpp"
 
 #include <memory>
 
@@ -20,7 +21,13 @@ namespace kore {
     TypeCache::~TypeCache() {}
 
     const Type* TypeCache::get_type(TypeCategory category) {
-        return _type_cache[category].get();
+        const auto& type = _type_cache[category];
+
+        if (!type) {
+            throw std::runtime_error("No type found in cache for category");
+        }
+
+        return type.get();
     }
 
     ArrayType* TypeCache::get_array_type(const Type* contained_type) {
@@ -29,6 +36,42 @@ namespace kore {
 
     const Optional* TypeCache::get_optional_type(const Type* contained_type) {
         return get_non_simple_type(contained_type, _optional_type_cache);
+    }
+
+    const FunctionType* TypeCache::get_function_type(
+        const std::vector<const Type*>& parameter_types,
+        const std::vector<const Type*>& return_types
+    ) {
+        // TODO: This needs to account for modules
+        auto full_name = FunctionType::create_function_type_name(
+            parameter_types,
+            return_types
+        );
+
+        auto it = _function_type_cache.find(full_name);
+
+        if (it == _function_type_cache.end()) {
+            auto function_type = std::make_unique<FunctionType>();
+
+            function_type->set_parameter_types(parameter_types);
+            function_type->set_return_types(return_types);
+
+            auto result = _function_type_cache.insert({ full_name, std::move(function_type) });
+
+            it = result.first;
+        }
+
+        return it->second.get();
+    }
+
+    void TypeCache::set_function_type(Owned<FunctionType>&& func_type) {
+        // TODO: This needs to account for modules
+        auto full_name = func_type->create_function_type_name();
+        auto it = _function_type_cache.find(full_name);
+
+        if (it == _function_type_cache.end()) {
+            _function_type_cache[full_name] = std::move(func_type);
+        }
     }
 
     void TypeCache::define_basic_builtin_types() {

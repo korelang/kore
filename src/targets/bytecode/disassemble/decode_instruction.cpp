@@ -172,10 +172,6 @@ namespace koredis {
                 auto arg_regs = decode_registers(pos, byte_offset, arg_count, obj);
                 auto ret_regs = decode_registers(pos, byte_offset, return_count, obj);
 
-                if (arg_count > 0 || return_count > 0) {
-                    ++pos;
-                }
-
                 decoded_instruction = Instruction{
                     start_pos,
                     byte_pos,
@@ -208,7 +204,7 @@ namespace koredis {
             }
 
             default:
-                throw kore::ModuleLoadError("Failed to decode instruction", byte_pos);
+                throw kore::ModuleLoadError("Failed to decode unknown instruction", byte_pos);
         }
 
         if (!byte_pos_advanced) {

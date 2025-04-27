@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.10)
 
 project(kore)
 
@@ -38,6 +38,7 @@ set (KORE_AST_EXPRESSION_SOURCES
     ${PROJECT_SOURCE_DIR}/src/ast/expressions/call.cpp
     ${PROJECT_SOURCE_DIR}/src/ast/expressions/char_expression.cpp
     ${PROJECT_SOURCE_DIR}/src/ast/expressions/expression.cpp
+    ${PROJECT_SOURCE_DIR}/src/ast/expressions/field_access_expression.cpp
     ${PROJECT_SOURCE_DIR}/src/ast/expressions/float_expression.cpp
     ${PROJECT_SOURCE_DIR}/src/ast/expressions/identifier.cpp
     ${PROJECT_SOURCE_DIR}/src/ast/expressions/integer_expression.cpp

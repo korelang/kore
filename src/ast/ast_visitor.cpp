@@ -1,3 +1,5 @@
+#include "ast/expressions/expressions.hpp"
+#include "ast/statements/statements.hpp"
 #include "ast_visitor.hpp"
 #include "utils/unused_parameter.hpp"
 
@@ -45,6 +47,10 @@ namespace kore {
     }
 
     void AstVisitor::visit(FloatExpression& expr) {
+        UNUSED_PARAM(expr);
+    }
+
+    void AstVisitor::visit(FieldAccessExpression& expr) {
         UNUSED_PARAM(expr);
     }
 

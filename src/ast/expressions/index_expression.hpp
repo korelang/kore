@@ -6,8 +6,6 @@
 #include "ast/expressions/expression.hpp"
 
 namespace kore {
-    class ArrayType;
-
     /// An arbitrary index expression (array index, map index etc.)
     class IndexExpression : public Expression {
         public:

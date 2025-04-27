@@ -1,3 +1,5 @@
+#include <numeric>
+
 #include "ast/expressions/expressions.hpp"
 #include "ast/statements/statements.hpp"
 #include "targets/bytecode/codegen/kir/function.hpp"
@@ -114,6 +116,24 @@ namespace kore {
             return reg;
         }
 
+        std::vector<Reg> Function::allocate_registers(int count) {
+            if (_reg_count + count >= vm::KORE_VM_MAX_REGISTERS) {
+                throw std::runtime_error("register overflow");
+            }
+
+            std::vector<Reg> regs;
+
+            for (int idx = 0; idx < count; ++idx) {
+                Reg reg = _reg_count++;
+                regs.push_back(reg);
+                set_register_state(reg, RegisterState::Available);
+            }
+
+            _max_regs_used = std::max(_max_regs_used, _reg_count);
+
+            return regs;
+        }
+
         RegisterState Function::register_state(Reg reg) {
             auto bb = _graph.current_block();
             auto entry = _register_states[bb.id].find(reg);
@@ -196,11 +216,11 @@ namespace kore {
             return reg;
         }
 
-        Reg Function::emit_load_function(int func_index) {
+        Reg Function::emit_load_function(int func_index, Bytecode opcode) {
             Reg reg = allocate_register();
 
             add_instruction(
-                Instruction{ Bytecode::LoadFunction, RegisterAndValue{ reg, func_index } }
+                Instruction{ opcode, RegisterAndValue{ reg, func_index } }
             );
 
             return reg;
@@ -272,9 +292,8 @@ namespace kore {
             add_instruction(Instruction{ Bytecode::Ret, ReturnV{} });
         }
 
-        void Function::emit_return(Reg retreg) {
-            // TODO: Support multiple return values
-            add_instruction(Instruction{ Bytecode::Ret, ReturnV{ { retreg } } });
+        void Function::emit_return(const std::vector<Reg>& regs) {
+            add_instruction(Instruction{ Bytecode::Ret, ReturnV{ regs } });
         }
 
         FuncIndex Function::index() const noexcept {

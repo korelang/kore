@@ -1,12 +1,14 @@
 #include <iostream>
 #include <sstream>
 
+#include "ast/expressions/array_expression.hpp"
 #include "ast/expressions/array_fill_expression.hpp"
 #include "ast/expressions/index_expression.hpp"
 #include "ast/expressions/array_range_expression.hpp"
 #include "ast/expressions/bool_expression.hpp"
 #include "ast/expressions/call.hpp"
 #include "ast/expressions/char_expression.hpp"
+#include "ast/expressions/field_access_expression.hpp"
 #include "ast/expressions/float_expression.hpp"
 #include "ast/expressions/integer_expression.hpp"
 #include "ast/expressions/string_expression.hpp"
@@ -22,14 +24,15 @@
 #include "logging/logging.hpp"
 #include "types/array_type.hpp"
 #include "types/function_type.hpp"
-#include "types/type.hpp"
 #include "types/optional.hpp"
-#include "types/unknown_type.hpp"
+#include "types/type.hpp"
 #include "errors/errors.hpp"
 #include "operator.hpp"
 #include "parser.hpp"
 
 namespace kore {
+    const std::string Parser::MUTABLE_PREFIX = "var";
+
     Parser::Parser()
         : _failed(false),
         _error_count(0),
@@ -54,13 +57,29 @@ namespace kore {
             
             if (token) {
                 std::ostringstream oss;
-                oss << *token;
 
-                debug_group(group, "%s: %s", name.c_str(), oss.str().c_str());
+                oss //<< std::left
+                    << " " << name
+                    << " " << token->location().colon_format()
+                    << " " << token->type()
+                    << " " << token->value();
+
+                const std::string str = oss.str();
+
+                debug_group(group, "%s", &str);
             } else {
                 error_group(group, "Attempt to log null current token (%s)", name.c_str());
             }
         }
+    }
+
+    void Parser::reset() {
+        _module_name = "";
+        _failed = false;
+        _error_count = 0;
+        _did_peek = false;
+        _ast = nullptr;
+        _args = nullptr;
     }
 
     const Token* Parser::current_token() {
@@ -103,6 +122,18 @@ namespace kore {
         return false;
     }
 
+    bool Parser::expect_identifier(const std::string& error_message) {
+        if (current_token()->is_identifier()) {
+            return true;
+        }
+
+        if (error_message.length() > 0) {
+            emit_parser_error(error_message.c_str());
+        }
+
+        return false;
+    }
+
     bool Parser::expect_keyword(const Keyword& keyword) {
         auto const token = current_token();
 
@@ -138,6 +169,7 @@ namespace kore {
     }
 
     void Parser::emit_parser_error(const char* const format, ...) {
+        // TODO: Save errors in a list as with the other ast visitors
         _failed = true;
         ++_error_count;
 
@@ -152,7 +184,7 @@ namespace kore {
                 << ColorAttribute::Reset
                 << " ";
 
-        std::cerr << " " << _scanner.source_name() << std::endl;
+        std::cerr <<  _scanner.source_name() << std::endl;
 
         va_list args;
         va_start(args, format);
@@ -221,6 +253,7 @@ namespace kore {
         trace_parser("advance to next statement boundary");
 
         while (!_scanner.eof()) {
+            next_token();
             auto token = current_token();
             /* auto token_type = token->type(); */
 
@@ -231,8 +264,6 @@ namespace kore {
             if (valid_statement_start(token)) {
                 break;
             }
-
-            next_token();
         }
     }
 
@@ -243,7 +274,7 @@ namespace kore {
     Owned<Expression> Parser::make_parser_error(const std::string& msg) {
         emit_parser_error(msg.c_str());
 
-        return Expression::make_expression<ParserErrorNode>(msg, current_token()->location());
+        return Expression::make<ParserErrorNode>(msg, current_token()->location());
     }
 
     void Parser::parse_module() {
@@ -344,35 +375,7 @@ namespace kore {
     /*     add_statement(parent, Statement::make_type_alias(identifier, rhs)); */
     /* } */
 
-    Owned<Expression> Parser::parse_index_expression(
-        const Token* const identifier_token
-    ) {
-        trace_parser("index expression");
-
-        auto expr = parse_expression(operator_base_precedence());
-
-        if (!expect_token_type(TokenType::RightBracket)) {
-            emit_parser_error("Expect ']' in array index expression");
-        }
-
-        auto identifier = Expression::make_expression<Identifier>(*identifier_token);
-        auto location = SourceLocation(
-            identifier_token->location(),
-            current_token()->location()
-        );
-
-        auto index_expr = Expression::make_expression<IndexExpression>(
-            std::move(expr),
-            std::move(identifier),
-            location
-        );
-
-        next_token();
-
-        return index_expr;
-    }
-
-    Owned<Expression> Parser::parse_index_expression(Owned<Expression> identifier) {
+    Owned<Expression> Parser::parse_index_expression(Owned<Expression> indexed_expr) {
         trace_parser("index expression");
 
         auto expr = parse_expression(operator_base_precedence());
@@ -382,13 +385,13 @@ namespace kore {
         }
 
         auto location = SourceLocation(
-            identifier->location(),
+            indexed_expr->location(),
             current_token()->location()
         );
 
-        auto index_expr = Expression::make_expression<IndexExpression>(
+        auto index_expr = Expression::make<IndexExpression>(
             std::move(expr),
-            std::move(identifier),
+            std::move(indexed_expr),
             location
         );
 
@@ -397,77 +400,126 @@ namespace kore {
         return index_expr;
     }
 
-    // TODO: Refactor this function
+    Owned<Expression> Parser::parse_field_access_expression(Owned<Expression> expr) {
+        trace_parser("field access expression");
+
+        if (!expect_token_type(TokenType::Dot, true)) {
+            // TODO: Or return an error expression instead?
+            return nullptr;
+        }
+
+        Owned<Expression> field = Expression::make<Identifier>(*current_token());
+
+        return Expression::make<FieldAccessExpression>(
+            std::move(expr),
+            std::move(field)
+        );
+    }
+
     void Parser::parse_declaration(Statement* const parent) {
         trace_parser("declaration");
 
-        /* if (expect_keyword(Keyword::Type)) { */
-        /*     parse_type_alias(parent); */
-        /*     return; */
-        /* } */
+        auto lhs_exprs = parse_lhs_expression_list();
 
-        auto token = current_token();
-
-        if (!token->is_identifier()) {
+        if (lhs_exprs.empty()) {
             return;
-        }
-
-        bool is_mutable = token->value() == "var";
-
-        if (is_mutable) {
-            token = next_token();
-        }
-
-        auto& identifier_token = *token;
-        token = next_token();
-
-        if (expect_token_type(TokenType::LeftParenthesis, false)) {
-            if (is_mutable) {
-                emit_parser_error("Function calls cannot be declared variable");
-                return;
-            }
-
-            auto identifier = Expression::make_expression<Identifier>(identifier_token);
-
+        } else if (lhs_exprs.size() == 1 && lhs_exprs[0]->expr_type() == ExpressionType::Call) {
             add_statement(
                 parent,
                 Statement::make_statement<ExpressionStatement>(
-                    parse_function_call(std::move(identifier))
+                    parse_function_call(std::move(lhs_exprs[0]))
                 )
             );
 
             return;
         }
 
-        Owned<Expression> lhs_expr;
-        Owned<Expression> rhs_expr;
-        const Type* decl_type;
-        auto identifier = Expression::make_expression<Identifier>(identifier_token);
+        auto rhs_exprs = parse_expression_list();
 
-        if (expect_token_type(TokenType::LeftBracket, true)) {
-            lhs_expr = parse_index_expression(std::move(identifier));
-        } else {
-            lhs_expr = Expression::make_expression<Identifier>(identifier_token);
-            decl_type = parse_type();
-            auto type = *token;
-        }
-
-        if (!expect_token_type(TokenType::Assign)) {
-            emit_parser_error("Variable declarations must be initialised");
+        if (rhs_exprs.empty()) {
             return;
         }
-
-        rhs_expr = parse_expression(operator_base_precedence());
 
         add_statement(
             parent,
             Statement::make_statement<VariableAssignment>(
-                is_mutable,
-                decl_type,
-                std::move(lhs_expr),
-                std::move(rhs_expr)
+                std::move(lhs_exprs),
+                std::move(rhs_exprs)
             )
         );
+
+        /* auto token = current_token(); */
+
+        /* if (!token->is_identifier()) { */
+        /*     return; */
+        /* } */
+
+        /* bool is_mutable = token->value() == "var"; */
+
+        /* if (is_mutable) { */
+        /*     token = next_token(); */
+        /* } */
+
+        // TODO: Parse an expression list here to support things like
+        //
+        // a.lol, b[0], var c = d()
+        // var c i32, b bool, d str = 1, false, "hello"
+        // var c, b, d = 1, false, "hello"
+        //
+        // If the token after the first expression is comma, continue parsing
+        // as an expression list, otherwise parse as a function call. The lhs
+        // expression list can only contain valid targets for an assignment so
+        // 1 + 2 = d() is not valid
+
+        /* auto identifier_token = *token; */
+        /* token = next_token(); */
+
+        /* if (expect_token_type(TokenType::LeftParenthesis, false)) { */
+        /*     if (is_mutable) { */
+        /*         emit_parser_error("Function calls cannot be declared variable"); */
+        /*         return; */
+        /*     } */
+
+        /*     auto identifier = Expression::make_expression<Identifier>(identifier_token); */
+
+        /*     add_statement( */
+        /*         parent, */
+        /*         Statement::make_statement<ExpressionStatement>( */
+        /*             parse_function_call(std::move(identifier)) */
+        /*         ) */
+        /*     ); */
+
+        /*     return; */
+        /* } */
+
+        /* Owned<Expression> lhs_expr; */
+        /* Owned<Expression> rhs_expr; */
+        /* const Type* decl_type; */
+        /* auto identifier = Expression::make_expression<Identifier>(identifier_token); */
+
+        /* if (expect_token_type(TokenType::LeftBracket, true)) { */
+        /*     lhs_expr = parse_index_expression(std::move(identifier)); */
+        /* } else { */
+        /*     lhs_expr = std::move(identifier); */
+        /*     decl_type = parse_type(); */
+        /* } */
+
+        /* if (!expect_token_type(TokenType::Assign)) { */
+        /*     emit_parser_error("Variable declarations must be initialised"); */
+        /*     return; */
+        /* } */
+
+        /* rhs_expr = parse_expression(operator_base_precedence()); */
+
+        /* add_statement( */
+        /*     parent, */
+        /*     Statement::make_statement<VariableAssignment>( */
+        /*         is_mutable, */
+        /*         decl_type, */
+        /*         std::move(lhs_expr), */
+        /*         std::move(rhs_expr) */
+        /*     ) */
+        /* ); */
     }
 
     void Parser::parse_if_statement(Statement* const parent) {
@@ -512,7 +564,6 @@ namespace kore {
         /* parse_module(); */
 
         while (expect_keyword(Keyword::Import)) {
-            // TODO: How to require newline after each import?
             parse_import_decl();
         }
 
@@ -544,29 +595,36 @@ namespace kore {
         if (exported) {
             if (!is_func) {
                 emit_parser_error("Expected 'func' after 'export' keyword");
-                next_token();
+                next_token(); // TODO: Remove?
                 return;
             }
         } else if (!is_func) {
+            emit_parser_error("Expected 'func' keyword for valid function declaration");
             return;
         }
 
-        auto token = current_token();
-
-        if (!token->is_identifier()) {
-            emit_parser_error("Expected function name identifier after 'func'");
+        if (!expect_identifier("Expected function name identifier after 'func'")) {
             next_token();
             return;
         }
 
         trace_parser("function name");
-        const Token func_name(*token);
+
+        const auto func_name(*current_token());
         next_token();
 
         auto func = Statement::make_statement<Function>(exported, func_name);
 
+        // Create a function type for the function we are about to parse.
+        // Parsing will fill it with parameter and return types and we save it
+        // in the type cache afterwards
+        auto func_type = std::make_unique<FunctionType>();
+        func->set_type(func_type.get());
+
         parse_function_signature(func.get());
         parse_block(func.get());
+
+        Type::set_function_type(std::move(func_type));
 
         add_statement(parent, std::move(func));
     }
@@ -576,79 +634,80 @@ namespace kore {
 
         if (expect_token_type(TokenType::LeftParenthesis)) {
             if (!expect_token_type(TokenType::RightParenthesis)) {
+                // TODO: Return parameter types from this method for constructing the function type
                 parse_function_parameters(func);
             }
 
-            auto return_type = parse_type();
+            auto return_types = parse_type_list();
 
-            // If no return type was specified, mark it as unknown and infer it
-            // in the typechecker
-            func->set_return_type(return_type ? return_type : Type::unknown());
+            if (return_types.empty()) {
+                // If no return type was specified, mark it as unknown and
+                // infer it in the type inference pass
+                func->type()->add_return_type(Type::unknown());
+            } else {
+                for (auto type : return_types) {
+                    func->type()->add_return_type(type);
+                }
+            }
         }
     }
 
     void Parser::parse_function_parameters(Function* const func) {
         trace_parser("function parameters");
 
-        auto token = current_token();
-
-        if (token->is_identifier()) {
-            parse_parameter_list(func);
-        } else {
-            emit_parser_error(
-                "Expected identifier or ')' for function parameters, but got '%s'",
-                token->value().c_str()
-            );
-        }
+        parse_parameter_list(func);
     }
 
-    bool Parser::parse_parameter_decl(Function* const func) {
+    void Parser::parse_parameter_decl(Function* const func) {
         trace_parser("parameter declaration");
-
         auto token = *current_token();
 
         if (token.type() == TokenType::Identifier) {
-            auto parameter = Expression::make_expression<Parameter>(token, Type::unknown());
+            auto parameter = Expression::make<Parameter>(token, Type::unknown());
             token = *next_token();
 
             if (token.type() != TokenType::Comma && token.type() != TokenType::RightParenthesis) {
                 parameter->set_type(parse_type());
             }
 
+            // TODO: Need to fix this
+            func->type()->add_parameter_type(parameter->type());
             func->add_parameter(std::move(parameter));
-        } else if (token.type() == TokenType::Comma) {
-            next_token();
-        } else if (token.type() == TokenType::RightParenthesis) {
-            return false;
         } else {
             emit_parser_error("Unexpected token '%s' in function parameter", token.type());
         }
-
-        return token.type() != TokenType::RightParenthesis;
     }
 
     void Parser::parse_parameter_list(Function* const func) {
         trace_parser("parameter list");
 
-        auto token = current_token();
-        SourceLocation loc = token->location();
+        SourceLocation loc = current_token()->location();
 
-        while (!_scanner.eof() && parse_parameter_decl(func));
+        do {
+            parse_parameter_decl(func);
+            auto token_type = current_token()->type();
 
-        if (!expect_token_type(TokenType::RightParenthesis)) {
-            emit_parser_error("Expected ')' after function parameters");
-        }
+            if (token_type == TokenType::Comma) {
+                next_token();
+            } else if (token_type == TokenType::RightParenthesis) {
+                next_token();
+                break;
+            } else {
+                emit_parser_error(
+                    "Expected ',' or ')' after parameter declaration but got unexpected token '%s'",
+                    token_type
+                );
+                break;
+            }
+        } while (true);
     }
 
     void Parser::parse_return(Statement* const parent) {
         trace_parser("return");
 
-        if (expect_keyword(Keyword::Return)) {
-            // TODO: Should be an expression list in the future
-            auto expr = parse_expression(operator_base_precedence());
-
-            add_statement(parent, Statement::make_statement<Return>(std::move(expr)));
-        }
+        next_token();
+        auto expr_list = parse_expression_list();
+        add_statement(parent, Statement::make_statement<Return>(std::move(expr_list)));
     }
 
     IdentifierList Parser::parse_identifier_list() {
@@ -658,8 +717,7 @@ namespace kore {
 
         do {
             if (token->is_identifier()) {
-                identifiers.emplace_back(Expression::make_expression<Identifier>(*token));
-                token = next_token();
+                identifiers.emplace_back(Expression::make<Identifier>(*token));
                 token = next_token();
 
                 if (token->type() != TokenType::Comma) {
@@ -722,6 +780,26 @@ namespace kore {
         return Type::unknown();
     }
 
+    std::vector<const Type*> Parser::parse_type_list() {
+        std::vector<const Type*> types;
+
+        do {
+            auto type = parse_type();
+            types.push_back(type);
+
+            if (expect_token_type(TokenType::LeftBrace, false)) {
+                break;
+            } else if (expect_token_type(TokenType::Comma)) {
+                // Moves to next token
+            } else {
+                emit_parser_error("Expected ',' or '{' when parsing function return type");
+                break;
+            }
+        } while (true);
+
+        return types;
+    }
+
     Owned<Expression> Parser::parse_literal() {
         trace_parser("literal");
 
@@ -737,7 +815,7 @@ namespace kore {
 
         switch (token->type()) {
             case TokenType::Integer: {
-                result = Expression::make_expression<IntegerExpression>(
+                result = Expression::make<IntegerExpression>(
                     token->int_value() * sign,
                     token->location()
                 );
@@ -746,7 +824,7 @@ namespace kore {
             }
 
             case TokenType::Float: {
-                result = Expression::make_expression<FloatExpression>(
+                result = Expression::make<FloatExpression>(
                     token->float32_value() * sign,
                     token->location()
                 );
@@ -756,14 +834,14 @@ namespace kore {
 
             case TokenType::Character: {
                 // TODO: Handle signed characters
-                result = Expression::make_expression<CharExpression>(token->int_value(), token->location());
+                result = Expression::make<CharExpression>(token->int_value(), token->location());
                 next_token();
                 break;
             }
 
             case TokenType::String: {
                 // TODO: Handle signed strings (an error)
-                result = Expression::make_expression<StringExpression>(
+                result = Expression::make<StringExpression>(
                     token->value(),
                     token->location()
                 );
@@ -773,10 +851,10 @@ namespace kore {
 
             case TokenType::Keyword: {
                 if (token->is_boolean_keyword()) {
-                    result = Expression::make_expression<BoolExpression>(token->value(), token->location());
+                    result = Expression::make<BoolExpression>(token->value(), token->location());
                     next_token();
                 } else {
-                    result = Expression::make_expression<ParserErrorNode>(
+                    result = Expression::make<ParserErrorNode>(
                         "Expected literal token type, got keyword",
                         token->location()
                     );
@@ -790,7 +868,7 @@ namespace kore {
             }
 
             default: {
-                result = Expression::make_expression<ParserErrorNode>("Expected literal token type", token->location());
+                result = Expression::make<ParserErrorNode>("Expected literal token type", token->location());
                 break;
             }
         }
@@ -830,7 +908,7 @@ namespace kore {
             return make_parser_error("Expected ']' after array fill expression");
         }
 
-        return Expression::make_expression<ArrayFillExpression>(
+        return Expression::make<ArrayFillExpression>(
             std::move(size_expr),
             std::move(fill_expr),
             lbracket_token->location()
@@ -843,7 +921,7 @@ namespace kore {
     ) {
         trace_parser("normal array");
 
-        auto array_expr = Expression::make_expression<ArrayExpression>();
+        auto array_expr = Expression::make<ArrayExpression>();
         array_expr->add_element(std::move(first_elem_expr));
         array_expr->set_start_location(lbracket_token->location());
 
@@ -878,7 +956,7 @@ namespace kore {
 
         auto end_expr = parse_expression(base_precedence);
 
-        return Expression::make_expression<ArrayRangeExpression>(
+        return Expression::make<ArrayRangeExpression>(
             std::move(start_expr),
             std::move(end_expr),
             lbracket_token->location()
@@ -890,7 +968,6 @@ namespace kore {
 
         std::vector<std::string> identifier;
         auto token = current_token();
-        SourceLocation loc = token->location();
 
         do {
             if (token->is_identifier()) {
@@ -903,12 +980,11 @@ namespace kore {
 
                 token = next_token();
             } else {
-                emit_parser_error("Expected a possibly qualified identifier");
                 break;
             }
         } while (true);
 
-        return Expression::make_expression<Identifier>(identifier, loc);
+        return Expression::make<Identifier>(identifier, token->location());
     }
 
     Owned<Expression> Parser::parse_unary_expression() {
@@ -922,7 +998,7 @@ namespace kore {
         auto token = current_token();
 
         if (token->is_keyword() && token->keyword() == Keyword::None) {
-            auto expr = Expression::make_expression<Identifier>(*token);
+            auto expr = Expression::make<Identifier>(*token);
             next_token();
 
             return expr;
@@ -1002,46 +1078,125 @@ namespace kore {
     Owned<Expression> Parser::parse_function_call(Owned<Expression> func_name) {
         trace_parser("call");
 
-        // TODO: We can probably just return the vector here and use its move constructor
-        std::vector<Owned<Expression>> expr_list;
-        auto result = parse_expression_list(expr_list);
-
-        if (result && result->is_error()) {
-            advance_to_next_statement_boundary();
-            return result;
+        if (!expect_token_type(TokenType::LeftParenthesis)) {
+            return {};
+        } else if (expect_token_type(TokenType::RightParenthesis)) {
+            next_token();
+            return {};
         }
 
-        return Expression::make_expression<Call>(
+        auto expr_list = parse_expression_list();
+
+        if (expr_list.empty()) {
+            advance_to_next_statement_boundary();
+            return nullptr;
+        }
+
+        return Expression::make<Call>(
             std::move(func_name),
             std::move(expr_list)
         );
     }
 
-    Owned<Expression> Parser::parse_expression_list(std::vector<Owned<Expression>>& expr_list) {
+    ExpressionList Parser::parse_expression_list() {
         trace_parser("expression list");
 
-        if (!expect_token_type(TokenType::LeftParenthesis)) {
-            return nullptr;
-        } else if (expect_token_type(TokenType::RightParenthesis)) {
-            next_token();
-            return nullptr;
-        }
-
-        auto precedence = operator_base_precedence();
+        ExpressionList expr_list;
         Owned<Expression> expr = nullptr;
 
-        while ((expr = parse_expression(precedence))) {
+        while ((expr = parse_expression())) {
             trace_parser("exprlist:expr");
             expr_list.push_back(std::move(expr));
 
             if (expect_token_type(TokenType::RightParenthesis)) {
                 break;
             } else if (!expect_token_type(TokenType::Comma)) {
-                return nullptr;
+                break;
             }
         }
 
-        return nullptr;
+        return expr_list;
+    }
+
+    std::pair<Owned<Expression>, bool> Parser::parse_lhs_expression() {
+        auto token = current_token();
+        bool is_mutable = expect_keyword(Keyword::Var);
+
+        if (!token->is_identifier()) {
+            emit_parser_error("Invalid left-hand side target for assignment");
+            return { nullptr, false };
+        }
+
+        auto identifier_token = *token;
+        Owned<Expression> expr = Expression::make<Identifier>(identifier_token, is_mutable);
+
+        bool parsed_index_or_field_expr = false;
+        next_token();
+
+        // Continue parsing nested field access or index sub-expressions e.g. "a.b[0].c[1]"
+        // or we parse a function call e.g. "a.b[0].c[1]()"
+        do {
+            if (expect_token_type(TokenType::LeftBracket, false)) {
+                expr = parse_index_expression(std::move(expr));
+                parsed_index_or_field_expr = true;
+            } else if (expect_token_type(TokenType::Dot, false)) {
+                expr = parse_field_access_expression(std::move(expr));
+                parsed_index_or_field_expr = true;
+            } else if (expect_token_type(TokenType::LeftParenthesis, false)) {
+                // TODO: Parse entire function call here
+                if (is_mutable) {
+                    emit_parser_error("Function calls cannot be declared variable");
+                    return { nullptr, false };
+                }
+
+                return { std::move(expr), true };
+            } else {
+                break;
+            }
+        } while (true);
+
+        if (parsed_index_or_field_expr) {
+            if (is_mutable) {
+                emit_parser_error("Cannot declare left-hand side index or field access expression as variable");
+                return { nullptr, false };
+            }
+        } else {
+            // TODO: Perhaps let parse_type see if the next thing is an identifier instead
+            if (!expect_token_type(TokenType::Comma, false) && !expect_token_type(TokenType::Assign, false)) {
+                expr->set_type(parse_type());
+            }
+        }
+
+        return { std::move(expr), false };
+    }
+
+    std::vector<Owned<Expression>> Parser::parse_lhs_expression_list() {
+        std::vector<Owned<Expression>> lhs_exprs;
+        bool contains_function_call = false;
+
+        do {
+            auto [lhs_expr, parsed_function_call] = parse_lhs_expression();
+            contains_function_call = parsed_function_call;
+
+            if (!lhs_expr) {
+                return {};
+            }
+
+            lhs_exprs.emplace_back(std::move(lhs_expr));
+
+            if (expect_token_type(TokenType::Assign)) {
+                if (contains_function_call) {
+                    emit_parser_error("Function call cannot be the target of an assignment");
+                }
+
+                return lhs_exprs;
+            } else if (!expect_token_type(TokenType::Comma)) {
+                emit_parser_error("Expected ',' or '=' after expression in left-hand side expression list");
+                return lhs_exprs;
+            }
+        } while (true);
+
+        return lhs_exprs;
     }
 
     Owned<Expression> Parser::parse_parenthesised_expression() {
@@ -1085,7 +1240,7 @@ namespace kore {
             auto right = parse_expression(right_precedence);
 
             if (op == "..") {
-                left = Expression::make_expression<ArrayRangeExpression>(
+                left = Expression::make<ArrayRangeExpression>(
                     std::move(left),
                     std::move(right),
                     binop_location
@@ -1093,7 +1248,7 @@ namespace kore {
             } else {
                 auto location = SourceLocation(left->location(), right->location());
 
-                left = Expression::make_expression<BinaryExpression>(
+                left = Expression::make<BinaryExpression>(
                     op,
                     std::move(left),
                     std::move(right),
@@ -1105,38 +1260,65 @@ namespace kore {
         return left;
     }
 
-    void Parser::parse_non_module(const std::string& value, Ast* ast, const ParsedCommandLineArgs& args) {
-        _ast = ast;
-        _scanner.scan_string(value);
-        parse_declaration(nullptr);
-        _ast = nullptr;
-        _args = &args;
-    }
+    ParseResult Parser::parse_non_module(
+        const std::string& value,
+        const ParsedCommandLineArgs& args
+    ) {
+        Ast ast{"<raw>"};
 
-    void Parser::parse_string(const std::string& value, Ast* ast, const ParsedCommandLineArgs& args) {
-        _ast = ast;
+        _ast = &ast;
+        _args = &args;
         _scanner.scan_string(value);
 
         next_token();
-        parse_toplevel(nullptr);
+        parse_declaration();
 
-        _ast = nullptr;
-        _args = &args;
+        return handle_parse_result(ast);
     }
 
-    void Parser::parse_file(const std::string& path, Ast* ast, const ParsedCommandLineArgs& args) {
-        // TODO: Make this return an ast instead
-        if (_scanner.open_file(path)) {
-            _ast = ast;
-            _args = &args;
+    ParseResult Parser::parse_string(
+        const std::string& value,
+        const ParsedCommandLineArgs& args
+    ) {
+        Ast ast{"<string>"};
 
-            // Get the first token
-            next_token();
+        _ast = &ast;
+        _args = &args;
+        _scanner.scan_string(value);
 
-            parse_toplevel(nullptr);
+        next_token();
+        parse_toplevel();
 
-            // Reset internal parser state
-            _ast = nullptr;
+        return handle_parse_result(ast);
+    }
+
+    ParseResult Parser::parse_file(
+        const std::string& path,
+        const ParsedCommandLineArgs& args
+    ) {
+        if (!_scanner.open_file(path)) {
+            return {};
         }
+
+        Ast ast{path};
+        _ast = &ast;
+        _args = &args;
+
+        next_token();
+        parse_toplevel();
+
+        return handle_parse_result(ast);
+    }
+
+    ParseResult Parser::handle_parse_result(Ast& ast) {
+        if (failed()) {
+            reset();
+            return {};
+        }
+
+        ParseResult result = std::make_optional(std::move(ast));
+        reset();
+
+        return result;
     }
 }

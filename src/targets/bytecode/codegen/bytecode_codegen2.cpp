@@ -264,8 +264,6 @@ namespace kore {
             auto arg_registers = ins_type->arg_registers;
             auto ret_registers = ins_type->ret_registers;
 
-            // TODO: Use return count of called function here (what about
-            // variadic functions?)
             std::vector<std::uint8_t> bytes{
                 static_cast<std::uint8_t>(opcode),
                 static_cast<std::uint8_t>(ins_type->func_index),
@@ -281,7 +279,7 @@ namespace kore {
             auto registers = ins_type->registers;
 
             if (registers.empty()) {
-                write_be32(KORE_MAKE_INSTRUCTION0(opcode));
+                write_be32(KORE_MAKE_INSTRUCTION1(opcode, 0));
             } else {
                 std::vector<std::uint8_t> bytes{
                     static_cast<std::uint8_t>(opcode),

@@ -1,4 +1,7 @@
 #include "ast/ast_stream_writer.hpp"
+#include "ast/expressions/expressions.hpp"
+#include "ast/statements/statements.hpp"
+#include "utils/unused_parameter.hpp"
 
 namespace kore {
     int AstStreamWriter::indent_in_spaces = 4;
@@ -167,27 +170,32 @@ namespace kore {
     void AstStreamWriter::visit(Return& ret) {
         write("return");
 
-        if (ret.expr()) {
+        if (ret.expr_count() > 0) {
             write(" ");
-            ret.expr()->accept(*this);
+
+            for (auto& expr : ret) {
+                expr->accept(*this);
+            }
         }
 
         newline();
     }
 
     void AstStreamWriter::visit(VariableAssignment& assignment) {
-        if (assignment.is_mutable()) {
-            write("var ");
-        }
+        UNUSED_PARAM(assignment);
+        // TODO:
+        /* if (assignment.is_mutable()) { */
+        /*     write("var "); */
+        /* } */
 
-        /* auto lhs = assignment.lhs(); */
+        /* /1* auto lhs = assignment.lhs(); *1/ */
 
-        /* write(lol); */
-        write(" ");
-        write(assignment.declared_type()->name());
-        write(" = ");
-        assignment.rhs()->accept(*this);
-        newline();
+        /* /1* write(lol); *1/ */
+        /* write(" "); */
+        /* write(assignment.declared_type()->name()); */
+        /* write(" = "); */
+        /* assignment.rhs()->accept(*this); */
+        /* newline(); */
     }
 
     void AstStreamWriter::visit(VariableDeclaration& decl) {

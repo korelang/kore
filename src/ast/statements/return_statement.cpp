@@ -2,20 +2,37 @@
 #include "ast/statements/return_statement.hpp"
 
 namespace kore {
-    Return::Return() : _expr(nullptr) {}
+    Return::Return() {}
 
-    Return::Return(Owned<Expression> expr)
-        : Statement(expr->location(), StatementType::Return),
-          _expr(std::move(expr)) {}
+    Return::Return(ExpressionList exprs)
+        : Statement(StatementType::Return),
+          _exprs(std::move(exprs))
+    {
+        for (const auto& expr : exprs) {
+            location().merge(expr->location());
+        }
+    }
 
     Return::~Return() {}
 
-    Expression* Return::expr() {
-        return _expr.get();
+    int Return::expr_count() const noexcept {
+        return _exprs.size();
     }
 
-    const Expression* Return::expr() const {
-        return _expr.get();
+    Expression* Return::get_expr(int idx) {
+        return _exprs[idx].get();
+    }
+
+    const Expression* Return::get_expr(int idx) const {
+        return _exprs[idx].get();
+    }
+
+    Return::iterator Return::begin() {
+        return _exprs.begin();
+    }
+
+    Return::iterator Return::end() {
+        return _exprs.end();
     }
 
     KORE_AST_VISITOR_ACCEPT_METHOD_DEFAULT_IMPL(Return)

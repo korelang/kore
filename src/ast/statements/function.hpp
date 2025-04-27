@@ -26,12 +26,13 @@ namespace kore {
             const Identifier* identifier() const;
             bool exported() const noexcept;
             int arity() const;
-            FunctionType* type() const;
-            const Type* return_type() const;
+            FunctionType* type();
+            const FunctionType* type() const;
+            void set_type(FunctionType* type);
 
-            const Identifier* parameter(int param_index);
+            const Parameter* parameter(int idx) const;
             void add_parameter(Owned<Parameter>&& parameter);
-            void set_return_type(const Type* type);
+            /* void set_return_type(const Type* type); */
             void add_statement(Owned<Statement> statement) override;
             Statement* last_statement();
 
@@ -43,7 +44,10 @@ namespace kore {
         private:
             Identifier _name;
             bool _exported;
-            Owned<FunctionType> _type;
+            FunctionType* _type;
+            // TODO: Should we remove or duplicate parameter types in function
+            // type?
+            std::vector<Owned<Parameter>> _parameters;
             StatementList _body;
             std::vector<Statement*> _returns;
     };

@@ -2,7 +2,6 @@
 #define KORE_SCANNER_HPP
 
 #include <filesystem>
-#include <fstream>
 
 #include "pointer_types.hpp"
 #include "ast/scanner/token.hpp"
@@ -14,11 +13,14 @@ namespace kore {
     class Scanner final {
         public:
             /// An iterator for iterating scanned tokens
-            class token_iterator final
-                    : public std::iterator<
-                        std::input_iterator_tag,
-                        const Token
-                    > {
+            class token_iterator final {
+                public:
+                    using iterator_category = std::input_iterator_tag;
+                    using value_type = const Token;
+                    using difference_type = std::ptrdiff_t;
+                    using pointer = const Token*;
+                    using reference = const Token&;
+
                 public:
                     token_iterator(Token token);
                     token_iterator(Scanner& scanner);

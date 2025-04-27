@@ -2,39 +2,50 @@
 
 #include "ast/ast_writer.hpp"
 #include "ast/expressions/identifier.hpp"
-#include "ast/expressions/parameter.hpp"
 #include "types/function_type.hpp"
 #include "types/unknown_type.hpp"
 
 namespace kore {
-    FunctionType::FunctionType() : Type(TypeCategory::Function) {
+    FunctionType::FunctionType() : Type(TypeCategory::Function), _name(create_name()) {
     }
 
     FunctionType::~FunctionType() {
     }
 
     std::string FunctionType::name() const {
-        return create_name(false);
+        return _name;
     }
 
-    void FunctionType::add_parameter(Owned<Parameter>&& parameter) {
-        _parameters.emplace_back(std::move(parameter));
+    void FunctionType::add_parameter_type(const Type* parameter_type) {
+        _parameter_types.push_back(parameter_type);
     }
 
-    int FunctionType::arity() const {
-        return _parameters.size();
+    int FunctionType::arity() const noexcept {
+        return _parameter_types.size();
     }
 
-    const Identifier* FunctionType::parameter(int param_index) const {
-        return _parameters[param_index].get();
+    int FunctionType::return_arity() const noexcept {
+        return _return_types.size();
     }
 
-    const Type* FunctionType::return_type() const {
-        return _return_type;
+    const Type* FunctionType::get_parameter_type(int idx) const {
+        return _parameter_types[idx];
     }
 
-    void FunctionType::set_return_type(const Type* type) {
-        _return_type = type;
+    void FunctionType::set_parameter_types(const std::vector<const Type*> parameter_types) {
+        _parameter_types = parameter_types;
+    }
+
+    const Type* FunctionType::return_type(int idx) const {
+        return _return_types[idx];
+    }
+
+    void FunctionType::set_return_types(const std::vector<const Type*> return_types) {
+        _return_types = return_types;
+    }
+
+    void FunctionType::add_return_type(const Type* type) {
+        _return_types.push_back(type);
     }
 
     const Type* FunctionType::unify(const Type* other_type) const {
@@ -54,9 +65,9 @@ namespace kore {
 
         // TODO: Do we handle co- and contravariance here?
         for (int i = 0; i < arity(); ++i) {
-            auto param1 = _parameters[i]->type();
-            auto param2 = func_type->parameter(i)->type();
-            auto unified_type = param1->unify(param2);
+            auto param_type1 = _parameter_types[i];
+            auto param_type2 = func_type->get_parameter_type(i);
+            auto unified_type = param_type1->unify(param_type2);
 
             if (unified_type->is_unknown()) {
                 return unified_type;
@@ -67,29 +78,59 @@ namespace kore {
     }
 
     void FunctionType::write(AstWriter* const writer) const {
-        writer->write(create_name(true));
+        writer->write(_name);
     }
 
-    std::string FunctionType::create_name(bool with_arg_names) const {
+    std::string FunctionType::create_name() {
+        if (!_name.empty()) {
+            return _name;
+        }
+
+        std::vector<const Type*> parameter_types;
+
+        for (const auto& parameter_type : _parameter_types) {
+            parameter_types.push_back(parameter_type);
+        }
+
+        _name = FunctionType::create_function_type_name(parameter_types, _return_types);
+
+        return _name;
+    }
+
+    std::string FunctionType::create_function_type_name() const {
+        return create_function_type_name(_parameter_types, _return_types);
+    }
+
+    // TODO: Probably want to cache this
+    std::string FunctionType::create_function_type_name(
+        const std::vector<const Type*>& parameter_types,
+        const std::vector<const Type*>& return_types
+    ) {
         std::ostringstream oss;
 
         oss << "(";
 
-        for (int i = 0; i < arity(); ++i) {
-            auto& param = _parameters[i];
+        for (size_t idx = 0; idx < parameter_types.size(); ++idx) {
+            auto& param = parameter_types[idx];
 
-            oss << param->type()->name();
+            oss << param->name();
 
-            if (with_arg_names) {
-                oss << " " << param->name();
-            }
-
-            if (i != arity() - 1) {
+            if (idx != parameter_types.size() - 1) {
                 oss << ", ";
             }
         }
 
-        oss << ") => " << _return_type->name();
+        oss << ") => ";
+
+        for (size_t idx = 0; idx < return_types.size(); ++idx) {
+            auto& return_type = return_types[idx];
+
+            oss << return_type->name();
+
+            if (idx != return_types.size() - 1) {
+                oss << ", ";
+            }
+        }
 
         return oss.str();
     }

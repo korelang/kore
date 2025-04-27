@@ -32,7 +32,7 @@ namespace kore {
     class Module final {
         public:
             using pointer = Owned<Module>;
-            using object_iterator = std::vector<CompiledObject::const_pointer>::const_iterator;
+            using object_iterator = std::vector<CompiledObject::pointer>::const_iterator;
 
         public:
             Module();
@@ -65,7 +65,7 @@ namespace kore {
             CompiledObject* main_object();
             /* const CompiledObject* main_object() const; */
             CompiledObject* get_function(const std::string& name);
-            CompiledObject* get_function_by_index(int index);
+            CompiledObject* get_function_by_index(size_t index);
             void add_function(
                 const std::string& name,
                 int lnum,

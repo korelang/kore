@@ -20,6 +20,7 @@ namespace kore {
         Array,
         Binary,
         Call,
+        FieldAccess,
         Identifier,
         Index,
         Error,
@@ -37,6 +38,7 @@ namespace kore {
             using reference = Owned<Expression>&;
 
         public:
+            Expression(ExpressionType type);
             Expression(ExpressionType type, const SourceLocation& location);
             virtual ~Expression();
 
@@ -51,8 +53,13 @@ namespace kore {
             void set_parenthesised(bool flag);
 
             template<typename T, typename... Args>
-            static Owned<T> make_expression(Args... args) {
+            static Owned<T> make(Args... args) {
                 return std::make_unique<T>(std::forward<Args>(args)...);
+            }
+
+            template<typename T>
+            T* as() {
+                return static_cast<T*>(this);
             }
 
         protected:
@@ -62,6 +69,8 @@ namespace kore {
             ExpressionType _expr_type;
             bool _parenthesised;
     };
+
+    using ExpressionList = std::vector<Owned<Expression>>;
 }
 
 #endif // KORE_EXPRESSION_HPP

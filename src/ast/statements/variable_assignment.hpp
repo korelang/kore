@@ -1,40 +1,40 @@
 #ifndef KORE_VARIABLE_ASSIGNMENT_HPP
 #define KORE_VARIABLE_ASSIGNMENT_HPP
 
-#include "ast/expressions/identifier.hpp"
+#include <vector>
+
 #include "ast/statements/statement.hpp"
-#include "ast/scanner/token.hpp"
 
 namespace kore {
     class Expression;
     class Type;
 
+    /// A multi-variable assignment e.g.
+    ///
+    /// * a.lol, b[0], var c = d()
+    /// * var a i32, b, c str = 1, false, "hello"
     class VariableAssignment : public Statement {
         public:
             VariableAssignment(
-                bool is_mutable,
-                const Type* type,
-                Owned<Expression> lhs,
-                Owned<Expression> rhs
+                std::vector<Owned<Expression>> lhs_exprs,
+                std::vector<Owned<Expression>> rhs_exprs
             );
+
             virtual ~VariableAssignment();
 
-            Expression* lhs();
-            Expression* rhs();
-            const Expression* lhs() const;
-            const Expression* rhs() const;
-            const Type* type() const;
-            const Type* declared_type() const;
-            void set_type(const Type* type);
-            bool is_mutable() const;
+            int lhs_count() const;
+            int rhs_count() const;
+            Expression* lhs(int idx);
+            Expression* rhs(int idx);
+            const Expression* lhs(int idx) const;
+            const Expression* rhs(int idx) const;
+            const Type* rhs_type(int idx) const;
 
             KORE_AST_VISITOR_ACCEPT_METHOD_DEFAULT_DEFINITION
 
         private:
-            bool _mutable;
-            const Type* _type;
-            Owned<Expression> _lhs;
-            Owned<Expression> _rhs;
+            std::vector<Owned<Expression>> _lhs_exprs;
+            std::vector<Owned<Expression>> _rhs_exprs;
     };
 }
 

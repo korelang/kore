@@ -44,6 +44,8 @@ namespace kore {
 
             void push_error(DiagnosticData&& data);
 
+            void type_check_function_call(class Call& call, const FunctionType* func_type);
+
             void visit(ArrayExpression& array) override;
             void visit(IndexExpression& array_index) override;
             void visit(IndexExpression& array_index, ValueContext context) override;

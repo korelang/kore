@@ -69,9 +69,23 @@ namespace kore {
         return _type;
     }
 
+    const Type* Identifier::declared_type() const {
+        return _declared_type;
+    }
+
     bool Identifier::is_mutable() const {
         return _is_mutable;
     }
 
-    KORE_AST_VISITOR_ACCEPT_METHOD_DEFAULT_IMPL(Identifier)
+    void Identifier::set_declared_type(const Type* type) {
+        _declared_type = type;
+    }
+
+    void Identifier::accept(AstVisitor& visitor) {
+        visitor.visit(*this);
+    }
+
+    void Identifier::accept(AstVisitor& visitor, ValueContext context) {
+        visitor.visit(*this, context);
+    }
 }

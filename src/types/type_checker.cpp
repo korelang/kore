@@ -1,21 +1,19 @@
 #include "type_checker.hpp"
 #include "ast/expressions/binary_expression.hpp"
 #include "ast/expressions/expression.hpp"
+#include "ast/expressions/expressions.hpp"
 #include "ast/statements/branch.hpp"
+#include "ast/statements/if_statement.hpp"
+#include "ast/statements/return_statement.hpp"
 #include "ast/statements/statement.hpp"
 #include "ast/statements/variable_assignment.hpp"
-#include "ast/statements/variable_declaration.hpp"
 #include "diagnostics/diagnostic.hpp"
-#include "diagnostics/diagnostics.hpp"
 #include "errors/errors.hpp"
-/* #include "targets/bytecode/vm/builtins/builtins.hpp" */
 #include "logging/logging.hpp"
 #include "targets/bytecode/vm/builtins/builtins.hpp"
 #include "types/function_type.hpp"
 #include "types/scope.hpp"
 #include "utils/unused_parameter.hpp"
-
-#include <sstream>
 
 namespace kore {
     TypeChecker::TypeChecker(const ParsedCommandLineArgs& args) : _args(&args) {}
@@ -102,6 +100,7 @@ namespace kore {
     }
 
     void TypeChecker::visit(Identifier& identifier) {
+        trace_type_checker("identifier", identifier.type());
         auto entry = _scope_stack.find(identifier.name());
 
         if (entry) {
@@ -161,39 +160,70 @@ namespace kore {
     }
 
     void TypeChecker::visit(VariableAssignment& assignment) {
-        // Visit the right-hand side expression
-        assignment.rhs()->accept(*this);
+        trace_type_checker("assignment");
 
-        auto declared_type = assignment.declared_type();
-        auto expr_type = assignment.rhs()->type();
-
-        trace_type_checker("assignment", declared_type, expr_type);
-
-        // If the variable was not given an explicit type, rely on inferred
-        // type instead
-        if (!declared_type->is_unknown()) {
-            if (declared_type->unify(expr_type)->is_unknown()) {
-                push_error(CannotAssign{ &assignment });
-                return;
-            }
+        // Typecheck the right-hand side expressions
+        for (int idx = 0; idx < assignment.rhs_count(); ++idx) {
+            assignment.rhs(idx)->accept(*this);
         }
 
-        auto lhs = assignment.lhs();
-        lhs->accept(*this, ValueContext::LValue);
+        for (int idx = 0; idx < assignment.lhs_count(); ++idx) {
+            auto lhs_expr = assignment.lhs(idx);
+            lhs_expr->accept(*this, ValueContext::LValue);
+            auto rhs_type = assignment.rhs_type(idx);
 
-        if (lhs->type()->unify(assignment.rhs()->type())->is_unknown()) {
-            push_error(CannotAssign{ &assignment });
+            // FIX: Null pointer access here
+            if (lhs_expr->type()->unify(rhs_type)->is_unknown()) {
+                push_error(CannotAssign{ &assignment, idx });
+            }
+        }
+    }
+
+    void TypeChecker::type_check_function_call(class Call& call, const FunctionType* func_type) {
+        if (call.arg_count() != func_type->arity()) {
+            push_error(IncorrectArgumentCount{ &call, func_type });
+            return;
+        }
+
+        for (int idx = 0; idx < call.arg_count(); ++idx) {
+            auto arg = call.arg(idx);
+            arg->accept(*this);
+
+            auto arg_type = arg->type();
+            auto param_type = func_type->get_parameter_type(idx);
+            auto unified_type = arg_type->unify(param_type);
+
+            if (unified_type->is_unknown()) {
+                push_error(IncorrectArgumentType{
+                    &call,
+                    arg,
+                    param_type,
+                    idx,
+                });
+            }
         }
     }
 
     void TypeChecker::visit(class Call& call) {
         trace_type_checker("call", call.type());
 
+        const FunctionType* func_type;
+
         // Find an scoped entry in the current or enclosing scopes for a
         // function definition
         auto entry = _scope_stack.find(call.name());
 
-        if (!entry) {
+        if (entry) {
+            auto type = entry->identifier->type();
+
+            if (type->category() != TypeCategory::Function) {
+                push_error(CannotCallNonFunction{ &call, type });
+                return;
+            }
+
+            func_type = type->as<const FunctionType>();
+        } else {
+            // No function definition within scope, see if it is a builtin function
             auto builtin_function = vm::get_builtin_function_by_name(call.name());
 
             if (!builtin_function) {
@@ -201,52 +231,14 @@ namespace kore {
                 return;
             }
 
-            // TODO: Typecheck builtin function calls
-
-            if (call.arg_count() != builtin_function->arity) {
-                /* push_error(errors::typing::incorrect_arg_count( */
-                /*     call, */
-                /*     func_type */
-                /* )); */
-
-                return;
-            }
-
-            call.set_type(builtin_function->ret_types[0]);
-
-            return;
-        }
-
-        auto type = entry->identifier->type();
-
-        if (type->category() != TypeCategory::Function) {
-            push_error(CannotCallNonFunction{ &call, type });
-            return;
-        }
-
-        auto func_type = static_cast<const FunctionType*>(type);
-
-        if (call.arg_count() != func_type->arity()) {
-            push_error(IncorrectArgumentCount{ &call, func_type });
-            return;
+            func_type = builtin_function->type;
         }
 
         trace_type_checker("call", func_type);
+        type_check_function_call(call, func_type);
 
-        for (int i = 0; i < call.arg_count(); ++i) {
-            auto arg = call.arg(i);
-            arg->accept(*this);
-
-            auto arg_type = arg->type();
-            auto param_type = func_type->parameter(i)->type();
-            auto unified_type = arg_type->unify(param_type);
-
-            if (unified_type->is_unknown()) {
-                push_error(IncorrectArgumentType{ &call, arg, param_type, i });
-            }
-        }
-
-        call.set_type(func_type->return_type());
+        // Set the type of the call to the function type and handle return types later
+        call.set_type(func_type);
     }
 
     void TypeChecker::visit(BinaryExpression& binexpr) {
@@ -363,17 +355,18 @@ namespace kore {
 
         auto func = _scope_stack.enclosing_function();
 
-        if (ret.expr()) {
-            auto expr = ret.expr();
-            expr->accept(*this);
+        if (ret.expr_count() > 0) {
+            for (int idx = 0; idx < ret.expr_count(); ++idx) {
+                auto expr = ret.get_expr(idx);
+                expr->accept(*this);
 
-            if (expr->type()->unify(func->return_type())->is_unknown()) {
-                push_error(ReturnTypeMismatch{ func, &ret });
-                return;
+                if (expr->type()->unify(func->type()->return_type(idx))->is_unknown()) {
+                    push_error(ReturnTypeMismatch{ func, &ret, idx });
+                }
             }
-            push_error(VoidReturnFromNonVoidFunction{ func, &ret });
         } else {
-            if (!func->return_type()->is_void()) {
+            if (!func->type()->return_type(0)->is_void()) {
+                push_error(VoidReturnFromNonVoidFunction{ func, &ret });
             }
         }
     }

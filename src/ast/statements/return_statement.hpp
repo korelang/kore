@@ -7,17 +7,24 @@
 namespace kore {
     class Return : public Statement {
         public:
+            using iterator = ExpressionList::iterator;
+
+        public:
             Return();
-            Return(Owned<Expression> expr);
+            Return(ExpressionList exprs);
             virtual ~Return();
 
-            Expression* expr();
-            const Expression* expr() const;
+            int expr_count() const noexcept;
+            Expression* get_expr(int idx);
+            const Expression* get_expr(int idx) const;
+
+            iterator begin();
+            iterator end();
 
             KORE_AST_VISITOR_ACCEPT_METHOD_DEFAULT_DEFINITION
 
         private:
-            Expression::pointer _expr;
+            ExpressionList _exprs;
     };
 }
 

@@ -13,19 +13,20 @@ namespace kore {
                     0,
                     print,
                     "print",
-                    1,
-                    0,
-                    { Type::get_type_from_category(TypeCategory::Generic) },
-                    { Type::get_type_from_category(TypeCategory::Void) }
+                    Type::make_function_type(
+                        // TODO: Change to TypeCategory::Generic when it is implemented
+                        { Type::get_type_from_category(TypeCategory::Integer32) },
+                        { Type::get_type_from_category(TypeCategory::Void) }
+                    )
                 },
                 {
                     1,
                     abs,
                     "abs",
-                    1,
-                    1,
-                    { Type::get_type_from_category(TypeCategory::Integer32) },
-                    { Type::get_type_from_category(TypeCategory::Integer32) },
+                    Type::make_function_type(
+                        { Type::get_type_from_category(TypeCategory::Integer32) },
+                        { Type::get_type_from_category(TypeCategory::Integer32) }
+                    )
                 }
             },
         };
@@ -37,6 +38,10 @@ namespace kore {
         };
         
         /* static_assert(_builtins.size() == _builtins_by_name.size()); */
+
+        int builtin_function_count() {
+            return _builtins.size();
+        }
 
         const BuiltinFunction* get_builtin_function_by_index(BuiltinFunctionIndex idx) {
             if (idx >= _builtins.size()) {

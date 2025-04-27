@@ -56,6 +56,10 @@ namespace koredis {
             table.size()
         );
 
+        if (table.size() == 0) {
+            return;
+        }
+
         for (auto it = table.tagged_cbegin(tag); it != table.tagged_cend(tag); ++it) {
             os << " #" << *it << " => ";
 

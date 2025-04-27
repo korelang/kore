@@ -2,7 +2,7 @@
 
 #include "ast/ast_visitor.hpp"
 #include "ast/expressions/call.hpp"
-#include "utils/unused_parameter.hpp"
+#include "ast/expressions/identifier.hpp"
 
 namespace kore {
     Call::Call(Owned<Expression> identifier, std::vector<Owned<Expression>> parameters)

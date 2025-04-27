@@ -26,7 +26,7 @@ namespace kore {
             Error incorrect_parameter_type(const Expression* expression, const Type* arg_type, const Type* param_type, class Call& call, int arg_index);
             Error not_a_function(const class Call& call, const Type* type);
             Error incorrect_arg_count(const class Call& call, const Type* type);
-            Error return_type_mismatch(const Function* func, const Type* type, const SourceLocation& location);
+            // Error return_type_mismatch(const Function* func, const Type* type, const SourceLocation& location);
             Error void_return_from_nonvoid_function(const Function* func, const SourceLocation& location);
         }
 

@@ -7,11 +7,6 @@
 namespace kore {
     /// A location of a token in an input source
     class SourceLocation {
-        private:
-            int _lnum;
-            int _start_col;
-            int _end_col;
-
         public:
             SourceLocation();
             SourceLocation(const SourceLocation& location);
@@ -27,7 +22,14 @@ namespace kore {
             std::string format_columns() const;
             std::string colon_format() const;
 
+            void merge(const SourceLocation& location);
+
             static const SourceLocation unknown;
+
+        private:
+            int _lnum;
+            int _start_col;
+            int _end_col;
     };
 
     std::ostream& operator<<(std::ostream& os, const SourceLocation& location);

@@ -9,8 +9,16 @@ namespace kore {
 
     AstNode::~AstNode() {}
 
-    SourceLocation AstNode::location() const {
+    SourceLocation& AstNode::location() {
         return _location;
+    }
+
+    const SourceLocation& AstNode::location() const {
+        return _location;
+    }
+
+    void AstNode::set_location(const SourceLocation& location) {
+        _location = location;
     }
 
     void AstNode::accept(AstVisitor& visitor) {

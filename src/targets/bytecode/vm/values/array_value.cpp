@@ -4,6 +4,11 @@
 namespace kore {
     namespace vm {
         ArrayValue::ArrayValue() {}
+
+        ArrayValue::ArrayValue(std::size_t size) {
+            _values.resize(size);
+        }
+
         ArrayValue::~ArrayValue() {}
 
         Value& ArrayValue::operator[](int index) {
@@ -30,6 +35,10 @@ namespace kore {
 
         std::vector<Value>::size_type ArrayValue::size() const {
             return _values.size();
+        }
+
+        void ArrayValue::clear() {
+            _values.clear();
         }
 
         ArrayValue* ArrayValue::allocate(std::size_t size) {

@@ -20,7 +20,12 @@ namespace kore {
             bool is_qualified() const noexcept;
             std::size_t size() const noexcept;
             const Type* type() const override;
+
+            /// The declared type of the identifier in the source if any
+            const Type* declared_type() const;
+
             bool is_mutable() const;
+            void set_declared_type(const Type* type);
 
             KORE_AST_VISITOR_ACCEPT_METHOD_DEFAULT_DEFINITION
 
@@ -33,6 +38,11 @@ namespace kore {
             std::string _value;
             bool _is_mutable = false;
             std::vector<std::string> _parts;
+
+            // The declared type (in source code) of the identifier which
+            // differs from the resolved type of the expression (base class)
+            // as resolved in the type inference pass
+            const Type* _declared_type = Type::unknown();
     };
 }
 

@@ -1,4 +1,5 @@
 #include "function_name_visitor.hpp"
+#include "ast/statements/function.hpp"
 
 namespace kore {
     namespace analysis {
@@ -12,8 +13,10 @@ namespace kore {
             return _functions;
         }
 
-        void FunctionNameVisitor::visit(Function& statement) {
-            _functions[statement.name()] = std::make_pair(_functions.size() + 1, &statement);
+        void FunctionNameVisitor::visit(Function& func) {
+            int func_index = _functions.size() + 1;
+
+            _functions[func.name()] = { func_index, &func };
         }
     }
 }

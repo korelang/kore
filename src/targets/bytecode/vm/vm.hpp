@@ -33,9 +33,18 @@ namespace kore {
                 const CompiledObject* obj
             );
 
+            // The number of values returned by the function of the call frame
             int ret_count;
+
+            // The number of registers needed for running the function's code
             int reg_count;
+
+            // The bitshift for the start of the return registers in the
+            // previous call frame
             int shift;
+
+            // The old frame pointer and program counter that we need to
+            // restore when we pop this call frame
             std::size_t old_fp;
             std::size_t old_pc;
 
@@ -82,7 +91,7 @@ namespace kore {
 
                 void dump_registers(std::ostream& os);
 
-                /// Set a return value from builtin function
+                /// Set a return value a from builtin function
                 void set_return_value(const Value& value);
 
                 void vm_fatal_error(const std::string& message);
@@ -118,9 +127,6 @@ namespace kore {
                 /// Reserve local stack space for a called function
                 bool allocate_local_stack(const CompiledObject* const obj);
 
-                /// Deallocate local stack space for a call frame
-                void deallocate_local_stack(const CallFrame& call_frame);
-
                 void vm_error(const std::string& message);
                 void vm_error_unknown_opcode(Bytecode opcode);
 
@@ -128,7 +134,7 @@ namespace kore {
                 CompiledObject* get_function(int func_index);
 
                 /// Get the current call frame
-                CallFrame& current_frame();
+                CallFrame* current_frame();
 
                 /// Push an i32 value onto a call frame's stack
                 inline void push_i32(i32 value);
@@ -140,11 +146,13 @@ namespace kore {
                 inline void push_register(Reg reg);
 
                 /// When in a function call, get the caller of that function
-                inline const CallFrame& get_caller();
+                inline const CallFrame* get_caller();
 
                 void push_call_frame(CallFrame call_frame);
 
                 int push_function_arguments(bytecode_type instruction, std::size_t old_fp);
+
+                void pop_call_frame(const CallFrame& call_frame);
 
                 /// Push a new call frame
                 void do_function_call(
@@ -167,7 +175,7 @@ namespace kore {
                 inline int top();
 
                 /// Move a value from a source register to a destination register
-                inline void move(Reg src_reg, Reg dst_reg);
+                inline void move(Reg dst_reg, Reg src_reg);
 
                 void add_module(Module& module);
 

@@ -1,7 +1,6 @@
 #ifndef KORE_BYTECODE_GENERATOR_HPP
 #define KORE_BYTECODE_GENERATOR_HPP
 
-#include <map>
 #include <memory>
 #include <set>
 #include <vector>
@@ -21,7 +20,7 @@ namespace kore {
 
     class BytecodeGenerator final : public AstVisitor {
         public:
-            using reg_iterator = std::vector<const Reg>::iterator;
+            using reg_iterator = std::vector<Reg>::iterator;
 
         public:
             BytecodeGenerator();

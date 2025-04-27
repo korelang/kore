@@ -2,7 +2,6 @@
 #define KORE_AST_HPP
 
 #include <filesystem>
-#include <memory>
 #include <string>
 #include <vector>
 
@@ -37,6 +36,8 @@ namespace kore {
 
             ConstIter begin() const;
             ConstIter end() const;
+
+            Ast& operator=(Ast&& other);
 
             /// Write out the AST somewhere
             void write(AstWriter& writer) const;

@@ -27,6 +27,7 @@ namespace kore {
                 void set_register_state(Reg reg, RegisterState state);
                 void set_register_type(Reg reg, const Type* type);
                 Reg allocate_register();
+                std::vector<Reg> allocate_registers(int count);
                 void free_register(Reg reg);
                 void free_registers();
                 RegisterState register_state(Reg reg);
@@ -36,7 +37,7 @@ namespace kore {
 
                 Reg emit_load(Bytecode opcode, int index);
                 Reg emit_load(Bytecode opcode, Expression& expr, int index);
-                Reg emit_load_function(int func_index);
+                Reg emit_load_function(int func_index, Bytecode opcode);
                 Reg emit_binop(BinaryExpression& expr, Reg left, Reg right);
                 void emit_unconditional_jump(BlockId target_block_id);
                 void emit_move(Reg src, Reg dst);
@@ -52,7 +53,7 @@ namespace kore {
                     const std::vector<kore::Reg>& return_registers
                 );
                 void emit_return();
-                void emit_return(Reg retreg);
+                void emit_return(const std::vector<Reg>& regs);
 
                 FuncIndex index() const noexcept;
                 std::string name() const;
