@@ -2,7 +2,7 @@
 #define KORE_FUNCTION_NAME_VISITOR_HPP
 
 #include "ast/ast.hpp"
-#include "ast/ast_visitor.hpp"
+#include "ast/ast_statement_visitor.hpp"
 
 namespace kore {
     namespace analysis {
@@ -21,7 +21,7 @@ namespace kore {
         /// TODO: This will not work for more than one module. We need to
         /// provide a starting index or keep track of a global index in the
         /// class to get consecutive function indcies
-        class FunctionNameVisitor final : public AstVisitor {
+        class FunctionNameVisitor final : public AstStatementVisitor {
             public:
                 FunctionMap collect_functions(const Ast& ast);
 

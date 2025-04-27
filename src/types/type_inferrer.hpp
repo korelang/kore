@@ -2,14 +2,18 @@
 #define TYPE_INFERRER_HPP
 
 #include "ast/ast.hpp"
-#include "ast/ast_visitor.hpp"
+#include "ast/ast_expr_visitor.hpp"
+#include "ast/ast_statement_visitor.hpp"
 #include "ast/statements/variable_assignment.hpp"
 #include "bin/korec/options.hpp"
 #include "types/scope.hpp"
 
 namespace kore {
     /// Class that tries to infer the types of nodes in an AST
-    class TypeInferrer final : public AstVisitor {
+    class TypeInferrer final : public AstExprVisitor, AstStatementVisitor {
+        // using AstExprVisitor::visit;
+        // using AstStatementVisitor::visit;
+
         public:
             TypeInferrer(const ParsedCommandLineArgs& args);
             virtual ~TypeInferrer();
