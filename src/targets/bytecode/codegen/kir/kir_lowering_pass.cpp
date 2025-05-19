@@ -186,7 +186,6 @@ namespace kore {
                 auto reg = current_function().emit_load(Bytecode::Gload, expr, entry->reg);
                 push_register(reg, expr.type());
             } else {
-                check_register_state(expr, entry->reg);
                 push_register(entry->reg, expr.type());
             }
         }
@@ -477,15 +476,6 @@ namespace kore {
             expr->accept(*this);
 
             return pop_register();
-        }
-
-        void KirLoweringPass::check_register_state(Identifier& expr, Reg reg) {
-            auto& func = current_function();
-
-            if (func.register_state(reg) != RegisterState::Available) {
-                // TODO: Move push_error into a separate class or Error class
-                /*push_error(*/errors::kir::moved_variable(expr);/*);*/
-            }
         }
 
         void KirLoweringPass::push_register(Reg reg) {

@@ -67,7 +67,6 @@ namespace kore {
                 Regs allocate_function_return_registers(class Call& call);
 
                 Reg visit_expression(Expression* expr);
-                void check_register_state(Identifier& expr, Reg reg);
                 void push_register(Reg reg);
                 void push_register(Reg reg, const Type* type);
                 Reg pop_register();
