@@ -60,7 +60,7 @@ namespace kore {
 
                 oss //<< std::left
                     << " " << name
-                    << " " << token->location().colon_format()
+                    << " " << token->location().format()
                     << " " << token->type()
                     << " " << token->value();
 
@@ -177,7 +177,7 @@ namespace kore {
 
         std::cerr << ColorAttribute::Bold << Color::Red
                 << "[error:parser("
-                << loc.lnum()
+                << loc.start_line()
                 << ","
                 << loc.format_columns()
                 << ")]"
@@ -426,9 +426,7 @@ namespace kore {
         } else if (lhs_exprs.size() == 1 && lhs_exprs[0]->expr_type() == ExpressionType::Call) {
             add_statement(
                 parent,
-                Statement::make_statement<ExpressionStatement>(
-                    parse_function_call(std::move(lhs_exprs[0]))
-                )
+                Statement::make_statement<ExpressionStatement>(std::move(lhs_exprs[0]))
             );
 
             return;
@@ -638,6 +636,7 @@ namespace kore {
                 parse_function_parameters(func);
             }
 
+            // auto return_types_start = current_token()->location();
             auto return_types = parse_type_list();
 
             if (return_types.empty()) {
@@ -645,8 +644,20 @@ namespace kore {
                 // infer it in the type inference pass
                 func->type()->add_return_type(Type::unknown());
             } else {
+                bool has_void_type = false;
+
                 for (auto type : return_types) {
+                    if (type->is_void()) {
+                        has_void_type = true;
+                    }
+
                     func->type()->add_return_type(type);
+                }
+
+                if (return_types.size() > 1 && has_void_type) {
+                    // TODO: Allow passing custom source location ranges
+                    // TODO: Allow disabling advancing to next statement boundary or skip body
+                    emit_parser_error("Function cannot return multiple values where one type is void. Either return void or one or more non-void types");
                 }
             }
         }
@@ -705,8 +716,9 @@ namespace kore {
     void Parser::parse_return(Statement* const parent) {
         trace_parser("return");
 
+        auto start_loc = current_token()->location();
         next_token();
-        auto expr_list = parse_expression_list();
+        auto expr_list = parse_expression_list(); // TODO: Doesn't work
         add_statement(parent, Statement::make_statement<Return>(std::move(expr_list)));
     }
 
@@ -863,7 +875,7 @@ namespace kore {
             }
 
             case TokenType::LeftBracket: {
-                result = parse_array(token);
+                result = parse_array(*token);
                 break;
             }
 
@@ -876,10 +888,9 @@ namespace kore {
         return result;
     }
 
-    Owned<Expression> Parser::parse_array(const Token* const lbracket_token) {
+    Owned<Expression> Parser::parse_array(const Token lbracket_token) {
         trace_parser("array");
 
-        /* auto& token = *current_token(); */
         next_token();
         auto first_expr = parse_expression(operator_base_precedence());
         Owned<Expression> result = nullptr;
@@ -888,8 +899,6 @@ namespace kore {
             result = parse_array_fill_expression(lbracket_token, std::move(first_expr));
         } else if (expect_token_type(TokenType::Comma)) {
             result = parse_normal_array_expression(lbracket_token, std::move(first_expr));
-        } else if (expect_token_type(TokenType::RightBracket)) {
-            /* result = parse_index_expression(&token); */
         } else {
             emit_parser_error("Expected ':' or ',' in array literal");
         }
@@ -898,7 +907,7 @@ namespace kore {
     }
 
     Owned<Expression> Parser::parse_array_fill_expression(
-        const Token* const lbracket_token,
+        const Token& lbracket_token,
         Owned<Expression> size_expr
     ) {
         trace_parser("array fill");
@@ -911,25 +920,27 @@ namespace kore {
         return Expression::make<ArrayFillExpression>(
             std::move(size_expr),
             std::move(fill_expr),
-            lbracket_token->location()
+            lbracket_token.location()
         );
     }
 
     Owned<Expression> Parser::parse_normal_array_expression(
-        const Token* const lbracket_token,
+        const Token& lbracket_token,
         Owned<Expression> first_elem_expr
     ) {
         trace_parser("normal array");
 
-        auto array_expr = Expression::make<ArrayExpression>();
+        auto array_expr = Expression::make<ArrayExpression>(lbracket_token.location());
         array_expr->add_element(std::move(first_elem_expr));
-        array_expr->set_start_location(lbracket_token->location());
 
         while (!_scanner.eof()) {
             auto element_expr = parse_expression(operator_base_precedence());
             array_expr->add_element(std::move(element_expr));
 
             if (expect_token_type(TokenType::RightBracket, false)) {
+                array_expr->set_end_location(current_token()->location());
+                next_token();
+
                 break;
             } else if (!expect_token_type(TokenType::Comma)) {
                 array_expr->add_element(make_parser_error("Expected ',' after array element expression"));
@@ -937,9 +948,6 @@ namespace kore {
                 return array_expr;
             }
         }
-
-        array_expr->set_end_location(current_token()->location());
-        next_token();
 
         return array_expr;
     }
@@ -1080,17 +1088,9 @@ namespace kore {
 
         if (!expect_token_type(TokenType::LeftParenthesis)) {
             return {};
-        } else if (expect_token_type(TokenType::RightParenthesis)) {
-            next_token();
-            return {};
         }
 
         auto expr_list = parse_expression_list();
-
-        if (expr_list.empty()) {
-            advance_to_next_statement_boundary();
-            return nullptr;
-        }
 
         return Expression::make<Call>(
             std::move(func_name),
@@ -1102,6 +1102,11 @@ namespace kore {
         trace_parser("expression list");
 
         ExpressionList expr_list;
+
+        if (expect_token_type(TokenType::RightParenthesis)) {
+            return expr_list;
+        }
+
         Owned<Expression> expr = nullptr;
 
         while ((expr = parse_expression())) {
@@ -1143,13 +1148,14 @@ namespace kore {
                 expr = parse_field_access_expression(std::move(expr));
                 parsed_index_or_field_expr = true;
             } else if (expect_token_type(TokenType::LeftParenthesis, false)) {
-                // TODO: Parse entire function call here
                 if (is_mutable) {
                     emit_parser_error("Function calls cannot be declared variable");
                     return { nullptr, false };
                 }
 
-                return { std::move(expr), true };
+                auto func_call = parse_function_call(std::move(expr));
+
+                return { std::move(func_call), true };
             } else {
                 break;
             }
@@ -1163,7 +1169,7 @@ namespace kore {
         } else {
             // TODO: Perhaps let parse_type see if the next thing is an identifier instead
             if (!expect_token_type(TokenType::Comma, false) && !expect_token_type(TokenType::Assign, false)) {
-                expr->set_type(parse_type());
+                expr->as<Identifier>()->set_declared_type(parse_type());
             }
         }
 
@@ -1190,6 +1196,8 @@ namespace kore {
                 }
 
                 return lhs_exprs;
+            } else if (parsed_function_call) {
+                break;
             } else if (!expect_token_type(TokenType::Comma)) {
                 emit_parser_error("Expected ',' or '=' after expression in left-hand side expression list");
                 return lhs_exprs;

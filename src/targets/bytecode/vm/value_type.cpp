@@ -4,6 +4,10 @@ namespace kore {
     namespace vm {
         Value::Value() : tag(ValueTag::Bool) {}
 
+        Value::Value(const Value& other) {
+            *this = other;
+        }
+
         Value::~Value() {
             switch (tag) {
                 case ValueTag::Bool:
@@ -18,14 +22,118 @@ namespace kore {
                 }
 
                 case ValueTag::Array: {
+                    // IMPORTANT: We need to set the pointer to null to avoid "double free"
+                    // errors. It is safe to delete a null pointer more than once.
+                    delete value._array;
+                    value._array = nullptr;
+                    break;
+                }
+            }
+        }
+
+        // TODO: Try to define sensible constructors and operators
+        Value& Value::operator=(Value& other) {
+            tag = other.tag;
+
+            switch (other.tag) {
+                case ValueTag::Bool:
+                case ValueTag::I32:
+                case ValueTag::I64:
+                case ValueTag::F32:
+                case ValueTag::F64:
+                case ValueTag::FunctionValue: {
+                    value = other.value;
+                    break;
+                }
+
+                case ValueTag::Array: {
+                    value._array = other.value._array;
+                    other.value._array = nullptr;
+                    other.tag = ValueTag::Bool;
+                    break;
+                }
+            }
+
+            return *this;
+        }
+
+        Value& Value::operator=(const Value& other) {
+            tag = other.tag;
+
+            switch (other.tag) {
+                case ValueTag::Bool:
+                case ValueTag::I32:
+                case ValueTag::I64:
+                case ValueTag::F32:
+                case ValueTag::F64:
+                case ValueTag::FunctionValue: {
+                    value = other.value;
+                    break;
+                }
+
+                case ValueTag::Array: {
+                    value._array = other.value._array;
+                    break;
+                }
+            }
+
+            return *this;
+        }
+
+        Value& Value::operator=(Value&& other) {
+            tag = other.tag;
+
+            switch (other.tag) {
+                case ValueTag::Bool:
+                case ValueTag::I32:
+                case ValueTag::I64:
+                case ValueTag::F32:
+                case ValueTag::F64:
+                case ValueTag::FunctionValue: {
+                    value = other.value;
+                    break;
+                }
+
+                case ValueTag::Array: {
+                    value._array = other.value._array;
+                    other.value._array = nullptr;
+                    other.tag = ValueTag::Bool;
+                    break;
+                }
+            }
+
+            return *this;
+        }
+
+        Value Value::copy(Heap& heap) const {
+            switch (tag) {
+                case ValueTag::Bool:
+                case ValueTag::I32:
+                case ValueTag::I64:
+                case ValueTag::F32:
+                case ValueTag::F64:
+                case ValueTag::FunctionValue: {
+                    // TODO: Copy environment when we have closures
+                    return *this;
+                    break;
+                }
+
+                // TODO: Make a dedicated method for arrays for situations
+                // where we know that it is an array
+                case ValueTag::Array: {
                     #if KORE_VM_DEBUG
                         if (value._array == nullptr) {
                             throw std::runtime_error("Array is not allocated");
                         }
                     #endif
 
-                    delete value._array;
-                    break;
+                    Value new_array = heap.allocate_array(value._array->size());
+
+                    for (size_t idx = 0; idx < value._array->size(); ++idx) {
+                        new_array.value._array->operator[](idx) = value._array->operator[](idx).copy(heap);
+                    }
+
+                    return new_array;
                 }
             }
         }
@@ -84,6 +192,7 @@ namespace kore {
         /*     return _value; */
         /* } */
 
+        // TODO: Move this to the Heap class
         Value Value::allocate_array(std::size_t size) {
             auto _value = Value();
 
@@ -246,7 +355,7 @@ namespace kore {
                 /*     break; */
 
                 case ValueTag::Array: {
-                    #if KORE_VM_DEBUG
+                    #ifdef _KORE_VM_DEBUG
                         if (value.value._array == nullptr) {
                             throw std::runtime_error("Array is not allocated");
                         }

@@ -58,8 +58,10 @@ namespace kore {
             case NeqF64:         return "neqf64";
             case Jump:           return "jump";
             case ArrayAlloc:     return "arrayalloc";
+            case ArrayFree:      return "arrayfree";
             case ArrayGet:       return "arrayget";
             case ArraySet:       return "arrayset";
+            case ArrayCopy:      return "arraycopy";
             case RefInc:         return "refinc";
             case RefDec:         return "refdec";
             case Destroy:        return "destroy";

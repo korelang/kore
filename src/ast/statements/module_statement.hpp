@@ -11,7 +11,7 @@ namespace kore {
             ModuleStatement(const std::string& module_name, const SourceLocation& location);
             virtual ~ModuleStatement();
 
-            std::string name() const;
+            std::string name() const override;
 
             KORE_AST_VISITOR_ACCEPT_METHOD_DEFAULT_DEFINITION
 

@@ -11,7 +11,7 @@ namespace kore {
             Call(Owned<Expression> identifier, std::vector<Owned<Expression>> parameters);
             virtual ~Call();
 
-            std::string name() const;
+            std::string name() const override;
             Expression* arg(int index);
             /* std::vector<Expression*> parameters(); */
 

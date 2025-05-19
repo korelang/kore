@@ -104,7 +104,8 @@ namespace kore {
             _value == "u8"   ||
             _value == "u16"  ||
             _value == "u32"  ||
-            _value == "u64"
+            _value == "u64"  ||
+            _value == "void"
         );
     }
 
@@ -239,7 +240,7 @@ namespace kore {
         return os
             << std::setw(spacing) << std::left << type()
             << std::setw(spacing) << std::left << value()
-            << location().colon_format();
+            << location().format();
     }
 
     std::ostream& operator<<(std::ostream& os, const Token& token) {

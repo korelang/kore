@@ -1,16 +1,4 @@
-#include <exception>
-
-#include "ast/expressions/expression.hpp"
-#include "ast/expressions/identifier.hpp"
-#include "ast/statements/function.hpp"
-#include "ast/statements/return_statement.hpp"
-#include "ast/statements/import_statement.hpp"
-#include "ast/statements/module_statement.hpp"
 #include "ast/statements/statement.hpp"
-#include "ast/statements/variable_assignment.hpp"
-#include "ast/statements/variable_declaration.hpp"
-#include "ast/statements/expression_statement.hpp"
-#include "types/type.hpp"
 #include "utils/unused_parameter.hpp"
 
 namespace kore {

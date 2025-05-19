@@ -2,6 +2,7 @@
 #define KORE_VM_HPP
 
 #include "targets/bytecode/codegen/bytecode.hpp"
+#include "targets/bytecode/vm/heap.hpp"
 #include "targets/bytecode/vm/value_type.hpp"
 #include "targets/bytecode/vm/config.hpp"
 #include "targets/bytecode/register.hpp"
@@ -117,6 +118,9 @@ namespace kore {
                 // Table of global values
                 std::vector<Value> _globals;
 
+                // The virtual machine's heap
+                Heap _heap;
+
             private:
                 /// Load all functions from a module
                 void load_functions_from_module(const Module& module);
@@ -176,6 +180,9 @@ namespace kore {
 
                 /// Move a value from a source register to a destination register
                 inline void move(Reg dst_reg, Reg src_reg);
+
+                /// Copy a value from a source register to a destination register
+                inline void copy(Reg dst_reg, Reg src_reg);
 
                 void add_module(Module& module);
 

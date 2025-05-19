@@ -151,6 +151,7 @@ namespace kore {
     }
 
     void Scanner::throw_error(const std::string& msg) {
+        // TODO: Collect diagnostics like in other passes
         error_group("scanner", "%s", format_error(msg, line, lnum, last_col, col).c_str());
 
         throw_error_for_line(msg, line, lnum, col, col);

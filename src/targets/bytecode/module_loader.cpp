@@ -12,6 +12,22 @@ namespace kore {
 
     BytecodeMagic bytecode_magic {'k', 'o', 'r', 'e'};
 
+    std::uint32_t pack32(std::array<char, 4>& bytes) {
+        return
+            (bytes[0] & 0xff) << 24 |
+            (bytes[1] & 0xff) << 16 |
+            (bytes[2] & 0xff) << 8 |
+            (bytes[3] & 0xff);
+    }
+
+    std::uint32_t read32(std::istream& is) {
+        // Multi-byte integers in bytecode files are encoded in big-endian
+        std::array<char, 4> data;
+        is.read(data.data(), 4);
+
+        return pack32(data);
+    }
+
     // TODO: Create a byte_io.hpp file for safe reading of bytes
     void read_bytes(
         std::istream& is,
@@ -23,15 +39,11 @@ namespace kore {
 
         while (bytes_to_read > 0) {
             data.fill(0);
-            is.read(data.data(), bytes_to_read >= 4 ? 4 : bytes_to_read);
 
-            buffer.push_back(
-                (data[0] & 0xff) << 24 |
-                (data[1] & 0xff) << 16 |
-                (data[2] & 0xff) << 8  |
-                (data[3] & 0xff)
-            );
+            // Variable-length instructions are padded to a mulitple of 4 bytes
+            is.read(data.data(), 4);
 
+            buffer.push_back(pack32(data));
             bytes_to_read -= 4;
         }
     }
@@ -55,7 +67,7 @@ namespace kore {
     }
 
     std::string read_string(std::istream& is) {
-        auto size = kore::read_be32(is);
+        auto size = kore::read32(is);
         std::vector<char> bytes(size);
 
         is.read(bytes.data(), size);
@@ -64,7 +76,7 @@ namespace kore {
     } 
 
     void load_constant_table(std::istream& is, kore::Module& module) {
-        auto constant_table_size = kore::read_be32(is);
+        auto constant_table_size = kore::read32(is);
 
         for (decltype(constant_table_size) i = 0; i < constant_table_size; ++i) {
             auto tag = static_cast<kore::vm::ValueTag>(kore::read8(is));
@@ -72,7 +84,7 @@ namespace kore {
             // TODO: Fix signedness of values
             switch (tag) {
                 case kore::vm::ValueTag::I32: {
-                    module.add_constant(vm::Value::from_i32(kore::read_be32(is)));
+                    module.add_constant(vm::Value::from_i32(kore::read32(is)));
                     break;
                 }
 
@@ -86,7 +98,7 @@ namespace kore {
         std::istream& is,
         std::vector<kore::bytecode_type>& instructions
     ) {
-        auto instruction = kore::read_be32(is);
+        auto instruction = kore::read32(is);
         auto opcode = GET_OPCODE(instruction);
 
         if (!kore::is_variable_length_opcode(opcode)) {
@@ -130,13 +142,13 @@ namespace kore {
     void load_function(std::istream& is, kore::Module& module) {
         std::string name = read_string(is);
 
-        auto lnum = kore::read_be32(is);
-        auto start = kore::read_be32(is);
-        auto end = kore::read_be32(is);
-        auto func_index = kore::read_be32(is);
-        /* auto locals_count = kore::read_be32(is); */
-        auto reg_count = kore::read_be32(is);
-        auto code_size = kore::read_be32(is);
+        auto lnum = kore::read32(is);
+        auto start = kore::read32(is);
+        auto end = kore::read32(is);
+        auto func_index = kore::read32(is);
+        /* auto locals_count = kore::read32(is); */
+        auto reg_count = kore::read32(is);
+        auto code_size = kore::read32(is);
 
         std::vector<kore::bytecode_type> instructions;
 
@@ -157,7 +169,7 @@ namespace kore {
     }
 
     void load_functions(std::istream& is, kore::Module& module) {
-        std::uint32_t function_count = kore::read_be32(is);
+        std::uint32_t function_count = kore::read32(is);
 
         for (std::uint32_t i = 0; i < function_count; ++i) {
             load_function(is, module);
@@ -165,7 +177,7 @@ namespace kore {
     }
 
     kore::Module load_module(std::istream& is) {
-        auto module_index = kore::read_be32(is);
+        auto module_index = kore::read32(is);
         auto module_path = read_string(is);
         kore::Module module{ module_index, module_path };
 
@@ -198,15 +210,15 @@ namespace kore {
         BytecodeVersion bytecode_version = read_version(is);
 
         // Read global indices count
-        auto global_indices_count = kore::read_be32(is);
+        auto global_indices_count = kore::read32(is);
 
         // Read main module index
-        kore::read_be32(is);
+        kore::read32(is);
 
         // Read main function index
-        kore::read_be32(is);
+        kore::read32(is);
 
-        auto module_count = kore::read_be32(is);
+        auto module_count = kore::read32(is);
 
         if (module_count == 0) {
             throw ModuleLoadError("zero modules in file", is.tellg());

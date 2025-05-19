@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <numeric>
 
 #include "ast/expressions/expressions.hpp"
@@ -96,10 +97,6 @@ namespace kore {
             ++_code_size;
         }
 
-        void Function::set_register_state(Reg reg, RegisterState state) {
-            _register_states[_graph.current_block().id][reg] = state;
-        }
-
         void Function::set_register_type(Reg reg, const Type* type) {
             _register_types[reg] = type;
         }
@@ -110,7 +107,6 @@ namespace kore {
             }
 
             Reg reg = _reg_count++;
-            set_register_state(reg, RegisterState::Available);
             _max_regs_used = std::max(_max_regs_used, _reg_count);
 
             return reg;
@@ -124,9 +120,7 @@ namespace kore {
             std::vector<Reg> regs;
 
             for (int idx = 0; idx < count; ++idx) {
-                Reg reg = _reg_count++;
-                regs.push_back(reg);
-                set_register_state(reg, RegisterState::Available);
+                regs.push_back(_reg_count++);
             }
 
             _max_regs_used = std::max(_max_regs_used, _reg_count);
@@ -158,31 +152,30 @@ namespace kore {
         }
 
         void Function::free_register(Reg reg) {
-            if (register_type(reg)->is_value_type()) {
+            auto type = register_type(reg);
+
+            if (type->is_value_type()) {
                 return;
             }
 
-            emit_destroy(reg);
-            set_register_state(reg, RegisterState::Moved);
+            if (type->category() == TypeCategory::Array) {
+                emit_reg1(Bytecode::ArrayFree, reg);
+            } else {
+                emit_destroy(reg);
+            }
         }
 
         void Function::free_registers() {
             // Destroy registers in the reverse order of how they were introduced
             for (int reg = _reg_count - 1; reg >= 0; --reg) {
-                switch (register_state(reg)) {
-                    case RegisterState::Moved:
-                        break;
+                free_register(reg);
+            }
+        }
 
-                    case RegisterState::Available: {
-                        if (!register_type(reg)->is_value_type()) {
-                            emit_destroy(reg);
-                        }
-                        break;
-                    }
-
-                    case RegisterState::MaybeMoved: {
-                        break;
-                    }
+        void Function::free_registers(const std::vector<Reg> ret_regs) {
+            for (int reg = _reg_count - 1; reg >= 0; --reg) {
+                if (std::find(ret_regs.cbegin(), ret_regs.cend(), reg) == ret_regs.cend()) {
+                    free_register(reg);
                 }
             }
         }
@@ -190,6 +183,17 @@ namespace kore {
         // TODO: Remember to set register types
         // TODO: Do we need functions for each expression/statement? Maybe just for
         // each type of instruction + the expression for setting register types?
+
+        void Function::emit_reg1(Bytecode opcode, Reg reg) {
+            add_instruction(Instruction{ opcode, OneRegister{ reg } });
+        }
+
+        void Function::emit_reg2(Bytecode opcode, Reg reg1, Reg reg2) {
+            add_instruction(Instruction{
+                opcode,
+                TwoRegisters{ reg1, reg2 }
+            });
+        }
 
         void Function::emit_reg3(Bytecode opcode, Reg reg1, Reg reg2, Reg reg3) {
             add_instruction(Instruction{
@@ -256,8 +260,12 @@ namespace kore {
         Reg Function::emit_allocate_array(int size) {
             auto reg = allocate_register();
 
+            // TODO: Pass expression as argument and set type here?
             add_instruction(
-                Instruction{ Bytecode::ArrayAlloc, RegisterAndValue{ reg, size } }
+                Instruction{
+                    Bytecode::ArrayAlloc,
+                    RegisterAndValue{ reg, size },
+                }
             );
 
             return reg;

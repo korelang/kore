@@ -11,6 +11,7 @@
 #include "errors/errors.hpp"
 #include "logging/logging.hpp"
 #include "targets/bytecode/vm/builtins/builtins.hpp"
+#include "types/array_type.hpp"
 #include "types/function_type.hpp"
 #include "types/scope.hpp"
 #include "utils/unused_parameter.hpp"
@@ -64,7 +65,7 @@ namespace kore {
     }
 
     void TypeChecker::visit(ArrayExpression& array) {
-        auto element_type = array.type();
+        auto element_type = static_cast<const ArrayType*>(array.type())->element_type();
 
         // We typecheck an array expression (like [1, 2, 3]) by seeing if we can
         // unify all element types with the inferred or given type of the array

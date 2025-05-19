@@ -17,10 +17,13 @@ namespace kore {
             void infer(Ast& ast);
 
         private:
-            const ParsedCommandLineArgs* _args;
+            const ParsedCommandLineArgs& _args;
             ScopeStack _scope_stack;
 
-            void trace_type_inference(const std::string& name, const Type* type = nullptr);
+            static std::string _debug_group;
+
+            void trace_type_inference(const Expression& expr);
+            void trace_type_inference(const Statement& statement, const Type* type = nullptr);
 
             void visit(ArrayExpression& array) override;
             void visit(IndexExpression& array_index) override;

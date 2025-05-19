@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 
+#include "utils/endian.hpp"
 #include "logging/logging.hpp"
 #include "options.hpp"
 #include "dump_module.hpp"
@@ -26,6 +27,8 @@ namespace koredis {
             print_help_message();
             return 0;
         }
+
+        kore::info("System endianness: %s", ::kore::is_big_endian() ? "big" : "small");
 
         for (auto& path : args.paths) {
             if (args.paths.size() > 1 || args.verbosity > 0) {

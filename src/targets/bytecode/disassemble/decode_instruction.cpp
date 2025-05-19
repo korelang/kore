@@ -19,7 +19,7 @@ namespace koredis {
         while (i++ < count) {
             registers.push_back((ins >> (24 - 8 * byte_offset++)) & 0xff);
 
-            if (byte_offset == 4) {
+            if (byte_offset == 4 && i < count) {
                 ins = obj[++pos];
                 byte_offset = 0;
             }
@@ -39,13 +39,24 @@ namespace koredis {
         bool byte_pos_advanced = false;
 
         switch (opcode) {
+            case kore::Bytecode::ArrayFree:
+            case kore::Bytecode::Destroy:
             case kore::Bytecode::Noop: {
-                // We just use the OneRegister variant here to avoid having
-                // another variant for an opcode with no arguments
+                // We just use the OneRegister variant for the noop opcode to
+                // avoid having another variant for an opcode with no arguments
+                auto reg = kore::INVALID_REGISTER;
+
+                if (opcode != kore::Bytecode::Noop) {
+                    reg = static_cast<kore::Reg>(GET_REG1(instruction));
+                }
+
                 decoded_instruction = Instruction{
                     pos++,
                     byte_pos,
-                    { opcode, kore::kir::OneRegister{ kore::INVALID_REGISTER } }
+                    {
+                        opcode,
+                        kore::kir::OneRegister{ reg },
+                    }
                 };
                 break;
             }
@@ -55,7 +66,8 @@ namespace koredis {
             case kore::Bytecode::LoadFunction:
             case kore::Bytecode::Gload:
             case kore::Bytecode::JumpIf:
-            case kore::Bytecode::JumpIfNot: {
+            case kore::Bytecode::JumpIfNot:
+            case kore::Bytecode::ArrayAlloc: {
                 decoded_instruction = Instruction{
                     pos++,
                     byte_pos,
@@ -72,7 +84,7 @@ namespace koredis {
 
             case kore::Bytecode::Move:
             case kore::Bytecode::Gstore:
-            case kore::Bytecode::ArrayAlloc: {
+            case kore::Bytecode::ArrayCopy: {
                 decoded_instruction = Instruction{
                     pos++,
                     byte_pos,
@@ -175,12 +187,21 @@ namespace koredis {
                 decoded_instruction = Instruction{
                     start_pos,
                     byte_pos,
-                    { opcode, kore::kir::CallV{ func_reg, arg_regs, ret_regs } }
+                    {
+                        opcode,
+                        kore::kir::CallV{ func_reg, arg_regs, ret_regs },
+                    }
                 };
 
                 // Advance 4 positions for the instruction size + any additional
                 // argument and return registers
                 byte_pos += 4 + byte_offset;
+                byte_pos += 4 - (byte_pos % 4);
+
+                if (byte_offset > 0) {
+                    ++pos;
+                }
+
                 byte_pos_advanced = true;
                 break;
             }

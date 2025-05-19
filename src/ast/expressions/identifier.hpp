@@ -15,7 +15,7 @@ namespace kore {
             Identifier(const std::vector<std::string>& value, const SourceLocation& location);
             virtual ~Identifier();
 
-            std::string name() const;
+            std::string name() const override;
             std::string qualified_name() const;
             bool is_qualified() const noexcept;
             std::size_t size() const noexcept;

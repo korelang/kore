@@ -34,7 +34,6 @@ namespace kore {
             void visit(ModuleStatement& statement) override;
             void visit(Return& statement) override;
             void visit(VariableAssignment& statement) override;
-            void visit(VariableDeclaration& statement) override;
             void visit(ExpressionStatement& exprstmt) override;
 
             void write(const std::string& value) override;

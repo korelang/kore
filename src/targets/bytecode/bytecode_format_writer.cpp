@@ -147,9 +147,9 @@ namespace kore {
         auto location = object->location();
 
         /* write_string(location.path(), os); */
-        write_be32(location.lnum(), os);
-        write_be32(location.start(), os);
-        write_be32(location.end(), os);
+        write_be32(location.start_line(), os);
+        write_be32(location.start_col(), os);
+        write_be32(location.end_col(), os);
         write_be32(object->func_index(), os);
         write_be32(object->locals_count(), os);
         write_be32(object->max_regs_used(), os);

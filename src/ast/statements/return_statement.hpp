@@ -14,6 +14,7 @@ namespace kore {
             Return(ExpressionList exprs);
             virtual ~Return();
 
+            std::string name() const override;
             int expr_count() const noexcept;
             Expression* get_expr(int idx);
             const Expression* get_expr(int idx) const;

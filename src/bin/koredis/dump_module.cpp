@@ -87,6 +87,16 @@ namespace koredis {
             obj.code_size()
         );
 
+        // TODO: Make a dumper class for a more structured way to output these
+        // formats? Like JSON etc.
+        if (obj.is_main_object()) {
+            os << "  Source location: " << module.path();
+        } else {
+            os << "  Source location: " << module.path() << ", " << obj.location();
+        }
+
+        os << std::endl << std::endl;
+
         auto attr_reset = kore::ColorAttribute::Reset;
         auto decoded_instructions = decode_instructions(obj);
 
@@ -117,17 +127,13 @@ namespace koredis {
     }
 
     void dump_module(std::ostream& os, kore::Module& module, const DumpConfig& dump_config) {
-        kore::Version compiler_version = module.get_compiler_version();
-        kore::Version bytecode_version = module.get_bytecode_version();
-
+        // kore::Version compiler_version = module.get_compiler_version();
+        // kore::Version bytecode_version = module.get_bytecode_version();
+        //
         auto version_color_spec = dump_config.version_color_spec;
-        os << version_color_spec << "compiler version: "
-           << kore::ColorAttribute::Reset << compiler_version
-           << std::endl;
 
-        os << version_color_spec << "bytecode version: "
-           << kore::ColorAttribute::Reset << bytecode_version
-           << std::endl << std::endl;
+        // kore::info("compiler version: %s", compiler_version);
+        // kore::info("bytecode version: %s", bytecode_version);
 
         kore::section(
             "globals",

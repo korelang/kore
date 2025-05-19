@@ -114,8 +114,10 @@ namespace kore {
 
         // Arrays
         ArrayAlloc,
+        ArrayFree,
         ArrayGet,
         ArraySet,
+        ArrayCopy,
 
         // Memory operations
         RefInc,

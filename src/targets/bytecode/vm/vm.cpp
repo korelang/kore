@@ -66,8 +66,8 @@
 
 #ifdef _KORE_DEBUG_VM
     #include "logging/logging.hpp"
+    #include <cassert>
 
-    // TODO: Change to use debug_group
     #define KORE_DEBUG_VM_LOG(action, value) {\
         if (!value.empty()) {\
             debug_group("vm", "%s: %s", action, value.c_str());\
@@ -214,7 +214,18 @@ namespace kore {
                         Reg reg = GET_REG1(instruction);
                         int size = GET_VALUE(instruction);
 
-                        _registers[fp + reg] = Value::allocate_array(size);
+                        _registers[fp + reg] = _heap.allocate_array(size);
+                        break;
+                    }
+
+                    case Bytecode::ArrayFree: {
+                        auto& value = _registers[fp + GET_REG1(instruction)];
+                        auto array = value.as_array();
+
+                        if (array->decref() == 0) {
+                            _heap.deallocate_array(value, false);
+                        }
+
                         break;
                     }
 
@@ -229,11 +240,38 @@ namespace kore {
 
                     case Bytecode::ArraySet: {
                         auto array = _registers[fp + GET_REG1(instruction)].as_array();
-                        int idx = _registers[fp + GET_REG2(instruction)].as_i32();
-                        Value value = _registers[fp + GET_REG3(instruction)];
+                        Value value = _registers[fp + GET_REG2(instruction)];
+                        int idx = _registers[fp + GET_REG3(instruction)].as_i32();
 
-                        (*array)[idx] = value;
+                        #ifdef _KORE_DEBUG_VM
+                            assert(array->ref_count() > 0);
+                        #endif
+
+                        // If the array is uniquely referenced (reference count is 1) then
+                        // perform the mutation directly otherwise copy it first
+                        if (array->uniquely_referenced()) {
+                            (*array)[idx] = value;
+                        } else {
+                            auto array_copy = _registers[fp + GET_REG1(instruction)].copy(_heap);
+                            (*array_copy.as_array())[idx] = value;
+                            _registers[fp + GET_REG1(instruction)] = array_copy;
+                        }
+
                         break;
+                    }
+
+                    case Bytecode::ArrayCopy: {
+                        auto dst_reg = fp + GET_REG1(instruction);
+                        auto src_reg = fp + GET_REG2(instruction);
+
+                        // Copy the array into the destination register and bump the
+                        // reference count of the source array. This copies the
+                        // pointer but not the array since kore implements
+                        // copy-on-write at runtime
+                        copy(dst_reg, src_reg);
+
+                        auto src_array = _registers[src_reg].as_array();
+                        src_array->heap_header().refcount += 1;
                     }
 
                     case Bytecode::Free: {
@@ -609,6 +647,10 @@ namespace kore {
 
         void Vm::move(Reg dst_reg, Reg src_reg) {
             _registers[dst_reg] = _registers[src_reg];
+        }
+
+        void Vm::copy(Reg dst_reg, Reg src_reg) {
+            _registers[dst_reg] = _registers[src_reg].copy(_heap);
         }
 
         void Vm::add_module(Module& module) {

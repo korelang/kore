@@ -2,6 +2,7 @@
 #define KORE_VALUE_TYPE_HPP
 
 #include "internal_value_types.hpp"
+#include "targets/bytecode/vm/heap.hpp"
 #include "targets/bytecode/vm/values/array_value.hpp"
 #include "targets/bytecode/vm/values/function_value.hpp"
 
@@ -39,8 +40,15 @@ namespace kore {
             } value;
 
             Value();
-
+            Value(const Value& other);
             ~Value();
+
+            Value& operator=(Value& other);
+            Value& operator=(const Value& other);
+            Value& operator=(Value&& other);
+
+            /// Copy a value using a specific heap
+            Value copy(Heap& heap) const;
 
             inline bool as_bool() const {
                 #if KORE_VM_DEBUG
@@ -141,9 +149,10 @@ namespace kore {
             static Value from_f32(f32 value);
             static Value from_f64(f64 value);
             /* static Value from_string(const std::string& str); */
-            static Value allocate_array(std::size_t size);
             static Value from_builtin_function(const BuiltinFunction* builtin);
             static Value from_function(const CompiledObject* const function);
+
+            static Value allocate_array(std::size_t size);
         };
 
         bool operator==(const Value& value1, const Value& value2);

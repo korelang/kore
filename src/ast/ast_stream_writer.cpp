@@ -198,16 +198,6 @@ namespace kore {
         /* newline(); */
     }
 
-    void AstStreamWriter::visit(VariableDeclaration& decl) {
-        write(decl.identifier());
-
-        /* if (decl.type()) { */
-        /*     write(" " + decl.type()->name()); */
-        /* } */
-
-        newline();
-    }
-
     void AstStreamWriter::visit(ExpressionStatement& exprstmt) {
         auto expr = exprstmt.expression();
 

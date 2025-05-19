@@ -174,17 +174,17 @@ namespace kore {
             Owned<Expression> parse_literal();
 
             /// ArrayDecl = Array | ArrayRange | ArrayFill .
-            Owned<Expression> parse_array(const Token* const lbracket_token);
+            Owned<Expression> parse_array(const Token lbracket_token);
 
             /// ArrayFill = "[" Expression ":" Expression "]" .
             Owned<Expression> parse_array_fill_expression(
-                const Token* const lbracket_token,
+                const Token& lbracket_token,
                 Owned<Expression> size_expr
             );
 
             /// Array = "[" [ ExpressionList ] "]" .
             Owned<Expression> parse_normal_array_expression(
-                const Token* const lbracket_token,
+                const Token& lbracket_token,
                 Owned<Expression> first_expr
             );
 

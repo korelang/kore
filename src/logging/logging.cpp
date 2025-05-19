@@ -4,6 +4,7 @@
 
 #include "logging/logging.hpp"
 
+// TODO: Make a logging class instead
 namespace kore {
     /* void log(const char* const format, ...); */
     /* void log(int verbosity, int options_verbosity, const char* const format, ...); */

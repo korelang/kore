@@ -165,18 +165,18 @@ namespace kore {
     }
 
     void AstElementStreamWriter::visit(IfStatement& ifstatement) {
-        write("if " + ifstatement.location().colon_format());
+        write("if " + ifstatement.location().format());
         ifstatement[0]->accept(*this);
 
         for (int i = 1; i < ifstatement.branch_count() - 1; ++i) {
-            write("else if " + ifstatement[i]->location().colon_format());
+            write("else if " + ifstatement[i]->location().format());
             indent();
             ifstatement[i]->accept(*this);
             dedent();
         }
 
         if (ifstatement.has_else_branch()) {
-            write("else " + ifstatement.last_branch()->location().colon_format());
+            write("else " + ifstatement.last_branch()->location().format());
             indent();
             ifstatement.last_branch()->accept(*this);
             dedent();
@@ -184,7 +184,7 @@ namespace kore {
     }
 
     void AstElementStreamWriter::visit(ImportStatement& import) {
-        write("import " + import.identifier()->name() + " " + import.location().colon_format());
+        write("import " + import.identifier()->name() + " " + import.location().format());
         import.identifier()->accept(*this);
         newline();
     }
@@ -235,16 +235,6 @@ namespace kore {
         // newline();
     }
 
-    void AstElementStreamWriter::visit(VariableDeclaration& decl) {
-        write(decl.identifier());
-
-        /* if (decl.type()) { */
-        /*     write(" " + decl.type()->name()); */
-        /* } */
-
-        newline();
-    }
-
     void AstElementStreamWriter::visit(ExpressionStatement& exprstmt) {
         auto expr = exprstmt.expression();
 
@@ -292,7 +282,7 @@ namespace kore {
         if (location.is_unknown()) {
             write(" (unknown location)");
         } else {
-            write(" (" + node.location().colon_format() + ")");
+            write(" (" + node.location().format() + ")");
         }
     }
 }

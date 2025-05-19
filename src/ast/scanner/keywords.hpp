@@ -38,7 +38,8 @@ namespace kore {
         U32,
         U64,
         U8,
-        Var
+        Var,
+        Void
     };
 
     bool is_keyword(const std::string& identifier);

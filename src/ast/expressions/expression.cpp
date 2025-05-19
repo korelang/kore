@@ -1,19 +1,8 @@
 #include "ast/expressions/expression.hpp"
 
 namespace kore {
-    std::ostream& operator<<(std::ostream& os, ExpressionType expr_type) {
-        switch (expr_type) {
-            case ExpressionType::Array:       return os << "array";
-            case ExpressionType::Index:       return os << "index";
-            case ExpressionType::Binary:      return os << "binary";
-            case ExpressionType::Call:        return os << "call";
-            case ExpressionType::FieldAccess: return os << "field_access";
-            case ExpressionType::Identifier:  return os << "identifier";
-            case ExpressionType::Error:       return os << "error";
-            case ExpressionType::Literal:     return os << "literal";
-            case ExpressionType::Parameter:   return os << "parameter";
-            case ExpressionType::Unary:       return os << "unary";
-        }
+    std::ostream& operator<<(std::ostream& os, const Expression& expr) {
+        return os << expr.type_name();
     }
 
     Expression::Expression(ExpressionType type) : _expr_type(type) {}
@@ -42,7 +31,7 @@ namespace kore {
     }
 
     const Type* Expression::type() const {
-        throw std::runtime_error("Called unimplemented Expression::type method");
+        return _type;
     }
 
     void Expression::set_type(const Type* type) {
@@ -51,5 +40,20 @@ namespace kore {
 
     void Expression::set_parenthesised(bool flag) {
         _parenthesised = flag;
+    }
+
+    std::string Expression::type_name() const {
+        switch (this->expr_type()) {
+            case ExpressionType::Array:       return "array";
+            case ExpressionType::Index:       return "index";
+            case ExpressionType::Binary:      return "binary";
+            case ExpressionType::Call:        return "call";
+            case ExpressionType::FieldAccess: return "field_access";
+            case ExpressionType::Identifier:  return "identifier";
+            case ExpressionType::Error:       return "error";
+            case ExpressionType::Literal:     return "literal";
+            case ExpressionType::Parameter:   return "parameter";
+            case ExpressionType::Unary:       return "unary";
+        }
     }
 }

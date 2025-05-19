@@ -15,12 +15,15 @@ namespace kore {
     /// Represents an abstract syntax tree
     class Ast {
         public:
-            using ConstIter = std::vector<Statement::pointer>::const_iterator;
+            using iterator = std::vector<Statement::pointer>::iterator;
+            using const_iterator = std::vector<Statement::pointer>::const_iterator;
 
             Ast();
             Ast(Ast&& ast);
             Ast(const fs::path& path);
             virtual ~Ast();
+
+            Ast& operator=(Ast&& other);
 
             /// The module name for the parsed file
             std::string module_name() const;
@@ -34,10 +37,11 @@ namespace kore {
             /// Add a statement to this AST
             void add_statement(Owned<Statement> statement);
 
-            ConstIter begin() const;
-            ConstIter end() const;
+            iterator begin();
+            iterator end();
 
-            Ast& operator=(Ast&& other);
+            const_iterator begin() const;
+            const_iterator end() const;
 
             /// Write out the AST somewhere
             void write(AstWriter& writer) const;

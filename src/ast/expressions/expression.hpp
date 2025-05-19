@@ -4,11 +4,8 @@
 #include <memory>
 #include <vector>
 
-#include "internal_value_types.hpp"
 #include "pointer_types.hpp"
 #include "ast/ast_node.hpp"
-#include "ast/scanner/token.hpp"
-#include "ast/parser/operator.hpp"
 #include "types/type.hpp"
 #include "types/unknown_type.hpp"
 
@@ -28,8 +25,6 @@ namespace kore {
         Parameter,
         Unary,
     };
-
-    std::ostream& operator<<(std::ostream& os, ExpressionType expr_type);
 
     /// Base class for all expressions
     class Expression : public AstNode {
@@ -52,6 +47,9 @@ namespace kore {
 
             void set_parenthesised(bool flag);
 
+            /// Name of the type of the expression
+            std::string type_name() const;
+
             template<typename T, typename... Args>
             static Owned<T> make(Args... args) {
                 return std::make_unique<T>(std::forward<Args>(args)...);
@@ -69,6 +67,8 @@ namespace kore {
             ExpressionType _expr_type;
             bool _parenthesised;
     };
+
+    std::ostream& operator<<(std::ostream& os, const Expression& expr);
 
     using ExpressionList = std::vector<Owned<Expression>>;
 }

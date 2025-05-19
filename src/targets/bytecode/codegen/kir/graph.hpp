@@ -27,7 +27,9 @@ namespace kore {
                 BasicBlock& operator[](BlockId id);
                 BasicBlock& current_block();
                 void set_current_block(BlockId id);
+                bool empty() const;
                 std::size_t size() const;
+                BasicBlock* last_block();
 
                 bool has_predecessors(BlockId id) const;
                 iterator predecessor_begin(BlockId id);

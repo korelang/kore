@@ -52,10 +52,10 @@ namespace kore {
             }
 
             Error variable_shadows(const Identifier* identifier, const Identifier* shadowed, const SourceLocation& location, const SourceLocation& prev_location) {
-                std::string message = "variable '" + identifier->name() + "' at (" + location.colon_format() + ") shadows variable ";
+                std::string message = "variable '" + identifier->name() + "' at (" + location.format() + ") shadows variable ";
 
                 if (shadowed) {
-                    message += "'" + shadowed->name() + "' (at " + prev_location.colon_format() + ")";
+                    message += "'" + shadowed->name() + "' (at " + prev_location.format() + ")";
                 } else {
                     message += "in outer scope";
                 }
@@ -78,7 +78,7 @@ namespace kore {
             }
 
             Error cannot_assign_global_variable(const Identifier* identifier, const Identifier* shadowed, const SourceLocation& location, const SourceLocation& prev_location) {
-                std::string message = "assignment of '" + identifier->name() + "' at (" + location.colon_format() + ") cannot assign to global variable '" + shadowed->name() + "' previously declared at (" + std::to_string(prev_location.lnum()) + ")";
+                std::string message = "assignment of '" + identifier->name() + "' at (" + location.format() + ") cannot assign to global variable '" + shadowed->name() + "' previously declared at (" + std::to_string(prev_location.start_line()) + ")";
 
                 return Error(ErrorType::Typing, message, location);
             }
@@ -144,10 +144,10 @@ namespace kore {
 
     std::string format_locations(const SourceLocation& start) {
         std::ostringstream oss;
-        oss << start.lnum() << ":" << start.start();
+        oss << start.start_line() << ":" << start.start_col();
 
-        if (!start.is_single_pos()) {
-            oss << "-" << start.end();
+        if (!start.is_single_col()) {
+            oss << "-" << start.end_col();
         }
 
         return oss.str();
@@ -191,7 +191,7 @@ namespace kore {
     }
 
     std::string format_error_at_line(const std::string& line, const SourceLocation& location) {
-        return format_error_at_line(line, location.start(), location.end());
+        return format_error_at_line(line, location.start_col(), location.end_col());
     }
 
     std::string format_error(
@@ -222,7 +222,7 @@ namespace kore {
         const std::string& line,
         const SourceLocation& location
     ) {
-        return format_error(msg, line, location.lnum(), location.start(), location.end());
+        return format_error(msg, line, location.start_line(), location.start_col(), location.end_col());
     }
 
     void throw_error_for_line(

@@ -4,7 +4,7 @@
 #include "type.hpp"
 
 namespace kore {
-    /// An unknown type to be inferred by the typechecker
+    /// An unknown type to be inferred by the type inference pass
     class UnknownType : public Type {
         public:
             UnknownType();
