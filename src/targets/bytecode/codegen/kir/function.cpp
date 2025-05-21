@@ -1,5 +1,4 @@
 #include <algorithm>
-#include <numeric>
 
 #include "ast/expressions/expressions.hpp"
 #include "ast/statements/statements.hpp"
@@ -126,19 +125,6 @@ namespace kore {
             _max_regs_used = std::max(_max_regs_used, _reg_count);
 
             return regs;
-        }
-
-        RegisterState Function::register_state(Reg reg) {
-            auto bb = _graph.current_block();
-            auto entry = _register_states[bb.id].find(reg);
-
-            if (entry != _register_states[bb.id].end()) {
-                // We already determined the state of the register in this block
-                return entry->second;
-            }
-
-            // TODO
-            return RegisterState::Available;
         }
 
         const Type* Function::register_type(Reg reg) {

@@ -3,7 +3,7 @@
 #include "bin/korec/options.hpp"
 #include "compiler/config.hpp"
 #include "compiler/passes/passes.hpp"
-#include "targets/bytecode/codegen/bytecode_codegen2.hpp"
+#include "targets/bytecode/codegen/bytecode_generator.hpp"
 #include "targets/bytecode/passes/kir_pass.hpp"
 #include "ast/parser/parser.hpp"
 #include "types/type_checker.hpp"
@@ -67,7 +67,7 @@ namespace kore {
         return Pass {
             "codegen:bytecode",
             [](PassContext& context) {
-                BytecodeGenerator2 code_generator;
+                BytecodeGenerator code_generator;
 
                 context.buffers.push_back(code_generator.generate(context.kir));
 

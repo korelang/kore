@@ -128,7 +128,7 @@ set(KORE_TARGETS_BYTECODE_SOURCES
     ${PROJECT_SOURCE_DIR}/src/targets/bytecode/module_loader.cpp
     ${PROJECT_SOURCE_DIR}/src/targets/bytecode/codegen/bytecode.cpp
     ${PROJECT_SOURCE_DIR}/src/targets/bytecode/codegen/bytecode_array_writer.cpp
-    ${PROJECT_SOURCE_DIR}/src/targets/bytecode/codegen/bytecode_codegen2.cpp
+    ${PROJECT_SOURCE_DIR}/src/targets/bytecode/codegen/bytecode_generator.cpp
     ${PROJECT_SOURCE_DIR}/src/targets/bytecode/disassemble/decode_instruction.cpp
     ${PROJECT_SOURCE_DIR}/src/targets/bytecode/module_load_error.cpp
     ${PROJECT_SOURCE_DIR}/src/targets/bytecode/disassemble/instruction.cpp

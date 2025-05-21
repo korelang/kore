@@ -5,7 +5,6 @@
 #include "ast/statements/function.hpp"
 #include "targets/bytecode/codegen/kir/graph.hpp"
 #include "targets/bytecode/codegen/kir/instruction.hpp"
-#include "targets/bytecode/codegen/kir/register_state.hpp"
 #include "targets/bytecode/register.hpp"
 
 namespace kore {
@@ -30,7 +29,6 @@ namespace kore {
                 void free_register(Reg reg);
                 void free_registers();
                 void free_registers(const std::vector<Reg> ret_regs);
-                RegisterState register_state(Reg reg);
                 const Type* register_type(Reg reg);
 
                 void emit_reg1(Bytecode opcode, Reg reg);
@@ -74,9 +72,6 @@ namespace kore {
                 // register count
                 int _reg_count = 0;
                 int _max_regs_used = 0;
-
-                // The state of a register in a basic block
-                std::unordered_map<BlockId, std::unordered_map<Reg, RegisterState>> _register_states;
 
                 // The type contained in a given register, this is important
                 // when checking if we need to or can free what is stored in it

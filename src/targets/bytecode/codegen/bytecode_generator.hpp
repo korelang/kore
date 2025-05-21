@@ -2,34 +2,25 @@
 #define KORE_BYTECODE_GENERATOR_HPP
 
 #include <map>
-#include <memory>
-#include <set>
 #include <vector>
 
-#include "ast/expressions/string_expression.hpp"
-#include "ast/ast.hpp"
-#include "targets/bytecode/codegen/bytecode.hpp"
-#include "targets/bytecode/codegen/bytecode_array_writer.hpp"
 #include "targets/bytecode/codegen/kir/block_id.hpp"
 #include "targets/bytecode/codegen/kir/function.hpp"
 #include "targets/bytecode/codegen/kir/kir.hpp"
-#include "targets/bytecode/compiled_object.hpp"
-#include "targets/bytecode/module.hpp"
 #include "targets/bytecode/register.hpp"
 #include "targets/bytecode/vm/value_type.hpp"
-#include "types/scope.hpp"
 
 namespace kore {
     class Module;
 
     /// Class for generating bytecode from KIR graphs
-    class BytecodeGenerator2 final {
+    class BytecodeGenerator final {
         public:
             using reg_iterator = std::vector<Reg>::iterator;
 
         public:
-            BytecodeGenerator2();
-            virtual ~BytecodeGenerator2();
+            BytecodeGenerator();
+            virtual ~BytecodeGenerator();
 
             std::vector<std::uint8_t> generate(kir::Kir& kir);
 

@@ -1,7 +1,6 @@
 #ifndef KOREDIS_DECODE_INSTRUCTION_HPP
 #define KOREDIS_DECODE_INSTRUCTION_HPP
 
-#include "targets/bytecode/codegen/bytecode_codegen.hpp"
 #include "targets/bytecode/compiled_object.hpp"
 #include "targets/bytecode/disassemble/instruction.hpp"
 #include "targets/bytecode/module_load_error.hpp"

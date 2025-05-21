@@ -300,12 +300,7 @@ namespace kore {
     }
 
     void Parser::parse_import_decl() {
-        parse_import_spec();
-    }
-
-    void Parser::parse_import_spec() {
-        if (current_token()->type() != TokenType::Identifier) {
-            emit_parser_error("Expected an identifier after 'import' keyword");
+        if (!expect_identifier("Expected an identifier after 'import' keyword")) {
             return;
         }
 
@@ -974,25 +969,26 @@ namespace kore {
     Owned<Identifier> Parser::parse_maybe_qualified_identifier() {
         trace_parser("identifier");
 
-        std::vector<std::string> identifier;
+        std::vector<std::string> identifier_parts;
         auto token = current_token();
+        auto start_location = token->location();
+        SourceLocation end_location;
 
-        do {
-            if (token->is_identifier()) {
-                identifier.emplace_back(token->value());
-                token = next_token();
+        while (token->is_identifier()) {
+            identifier_parts.emplace_back(token->value());
+            end_location = token->location();
+            token = next_token();
 
-                if (token->type() != TokenType::Dot) {
-                    break;
-                }
-
-                token = next_token();
-            } else {
+            if (token->type() != TokenType::Dot) {
                 break;
             }
-        } while (true);
 
-        return Expression::make<Identifier>(identifier, token->location());
+            token = next_token();
+        }
+
+        start_location.merge(end_location);
+
+        return Expression::make<Identifier>(identifier_parts, start_location);
     }
 
     Owned<Expression> Parser::parse_unary_expression() {

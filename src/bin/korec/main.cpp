@@ -1,7 +1,5 @@
-#include <array>
 #include <filesystem>
 #include <iostream>
-#include <sstream>
 
 #include "ast/ast_element_stream_writer.hpp"
 #include "ast/ast_stream_writer.hpp"
@@ -13,13 +11,6 @@
 #include "compiler/passes/passes.hpp"
 #include "compiler/passes/passes.hpp"
 #include "logging/logging.hpp"
-#include "pointer_types.hpp"
-#include "targets/bytecode/bytecode_format_writer.hpp"
-#include "targets/bytecode/codegen/bytecode_codegen.hpp"
-#include "targets/bytecode/vm/vm.hpp"
-#include "types/scope.hpp"
-#include "types/type_checker.hpp"
-#include "types/type_inferrer.hpp"
 #include "utils/debug_time.hpp"
 #include "version.hpp"
 

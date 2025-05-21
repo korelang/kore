@@ -1,12 +1,5 @@
-#include "targets/bytecode/codegen/bytecode_codegen2.hpp"
-#include "targets/bytecode/codegen/kir/block_id.hpp"
-#include "targets/bytecode/codegen/kir/graph.hpp"
-#include "targets/bytecode/codegen/kir/instruction.hpp"
-#include "targets/bytecode/register.hpp"
+#include "targets/bytecode/codegen/bytecode_generator.hpp"
 #include "utils/endian.hpp"
-
-#include <queue>
-#include <variant>
 
 #define KORE_MAKE_INSTRUCTION0(opcode) (\
     ((opcode & OPCODE_BITMASK) << OPCODE_SHIFT)\
@@ -113,11 +106,11 @@ namespace kore {
         return _binop_map2[type_category][binop];
     }
 
-    BytecodeGenerator2::BytecodeGenerator2() {}
+    BytecodeGenerator::BytecodeGenerator() {}
 
-    BytecodeGenerator2::~BytecodeGenerator2() {}
+    BytecodeGenerator::~BytecodeGenerator() {}
 
-    std::vector<std::uint8_t> BytecodeGenerator2::generate(kir::Kir& kir) {
+    std::vector<std::uint8_t> BytecodeGenerator::generate(kir::Kir& kir) {
         _buffer.clear();
 
         // Magic bytes + compiler and bytecode versions
@@ -141,7 +134,7 @@ namespace kore {
         return _buffer;
     }
 
-    void BytecodeGenerator2::write_value(const vm::Value& value) {
+    void BytecodeGenerator::write_value(const vm::Value& value) {
         switch (value.tag) {
             case vm::ValueTag::I32:
                 write_be32(value.as_i32());
@@ -153,7 +146,7 @@ namespace kore {
         }
     }
 
-    void BytecodeGenerator2::write_constant_table(const ConstantTable& table) {
+    void BytecodeGenerator::write_constant_table(const ConstantTable& table) {
         write_be32(static_cast<std::uint32_t>(table.size()));
 
         for (auto it = table.sorted_cbegin(); it < table.sorted_cend(); ++it) {
@@ -162,7 +155,7 @@ namespace kore {
         }
     }
 
-    void BytecodeGenerator2::generate_for_module(const kir::Module& module) {
+    void BytecodeGenerator::generate_for_module(const kir::Module& module) {
         write_be32(module.index());
         write_string(module.path());
 
@@ -176,7 +169,7 @@ namespace kore {
         }
     }
 
-    void BytecodeGenerator2::generate_for_function(const kir::Function& function) {
+    void BytecodeGenerator::generate_for_function(const kir::Function& function) {
         write_string(function.name());
 
         auto location = function.location();
@@ -217,7 +210,7 @@ namespace kore {
         }
     }
 
-    void BytecodeGenerator2::generate_for_block(kir::BasicBlock& block) {
+    void BytecodeGenerator::generate_for_block(kir::BasicBlock& block) {
         // TODO: This only works if the basic blocks are sequentially ordered
         _block_offsets[block.id] = _buffer.size();
 
@@ -226,7 +219,7 @@ namespace kore {
         }
     }
 
-    void BytecodeGenerator2::generate_for_instruction(kir::Instruction& instruction) {
+    void BytecodeGenerator::generate_for_instruction(kir::Instruction& instruction) {
         auto opcode = instruction.opcode;
 
         if (auto ins_type = std::get_if<kir::OneRegister>(&instruction.type)) {
@@ -293,11 +286,11 @@ namespace kore {
         }
     }
 
-    void BytecodeGenerator2::save_patch_location(kir::BlockId target_block_id) {
+    void BytecodeGenerator::save_patch_location(kir::BlockId target_block_id) {
         _patch_locations.push_back({ _buffer.size(), target_block_id });
     }
 
-    void BytecodeGenerator2::patch_jumps() {
+    void BytecodeGenerator::patch_jumps() {
         for (auto [location, target_block_id] : _patch_locations) {
             auto relative_offset = _block_offsets[target_block_id] - location;
 
@@ -309,19 +302,19 @@ namespace kore {
         }
     }
 
-    void BytecodeGenerator2::write_bytes(const std::string& str) {
+    void BytecodeGenerator::write_bytes(const std::string& str) {
         _buffer.insert(_buffer.end(), str.cbegin(), str.cend());
     }
 
-    void BytecodeGenerator2::write_bytes(std::vector<std::uint8_t>& bytes) {
+    void BytecodeGenerator::write_bytes(std::vector<std::uint8_t>& bytes) {
         _buffer.insert(_buffer.end(), bytes.cbegin(), bytes.cend());
     }
 
-    void BytecodeGenerator2::write_bytes(std::initializer_list<std::uint8_t> bytes) {
+    void BytecodeGenerator::write_bytes(std::initializer_list<std::uint8_t> bytes) {
         _buffer.insert(_buffer.end(), bytes);
     }
 
-    void BytecodeGenerator2::write_aligned_bytes(std::vector<std::uint8_t>& bytes, int alignment) {
+    void BytecodeGenerator::write_aligned_bytes(std::vector<std::uint8_t>& bytes, int alignment) {
         int padding = bytes.size() % alignment;
 
         if (padding > 0) {
@@ -342,7 +335,7 @@ namespace kore {
         // }
     }
 
-    void BytecodeGenerator2::write_string(const std::string& str) {
+    void BytecodeGenerator::write_string(const std::string& str) {
         if (str.empty()) {
             throw std::runtime_error("Attempt to write empty string");
         }
@@ -359,7 +352,7 @@ namespace kore {
         write_bytes(str);
     }
 
-    void BytecodeGenerator2::write_raw(std::uint32_t value) {
+    void BytecodeGenerator::write_raw(std::uint32_t value) {
         _buffer.insert(
             _buffer.end(),
             {
@@ -371,7 +364,7 @@ namespace kore {
         );
     }
 
-    void BytecodeGenerator2::write_be32(std::uint32_t value) {
+    void BytecodeGenerator::write_be32(std::uint32_t value) {
         ::kore::write_be32(value, _buffer);
     }
 }
